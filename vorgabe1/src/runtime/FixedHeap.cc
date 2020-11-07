@@ -1,24 +1,44 @@
-#include "FixedHeap.cc"
-#include "../include/runtime/Heap.h"
+#include "../system/FixedMemory.cc"
+#include "runtime/Heap.h"
 #include <stdlib.h>
 #include <cstdio>
 #include <stdio.h>
 
 
-
-
-template <size_t size> class FixedHeap: public Heap
+template <size_t blockSize> class FixedHeap: public Heap
 {
     public:
         
-        Fixedheap(FixedMemory fMem)
+        FixedHeap(FixedMemory fMem)
         {
-           this->memory = fmem 
+           this->memory = fMem;
+           this->freeBlocks = new list <int>();
+           initBlockList();
+        }
+
+        void* alloc(size_t size)
+        {
+                return this->memory.alloc(size_t);
+        }
+
+        void free(void* address)
+        {
+                this->memory.free(address);
         }
         
         
         
-private:
-        size_t blockSize = size;
+    private:
+
+        void initBlockList(){
+                this-> freeBlocks = new list void*();
+
+                for(int i = 0;i+blockSize; i < this->memory.getSize())
+                {
+                        freeBlocks.push_back((int)memory.getStart() + i);
+                }
+        }
+
+        list <int> freeBlocks;
     
-}
+};
