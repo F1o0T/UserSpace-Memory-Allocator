@@ -1,28 +1,25 @@
-#include "../include/system/Memory.h"
-#include <stdlib.h>
-#include <cstdio>
-#include <stdio.h>
-#include <list>
-using namespace std;
+#include "system/FixedMemory.h"
 
+//M= size of Memory
+template <int M>
+FixedMemory<M>:: FixedMemory(){
+    this->size = M;
+    this->start = malloc(M);
+}
 
-template <size_t fixSize> class FixedMemory: public Memory{
-    public:
+template <int M>
+void* FixedMemory<M>::getStart() {
+	return this -> memblock;
+}
 
-        FixedMemory(){
-            this->size = fixSize;
-            this->start = malloc(this->size);
+template <int M>
+size_t FixedMemory<M>::getSize() {
+	return this -> memsize;
+}
 
-            printf("memory at ");
-            printf("%p", getStart());
-            printf(" with size of ");
-            printf("%zu",getSize());
-            printf(" was allocated\n");
+template <int M>
+void* FixedMemory<M>::expand(size_t size) {
+	return 0;
+}
 
-        }
-
-    void* expand(size_t size){
-        return NULL;
-    }
-};
 

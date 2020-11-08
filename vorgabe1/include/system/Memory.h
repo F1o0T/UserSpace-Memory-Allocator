@@ -13,17 +13,13 @@ class Memory {
          * Get start address of the reserved memory region.
          * @return start address
          */
-        void* getStart(){
-            return this->start;
-        }
+        virtual void* getStart() = 0;
 
         /**
          * Get size of the memory region.
          * @return size in bytes
          */
-        size_t getSize(){
-            return this->size;
-        }
+        virtual size_t getSize() = 0;
 
         /**
          * Expansion request for the memory.
@@ -32,10 +28,6 @@ class Memory {
          * @return start address of expansion area, null if expansion failed
          */
         virtual void* expand(size_t size) = 0;
-    
-    protected:
-        void* start;
-        size_t size;
 };
 
 #endif

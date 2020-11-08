@@ -1,4 +1,4 @@
-DrawingWindow.o: ../src/gui/DrawingWindow.cc /usr/include/stdc-predef.h \
+main.o: ../src/main.cc /usr/include/stdc-predef.h \
  /usr/include/c++/9/iostream \
  /usr/include/x86_64-linux-gnu/c++/9/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/9/bits/os_defines.h \
@@ -134,12 +134,5 @@ DrawingWindow.o: ../src/gui/DrawingWindow.cc /usr/include/stdc-predef.h \
  /usr/include/c++/9/bits/locale_facets.tcc \
  /usr/include/c++/9/bits/basic_ios.tcc \
  /usr/include/c++/9/bits/ostream.tcc /usr/include/c++/9/istream \
- /usr/include/c++/9/bits/istream.tcc /usr/include/X11/Xutil.h \
- /usr/include/X11/Xlib.h /usr/include/X11/X.h \
- /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h \
- /usr/include/X11/keysym.h /usr/include/X11/keysymdef.h \
- ../include/gui/DrawingWindow.h /usr/include/c++/9/list \
- /usr/include/c++/9/bits/stl_list.h \
- /usr/include/c++/9/bits/allocated_ptr.h \
- /usr/include/c++/9/ext/aligned_buffer.h /usr/include/c++/9/bits/list.tcc \
- ../include/thread/Thread.h ../include/misc/debug.h
+ /usr/include/c++/9/bits/istream.tcc ../include/system/FixedMemory.h \
+ ../include/system/Memory.h
