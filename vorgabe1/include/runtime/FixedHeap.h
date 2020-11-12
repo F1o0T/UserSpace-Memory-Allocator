@@ -7,10 +7,11 @@
 template <int N>
 class FixedHeap:public Heap {
 public:
-	FixedHeap(FixedMemory);
-//		bool list[(memory.getSize())/N] = {1};
-//		this -> blocklist = liste;
-//	}
+	
+	FixedHeap() {
+		//bool list[M/N] = {1};
+		//this -> blocklist = list;
+	}
 	
 	void* alloc(size_t size);
 	

@@ -3,7 +3,8 @@
 SRC_FILES = \
 	gui/DrawingWindow.cc \
 	runtime/FixedHeap.cc \
-	system/FixedMemory.cc
+	system/FixedMemory.cc \
+	system/B.cc
 	
 
 	

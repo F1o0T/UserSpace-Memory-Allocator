@@ -3,9 +3,11 @@
 
 #include "system/Memory.h"
 
-template <int N>
+template <int M>
 class FixedMemory:public Memory {
 public:
+	FixedMemory();
+	
 	void* getStart();
 	
 	size_t getSize();
@@ -13,7 +15,7 @@ public:
 	void* expand(size_t size);
 	
 private:
-	int memblock[N];
+	int memblock[M];
 };
 
 #endif

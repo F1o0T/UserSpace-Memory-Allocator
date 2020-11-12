@@ -1,16 +1,21 @@
 #include "system/FixedMemory.h"
 
-template <int N>
-void* FixedMemory<N>::getStart() {
+template <int M>
+FixedMemory<M>::FixedMemory() {
+	
+}
+
+template <int M>
+void* FixedMemory<M>::getStart() {
 	return this -> memblock;
 }
 
-template <int N>
-size_t FixedMemory<N>::getSize() {
-	return (size_t) N;
+template <int M>
+size_t FixedMemory<M>::getSize() {
+	return (size_t) M;
 }
 
-template <int N>
-void* FixedMemory<N>::expand(size_t size) {
+template <int M>
+void* FixedMemory<M>::expand(size_t size) {
 	return 0;
 }
