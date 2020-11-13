@@ -1,10 +1,7 @@
 #author Matthias Noack <Ma.Noack@tu-cottbus.de>
 
 SRC_FILES = \
-	gui/DrawingWindow.cc \
-	runtime/FixedHeap.cc \
-	system/FixedMemory.cc \
-	system/B.cc
+	gui/DrawingWindow.cc
 	
 
 	

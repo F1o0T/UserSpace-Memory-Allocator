@@ -1,8 +1,7 @@
 #include <iostream>
 #include "gui/DrawingWindow.h"
-//#include "runtime/FixedHeap.h"
-//#include "system/FixedMemory.h"
-#include "system/B.h"
+#include "runtime/FixedHeap.h"
+#include "system/FixedMemory.h"
 
 using namespace std;
 using namespace GUI;
@@ -22,11 +21,15 @@ int main(int argc, char** argv)
     
     window.drawText(10,200,"test");
 	
-	//FixedMemory<1024> mem;
-	//FixedMemory<4> mem2;
-	//FixedHeap<sizeof(int)> heap(/*mem*/);
-	//cout << mem.getStart() << endl;
-	B<4> bi;
+	FixedMemory<1024> mem;
+	FixedHeap<sizeof(int)> heap(mem);
+	
+	cout << mem.getSize() << endl;
+	cout << heap.getList() << endl;
+	/*
+	for (int i = 0; i < (int) (2*(mem.getSize()/sizeof(int))); i++) {
+		cout << heap.getList(i) << endl;
+	}*/
 
 	// run until user presses q on console
 	char input = ' ';

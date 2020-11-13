@@ -6,16 +6,24 @@
 template <int M>
 class FixedMemory:public Memory {
 public:
-	FixedMemory();
+	FixedMemory() {
+		this -> memblock = malloc(M);
+	}
 	
-	void* getStart();
+	void* getStart() {
+		return this -> memblock;
+	}
 	
-	size_t getSize();
+	size_t getSize() {
+		return (size_t) M;
+	}
 	
-	void* expand(size_t size);
+	void* expand(size_t size) {
+		return 0;
+	}
 	
 private:
-	int memblock[M];
+	void* memblock;
 };
 
 #endif
