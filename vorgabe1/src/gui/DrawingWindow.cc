@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <X11/Xutil.h>
+#include <unistd.h>
 #include "gui/DrawingWindow.h"
 #include "misc/debug.h"
 
