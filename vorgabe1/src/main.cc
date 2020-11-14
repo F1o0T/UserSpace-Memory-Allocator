@@ -24,9 +24,16 @@ int main(int argc, char** argv)
 	FixedMemory<1024> mem;
 	FixedHeap<sizeof(int)> heap(mem);
 	
-	cout << mem.getSize() << endl;
-	cout << heap.getBlockCount() << endl;
-	cout << sizeof(int) << endl;
+	cout << "Anzahl der Bytes des gesamten Speichers: " << mem.getSize() << endl;
+	cout << "Anzahl der Bloecke: " << heap.getBlockCount() << endl;
+
+	heap.alloc(8);
+	cout << "Anzahl der freien Bloecke nach alloc: " << heap.freeBlocks() << endl;
+	for(int i = 0; i < 9;i++){
+		cout << heap.getList(i) << endl;
+	}
+	heap.free(mem.getStart());
+	cout << "Anzahl der freien Bloecke nach free: " << heap.freeBlocks() << endl;
 
 	//for(int i = 0; i < heap.getBlockCount(); i++){
 	//	cout << heap.getList(i) << endl;

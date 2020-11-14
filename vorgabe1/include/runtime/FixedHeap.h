@@ -15,12 +15,8 @@ public:
 		int blocklistlength = (int) (memory.getSize()/N);
 		blocklistlength *=2;
 
-		for(int i = 0; i < blocklistlength; i++){//Schleife um abwechselnd true und false einzufuegen
-			if(i % 2 == 0){
-				blocklist.push_back(true);
-			}else{
+		for(int i = 0; i < blocklistlength; i++){//Schleife um Startwerte zu belegen
 				blocklist.push_back(false);
-			}
 		}
 	}
 	
@@ -41,7 +37,7 @@ public:
 			int numberofblocks = size/N;
 			int count = 0;
 			
-			for (int i = 0; i < blocklist.size(); i+=8) {
+			for (int i = 0; i < blocklist.size(); i+=2) {
 				if (blocklist[i] == 0) {
 					count++;
 				} else {
@@ -50,12 +46,13 @@ public:
 				
 				if (count == numberofblocks) {
 					count *= 2;
+
 					i = (i+2) - count;
 					for (int j = i; j < i + (count-1); j++) {
 						blocklist[j] = 1;
 					}
 					
-					return memory.getStart() + ((i/2) * N);
+					return ((char*) memory.getStart()) + ((i/2) / N);
 				}
 			}
 		}
@@ -65,15 +62,35 @@ public:
 	}
 	
 	void free(void* address) {
-		int pos = (char*) (memory.getStart()) - (char*) address;//Abstand in Bytes;
-		pos = pos/N;//Abstand in Bloecken
-		blocklist[pos] = 1;
-		while (blocklist[pos +1] == 1){
-			blocklist[pos +1] = 0;		//setzt Beziehung falls vorhanden auf 0
-			pos += 2;
-			blocklist[pos] = 1;			//setzt Block wieder auf 1
+		cout << address << endl;
+		cout << memory.getStart() << endl;
+		char* start = (char*) (memory.getStart());
+		char* dest = (char*) address;
+		int count = 0;
+		while(start != dest){
+			start = start + 1; //um ein Byte erhöhen
+			count +=1;  		//CounterAnzahl der erhöhten Bytes
+		}
+		count = count/N; //Umrechnung in Anzahl Bloecke
+		blocklist[count] = 0;
+		while (blocklist[count +1] == 1){
+			blocklist[count +1] = 0;		//setzt Beziehung falls vorhanden auf 0
+			count += 2;
+			blocklist[count] = 0;			//setzt Block wieder auf frei
 		}
 
+	}
+
+	size_t freeBlocks(){
+		size_t count = 0;
+		for(int i=0; i < blocklist.size(); i++){
+			if(i % 2 == 0){
+				if(blocklist[i] == 0){
+					count++;
+				}
+			}
+		}
+		return count;
 	}
 	
 
