@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	FixedHeap<sizeof(int)> heap(mem);
 	
 	cout << mem.getSize() << endl;
-	cout << heap.getList() << endl;
+	cout << heap.getListSize() << endl;
 	/*
 	for (int i = 0; i < (int) (2*(mem.getSize()/sizeof(int))); i++) {
 		cout << heap.getList(i) << endl;

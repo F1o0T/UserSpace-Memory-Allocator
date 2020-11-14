@@ -24,8 +24,9 @@ public:
 		}
 	}
 	
-	int getList() {
-		return sizeof(blocklist[5]);
+
+	int getListSize() {
+		return blocklist.size();
 	}
 	
 	bool getList(int i) {
@@ -64,8 +65,8 @@ public:
 	}
 	
 	void free(void* address) {
-		int pos = (static_cast<char *>memory.getStart()) - (static_cast<char *>address)//Abstand in Bytes;
-		int pos = pos/N;//Abstand der Bloecke
+		int pos = (char*) (memory.getStart()) - (char*) address;//Abstand in Bytes;
+		pos = pos/N;//Abstand der Bloecke
 		blocklist[pos] = 1;
 		while (blocklist[pos +1] == 1){
 			blocklist[pos +1] = 0;		//setzt Beziehung falls vorhanden auf 0
