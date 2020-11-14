@@ -16,7 +16,7 @@ public:
 		blocklistlength *=2;
 
 		for(int i = 0; i < blocklistlength; i++){//Schleife um abwechselnd true und false einzufuegen
-			if(blocklistlength % 2 == 0){
+			if(i % 2 == 0){
 				blocklist.push_back(true);
 			}else{
 				blocklist.push_back(false);
@@ -25,8 +25,8 @@ public:
 	}
 	
 
-	int getListSize() {
-		return blocklist.size();
+	int getBlockCount() {
+		return blocklist.size()/2;
 	}
 	
 	bool getList(int i) {
@@ -66,7 +66,7 @@ public:
 	
 	void free(void* address) {
 		int pos = (char*) (memory.getStart()) - (char*) address;//Abstand in Bytes;
-		pos = pos/N;//Abstand der Bloecke
+		pos = pos/N;//Abstand in Bloecken
 		blocklist[pos] = 1;
 		while (blocklist[pos +1] == 1){
 			blocklist[pos +1] = 0;		//setzt Beziehung falls vorhanden auf 0
