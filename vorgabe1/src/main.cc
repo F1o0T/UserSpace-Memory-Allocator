@@ -2,6 +2,7 @@
 #include "gui/DrawingWindow.h"
 #include "runtime/FixedHeap.h"
 #include "system/FixedMemory.h"
+#include <vector>
 
 using namespace std;
 using namespace GUI;
@@ -24,10 +25,11 @@ int main(int argc, char** argv)
 	FixedMemory<1024> mem;
 	FixedHeap<sizeof(int)> heap(mem);
 	
-	cout << mem.getSize() << endl;
-	cout << heap.getList() << endl;
+	heap.alloc(sizeof(int)*10);
+	//cout << mem.getSize() << endl;
+	//cout << heap.getList() << endl;
 	/*
-	for (int i = 0; i < (int) (2*(mem.getSize()/sizeof(int))); i++) {
+	for (int i = 0; i < (int) (1024/sizeof(int)); i++) {
 		cout << heap.getList(i) << endl;
 	}*/
 

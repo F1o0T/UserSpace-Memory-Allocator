@@ -3,19 +3,24 @@
 
 #include "runtime/Heap.h"
 #include "system/FixedMemory.h"
+#include <vector>
+
 
 template <int N>
 class FixedHeap:public Heap {
 public:
 	
 	FixedHeap(Memory& memory) : Heap(memory) {
-		bool* array = (bool*) calloc(2*(memory.getSize()/N), sizeof(bool));
-		if (array == NULL) {/* noch was machen*/}
-		this -> blocklist = array;
+		int blocklistlength = (int) (2*(memory.getSize()/N));
+		blocklistlength--;
+		
+		for (int i = 0; i < blocklistlength; i++) {
+			blocklist.push_back(false);
+		}
 	}
 	
-	int getList() {
-		return sizeof(blocklist[5]);
+	int getBlockCount() {
+		return (blocklist.size() + 1) / 2;
 	}
 	
 	bool getList(int i) {
@@ -29,21 +34,25 @@ public:
 			int numberofblocks = size/N;
 			int count = 0;
 			
-			for (int i = 0; i < (int) (2*((memory.getSize())/N)); i+2) {
+			//suchen der ersten passenden Spalte
+			for (int i = 0; i < (int) blocklist.size(); i += 2) {
 				if (blocklist[i] == 0) {
 					count++;
 				} else {
 					count = 0;
 				}
 				
+				//Spalte wurde gefunden, sonst error
 				if (count == numberofblocks) {
 					count *= 2;
 					i = (i+2) - count;
+					
+					//alle zugehörigen Blöcke auf 1 stellen
 					for (int j = i; j < i + (count-1); j++) {
 						blocklist[j] = 1;
 					}
 					
-					return memory.getStart() + ((i/2) * N);
+					return ((char*) memory.getStart()) + ((i/2) * N);
 				}
 			}
 		}
@@ -52,10 +61,38 @@ public:
 	}
 	
 	void free(void* address) {
+		char* start = (char*) (memory.getStart());
+		char* obj = (char*) address;
+		int count = 0;
+		
+		//finden des angegebenen Blockes
+		for (int i = 0; i <= getBlockCount(); i++) {
+			//gehen Blockweise durch
+			start += N;
+			count += 2;
+			
+			if (start == obj) {
+				break;
+			}
+		}
+		
+		//backtracken und Fehlersuche (simpel gehalten)
+		
+		//wenn kein passender Block gefunden wurde oder nicht das erste Element ist
+		if (count > blocklist.size()-1 || blocklist[count-1] == 1) {
+			//Error
+			return;
+		}
+		
+		//finden aller zusammenhängender Blöcke
+		while (blocklist[count] == 1 && count <= blocklist.size()-1) {
+			blocklist[count] = 0;
+			count++;
+		}
 	}
 	
 private:
-	bool* blocklist;
+	vector<bool> blocklist;
 };
 
 #endif
