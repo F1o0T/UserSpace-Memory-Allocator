@@ -12,17 +12,16 @@ public:
 	
 	
 	FixedHeap(Memory& memory) : Heap(memory) {
-		int blocklistlength = (int) (memory.getSize()/N);
-		blocklistlength *=2;
-
-		for(int i = 0; i < blocklistlength; i++){//Schleife um Startwerte zu belegen
-				blocklist.push_back(false);
+		int blocklistlength = (int) (2*(memory.getSize()/N));
+		blocklistlength--;
+		
+		for (int i = 0; i < blocklistlength; i++) {
+			blocklist.push_back(false);
 		}
 	}
 	
-
 	int getBlockCount() {
-		return blocklist.size()/2;
+		return (blocklist.size() + 1) / 2;
 	}
 	
 	bool getList(int i) {
@@ -37,22 +36,26 @@ public:
 			int numberofblocks = size/N;
 			int count = 0;
 			
-			for (int i = 0; i < blocklist.size(); i+=2) {
+			//suchen der ersten passenden Spalte
+			for (int i = 0; i < (int) blocklist.size(); i += 2) {
 				if (blocklist[i] == 0) {
 					count++;
 				} else {
 					count = 0;
 				}
 				
+				//Spalte wurde gefunden, sonst error
 				if (count == numberofblocks) {
 					count *= 2;
 
 					i = (i+2) - count;
+					
+					//alle zugehörigen Blöcke auf 1 stellen
 					for (int j = i; j < i + (count-1); j++) {
 						blocklist[j] = 1;
 					}
 					
-					return ((char*) memory.getStart()) + ((i/2) / N);
+					return ((char*) memory.getStart()) + ((i/2) * N);
 				}
 			}
 		}
@@ -62,23 +65,34 @@ public:
 	}
 	
 	void free(void* address) {
-		cout << address << endl;
-		cout << memory.getStart() << endl;
 		char* start = (char*) (memory.getStart());
-		char* dest = (char*) address;
+		char* obj = (char*) address;
 		int count = 0;
-		while(start != dest){
-			start = start + 1; //um ein Byte erhöhen
-			count +=1;  		//CounterAnzahl der erhöhten Bytes
-		}
-		count = count/N; //Umrechnung in Anzahl Bloecke
-		blocklist[count] = 0;
-		while (blocklist[count +1] == 1){
-			blocklist[count +1] = 0;		//setzt Beziehung falls vorhanden auf 0
+		
+		//finden des angegebenen Blockes
+		for (int i = 0; i <= getBlockCount(); i++) {
+			//gehen Blockweise durch
+			start += N;
 			count += 2;
-			blocklist[count] = 0;			//setzt Block wieder auf frei
+			
+			if (start == obj) {
+				break;
+			}
 		}
-
+		
+		//backtracken und Fehlersuche (simpel gehalten)
+		
+		//wenn kein passender Block gefunden wurde oder nicht das erste Element ist
+		if (count > blocklist.size()-1 || blocklist[count-1] == 1) {
+			//Error
+			return;
+		}
+		
+		//finden aller zusammenhängender Blöcke
+		while (blocklist[count] == 1 && count <= blocklist.size()-1) {
+			blocklist[count] = 0;
+			count++;
+		}
 	}
 
 	size_t freeBlocks(){
@@ -92,11 +106,11 @@ public:
 		}
 		return count;
 	}
+
 	
 
 private:
 	vector<bool> blocklist;
-
 };
 
 #endif
