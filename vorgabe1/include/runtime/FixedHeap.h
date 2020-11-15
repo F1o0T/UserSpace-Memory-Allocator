@@ -19,6 +19,10 @@ public:
 		}
 	}
 	
+	int getSize() {
+		return (int) blocklist.size();
+	}
+	
 	int getBlockCount() {
 		return (blocklist.size() + 1) / 2;
 	}
@@ -35,7 +39,7 @@ public:
 			int count = 0;
 			
 			//suchen der ersten passenden Spalte
-			for (int i = 0; i < (int) blocklist.size(); i += 2) {
+			for (int i = 0; i < getSize(); i += 2) {
 				if (blocklist[i] == 0) {
 					count++;
 				} else {
@@ -65,27 +69,30 @@ public:
 		char* obj = (char*) address;
 		int count = 0;
 		
-		//finden des angegebenen Blockes
-		for (int i = 0; i <= getBlockCount(); i++) {
-			//gehen Blockweise durch
-			start += N;
-			count += 2;
+		if (start != obj) {
+			//finden des angegebenen Blockes
+			for (int i = 0; i <= getBlockCount(); i++) {
+				
+				//gehen Blockweise durch
+				if (start == obj) {
+					break;
+				}
+				
+				start += N;
+				count += 2;
+			}
 			
-			if (start == obj) {
-				break;
+			//backtracken und Fehlersuche (simpel gehalten)
+			
+			//wenn kein passender Block gefunden wurde oder nicht das erste Element ist
+			if (count > getSize()-1 || blocklist[count-1] == 1) {
+				//Error
+				return;
 			}
 		}
 		
-		//backtracken und Fehlersuche (simpel gehalten)
-		
-		//wenn kein passender Block gefunden wurde oder nicht das erste Element ist
-		if (count > blocklist.size()-1 || blocklist[count-1] == 1) {
-			//Error
-			return;
-		}
-		
 		//finden aller zusammenhängender Blöcke
-		while (blocklist[count] == 1 && count <= blocklist.size()-1) {
+		while (blocklist[count] == 1 && count <= getSize()-1) {
 			blocklist[count] = 0;
 			count++;
 		}

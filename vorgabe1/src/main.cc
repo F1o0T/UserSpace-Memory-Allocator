@@ -9,28 +9,64 @@ using namespace GUI;
 
 int main(int argc, char** argv)
 {
-    // gui example code
-    DrawingWindow window(800,600,"gui");
-
-    window.setBackgroundColor(RGBColor(0,0,0));
-
-    window.setForegroundColor(RGBColor(0,0,255));
-    window.drawFilledRectangle(100,100,100,100);
-
-    window.setForegroundColor(RGBColor(0,255,0));
-    window.drawRectangle(250,250,100,150);
-    
-    window.drawText(10,200,"test");
+	int x = 5;
+	int y = 10;
+	
+    DrawingWindow window(800,600,"Memory");
 	
 	FixedMemory<1024> mem;
 	FixedHeap<sizeof(int)> heap(mem);
 	
-	heap.alloc(sizeof(int)*10);
-	//cout << mem.getSize() << endl;
-	//cout << heap.getList() << endl;
-	/*
-	for (int i = 0; i < (int) (1024/sizeof(int)); i++) {
-		cout << heap.getList(i) << endl;
+	void* ptr = heap.alloc(sizeof(int)*10);
+	heap.alloc(sizeof(int)*50);
+	heap.alloc(sizeof(int)*5);
+	
+	heap.free(ptr);
+	
+	window.setBackgroundColor(RGBColor(0,0,0));
+	window.setForegroundColor(RGBColor(255,255,255));
+	
+	for (int i = 0; i < 40; i++) {
+		window.drawText(x,y,to_string(i+1));
+		x += 20;
+	}
+	
+	window.setForegroundColor(RGBColor(0,255,0));
+	x = 5;
+	y = 15;
+	
+	//debug Version mit Beziehungen
+	for (int i = 0; i < heap.getSize(); i++) {
+		if (heap.getList(i)) {
+			window.setForegroundColor(RGBColor(255,0,0));
+		} else {
+			window.setForegroundColor(RGBColor(0,255,0));
+		}
+		
+		if (x > 800) {
+			x -= 800;
+			y += 15;
+		}
+		
+		window.drawFilledRectangle(x,y,10,10);
+		x += 20;
+	}
+	
+	//normale Version mit nur Blöcken
+	/*for (int i = 0; i < heap.getSize(); i += 2) {
+		if (heap.getList(i)) {
+			window.setForegroundColor(RGBColor(255,0,0));
+		} else {
+			window.setForegroundColor(RGBColor(0,255,0));
+		}
+		
+		if (x > 800) {
+			x -= 800;
+			y += 15;
+		}
+		
+		window.drawFilledRectangle(x,y,10,10);
+		x += 20;
 	}*/
 
 	// run until user presses q on console
