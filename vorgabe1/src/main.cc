@@ -32,6 +32,8 @@ int main(int argc, char** argv)
 	
 	heap.free(ptr2);
 	
+	heap.alloc(1);
+	
 	window.setBackgroundColor(RGBColor(0,0,0));
 	window.setForegroundColor(RGBColor(255,255,255));
 	
