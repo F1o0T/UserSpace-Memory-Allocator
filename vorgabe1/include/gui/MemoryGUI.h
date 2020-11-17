@@ -16,10 +16,7 @@ class MemoryGUI {
 
 
 public:
-	MemoryGUI(Heap* heap);
-
-    MemoryGUI(Heap* heap, DrawingWindow* window);
-
+	MemoryGUI(Heap* heap, DrawingWindow* window);
 
 	void drawHeapMemory();
 
@@ -27,11 +24,6 @@ public:
 private:
     Heap* heap;
     DrawingWindow* window;
-
-
-    void initializeWindow();
-
-
 };
 
 

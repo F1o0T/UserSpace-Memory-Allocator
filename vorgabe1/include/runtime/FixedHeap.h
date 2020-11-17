@@ -5,11 +5,10 @@
 #include "system/FixedMemory.h"
 #include <vector>
 
+
 template <int N>
 class FixedHeap:public Heap {
-
 public:
-	
 	
 	FixedHeap(Memory& memory) : Heap(memory) {
 		int blocklistlength = (int) (2*(memory.getSize()/N));
@@ -31,41 +30,41 @@ public:
 	bool getList(int i) {
 		return blocklist[i];
 	}
-
 	
 	//gerade -- false(0) = freie Blöcke -- true(1) = belegte Blöcke
 	//ungerade -- false(0) = keine Beziehung -- true(1) = Beziehung
 	void* alloc(size_t size) {
-		if ((size % N) == 0) {
-			int numberofblocks = size/N;
-			int count = 0;
+		int numberofblocks = size/N;
+		
+		if ((size % N) != 0) {
+			numberofblocks++;
+		}
+		
+		int count = 0;
+		
+		//suchen der ersten passenden Spalte
+		for (int i = 0; i < getSize(); i += 2) {
+			if (blocklist[i] == 0) {
+				count++;
+			} else {
+				count = 0;
+			}
 			
-			//suchen der ersten passenden Spalte
-			for (int i = 0; i < getSize(); i += 2) {
-				if (blocklist[i] == 0) {
-					count++;
-				} else {
-					count = 0;
+			//Spalte wurde gefunden, sonst error
+			if (count == numberofblocks) {
+				count *= 2;
+				i = (i+2) - count;
+				
+				//alle zugehörigen Blöcke auf 1 stellen
+				for (int j = i; j < i + (count-1); j++) {
+					blocklist[j] = 1;
 				}
 				
-				//Spalte wurde gefunden, sonst error
-				if (count == numberofblocks) {
-					count *= 2;
-
-					i = (i+2) - count;
-					
-					//alle zugehörigen Blöcke auf 1 stellen
-					for (int j = i; j < i + (count-1); j++) {
-						blocklist[j] = 1;
-					}
-					
-					return ((char*) memory.getStart()) + ((i/2) * N);
-				}
+				return ((caddr_t) memory.getStart()) + ((i/2) * N);
 			}
 		}
 		
 		return nullptr;
-
 	}
 	
 	void free(void* address) {
@@ -101,50 +100,7 @@ public:
 			count++;
 		}
 	}
-
-	size_t freeBlocks(){
-		size_t count = 0;
-		for(int i=0; i < blocklist.size(); i++){
-			if(i % 2 == 0){
-				if(blocklist[i] == 0){
-					count++;
-				}
-			}
-		}
-		return count;
-	}
-
-	//status 0 = frei, 1 = belegt
-	//list<tuple<size_t, bool>>* getMemoryList(){
-	//	list<tuple<size_t, bool>> list;
-
-	//	int i;
-	//	while(i < blocklist.size()){
-	//		size_t blocksize = 0;
-
-	//		if(blocklist[i] == 1){//falls aktueller Speicherblock frei
-	//			while(blocklist[i] == 1){//solange blocksize erhöhen, bis der erste nicht freie Block kommt
-	//				blocksize += N;
-	//				i += 2;
-	//			}
-	//			list.pushback((blocksize, 0));
-	//		}else{
-	//			while (blocklist[i] == 0){//solange blocksize erhöhen wie eine Beziehung mit dem nächsten Block vorhanden ist
-	//				blocksize += N;
-	//				if(blocklist[i + 1] == 0){
-	//					break;
-	//				}else{
-	//					i+=2;
-	//				}
-	//			}
-	//			list.pushback((blocksize, 0));
-	//		}
-	//	}
-	//	return *list;
-	//}
-
 	
-
 private:
 	vector<bool> blocklist;
 };
