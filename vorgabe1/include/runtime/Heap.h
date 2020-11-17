@@ -2,8 +2,9 @@
 #define Heap_h
 
 #include <sys/types.h>
-
+#include <list>
 #include "system/Memory.h"
+#include <tuple>
 /**
  * A heap manages the memory it gets from the system.
  * The application can allocate and free memory pieces.
@@ -32,6 +33,13 @@ public:
      * @param p pointer to the memory to free
 	 */
 	virtual void free(void* address)=0;
+
+	virtual int getSize()=0;
+
+	virtual bool getList(int i) = 0;
+
+
+	//virtual list<tuple<size_t, bool>> getMemoryList()=0;
 
 protected:
 	/**

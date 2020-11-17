@@ -114,6 +114,35 @@ public:
 		return count;
 	}
 
+	//status 0 = frei, 1 = belegt
+	//list<tuple<size_t, bool>>* getMemoryList(){
+	//	list<tuple<size_t, bool>> list;
+
+	//	int i;
+	//	while(i < blocklist.size()){
+	//		size_t blocksize = 0;
+
+	//		if(blocklist[i] == 1){//falls aktueller Speicherblock frei
+	//			while(blocklist[i] == 1){//solange blocksize erhöhen, bis der erste nicht freie Block kommt
+	//				blocksize += N;
+	//				i += 2;
+	//			}
+	//			list.pushback((blocksize, 0));
+	//		}else{
+	//			while (blocklist[i] == 0){//solange blocksize erhöhen wie eine Beziehung mit dem nächsten Block vorhanden ist
+	//				blocksize += N;
+	//				if(blocklist[i + 1] == 0){
+	//					break;
+	//				}else{
+	//					i+=2;
+	//				}
+	//			}
+	//			list.pushback((blocksize, 0));
+	//		}
+	//	}
+	//	return *list;
+	//}
+
 	
 
 private:
