@@ -17,11 +17,20 @@ int main(int argc, char** argv)
 	FixedMemory<1024> mem;
 	FixedHeap<sizeof(int)> heap(mem);
 	
-	void* ptr = heap.alloc(sizeof(int)*10);
+	void* ptr1 = heap.alloc(sizeof(int)*10);
 	heap.alloc(sizeof(int)*50);
 	heap.alloc(sizeof(int)*5);
 	
-	heap.free(ptr);
+	heap.free(ptr1);
+	
+	heap.alloc(sizeof(int)*50);
+	heap.alloc(sizeof(int)*50);
+	heap.alloc(sizeof(int)*5);
+	heap.alloc(sizeof(int)*10);
+	heap.alloc(sizeof(int)*70);
+	void* ptr2 = heap.alloc(sizeof(int)*100);
+	
+	heap.free(ptr2);
 	
 	window.setBackgroundColor(RGBColor(0,0,0));
 	window.setForegroundColor(RGBColor(255,255,255));
@@ -31,14 +40,25 @@ int main(int argc, char** argv)
 		x += 20;
 	}
 	
-	window.setForegroundColor(RGBColor(0,255,0));
 	x = 5;
 	y = 15;
+	bool col = 0;
 	
-	//debug Version mit Beziehungen
-	for (int i = 0; i < heap.getSize(); i++) {
+	//normale Version mit nur Blöcken
+	for (int i = 0; i < heap.getSize(); i += 2) {
 		if (heap.getList(i)) {
-			window.setForegroundColor(RGBColor(255,0,0));
+			if (i != 0) {
+				if (!heap.getList(i-1)) {
+					col = !col;
+				}
+			}
+			
+			if (col) {
+				window.setForegroundColor(RGBColor(255,0,0));
+			} else {
+				window.setForegroundColor(RGBColor(255,165,0));
+			}
+			
 		} else {
 			window.setForegroundColor(RGBColor(0,255,0));
 		}
@@ -52,22 +72,6 @@ int main(int argc, char** argv)
 		x += 20;
 	}
 	
-	//normale Version mit nur Blöcken
-	/*for (int i = 0; i < heap.getSize(); i += 2) {
-		if (heap.getList(i)) {
-			window.setForegroundColor(RGBColor(255,0,0));
-		} else {
-			window.setForegroundColor(RGBColor(0,255,0));
-		}
-		
-		if (x > 800) {
-			x -= 800;
-			y += 15;
-		}
-		
-		window.drawFilledRectangle(x,y,10,10);
-		x += 20;
-	}*/
 
 	// run until user presses q on console
 	char input = ' ';
