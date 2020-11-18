@@ -8,10 +8,17 @@
 using namespace std;
 using namespace GUI;
 
+#define width 800
+#define hight 600
+#define blockSize 4
+#define memSize 1024
+
+FixedMemory<memSize> mem;
+FixedHeap<blockSize> heap(mem);
+
+
 int main(int argc, char** argv)
 {
-	FixedMemory<1024> mem;
-	FixedHeap<sizeof(int)> heap(mem);
 	
 	void* ptr = heap.alloc(sizeof(int)*10);
 	heap.alloc(sizeof(int)*50);
@@ -28,9 +35,10 @@ int main(int argc, char** argv)
 	
 	heap.free(ptr2);
 	
-	heap.alloc(1);
+	heap.alloc(1.45);
+	heap.alloc(0);
 
-	DrawingWindow window(800,600,"GUI");
+	DrawingWindow window(width,hight,"GUI");
 	MemoryGUI gui(&heap, &window);
 	gui.drawHeapMemory();
 	
