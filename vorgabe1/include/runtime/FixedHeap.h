@@ -1,18 +1,24 @@
 #ifndef FixedHeap_h
 #define FixedHeap_h
 
+#include <iostream>
 #include "runtime/Heap.h"
 #include "system/FixedMemory.h"
 #include <vector>
 
+using namespace std;
 
-template <int N>
+template <int N = 1>
 class FixedHeap:public Heap {
 public:
 	
 	FixedHeap(Memory& memory) : Heap(memory) {
 		int blocklistlength = (int) (2*(memory.getSize()/N));
 		blocklistlength--;
+		
+		if (memory.getSize() % N != 0) {
+			blocklistlength += 2;
+		}
 		
 		for (int i = 0; i < blocklistlength; i++) {
 			blocklist.push_back(false);
@@ -34,7 +40,14 @@ public:
 	//gerade -- false(0) = freie Blöcke -- true(1) = belegte Blöcke
 	//ungerade -- false(0) = keine Beziehung -- true(1) = Beziehung
 	void* alloc(size_t size) {
-		int numberofblocks = size/N;
+		int numberofblocks = 0;
+		
+		if (size != 0) {
+			numberofblocks = size/N;
+		} else {
+			cerr << "Bitte keine 0 eingeben!" << endl;
+			return nullptr;
+		}
 		
 		if ((size % N) != 0) {
 			numberofblocks++;
@@ -64,6 +77,7 @@ public:
 			}
 		}
 		
+		cerr << "Du hast kein Platz mehr im Heap." << endl;
 		return nullptr;
 	}
 	
@@ -88,8 +102,11 @@ public:
 			//backtracken und Fehlersuche (simpel gehalten)
 			
 			//wenn kein passender Block gefunden wurde oder nicht das erste Element ist
-			if (count > getSize()-1 || blocklist[count-1] == 1) {
-				//Error
+			if (count > getSize()-1) {
+				cerr << "Die Adresse ist keine kein Block im Heap." << endl;
+				return;
+			} else if (blocklist[count-1] == 1) {
+				cerr << "Bitte gib das erste Element des Speicherblockes ein!" << endl;
 				return;
 			}
 		}
