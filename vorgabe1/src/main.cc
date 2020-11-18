@@ -33,13 +33,20 @@ int main(int argc, char** argv)
 	DrawingWindow window(800,600,"GUI");
 	MemoryGUI gui(&heap, &window);
 	gui.drawHeapMemory();
-	gui.clearWindow();
 	
 		
 	char input = ' ';
+	size_t input2;
 	while(input != 'q') {
-		cout << "Press q and enter to quit" << endl;
+		cout << "Press q and enter to quit, a to allocate memory, f to free memory" << endl;
 		cin >> input;
+		if(input == 'a'){
+			cout << "Number of Bytes please" << endl;
+			cin >> input2;
+			heap.alloc(input2);
+			gui.clearWindow();
+			gui.drawHeapMemory();
+		}
 		cout << "read: '" << input << "' from console" << endl;
 	}
 	
