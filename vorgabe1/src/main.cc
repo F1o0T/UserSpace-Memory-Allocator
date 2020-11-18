@@ -41,9 +41,16 @@ int main(int argc, char** argv)
 		cout << "Press q and enter to quit, a to allocate memory, f to free memory" << endl;
 		cin >> input;
 		if(input == 'a'){
-			cout << "Number of Bytes please" << endl;
+			cout << "Insert number of Bytes to allocate, please:" << endl;
 			cin >> input2;
 			heap.alloc(input2);
+			gui.clearWindow();
+			gui.drawHeapMemory();
+		}
+		if(input == 'f'){
+			cout << "Insert address of memory to free, please: " << endl;
+			cin >> input2;
+			heap.free((void*)input2);
 			gui.clearWindow();
 			gui.drawHeapMemory();
 		}
