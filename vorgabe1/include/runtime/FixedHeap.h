@@ -103,7 +103,7 @@ public:
 			
 			//wenn kein passender Block gefunden wurde oder nicht das erste Element ist
 			if (count > getSize()-1) {
-				cerr << "Die Adresse ist keine kein Block im Heap." << endl;
+				cerr << "Die Adresse ist kein Block im Heap." << endl;
 				return;
 			} else if (blocklist[count-1] == 1) {
 				cerr << "Bitte gib das erste Element des Speicherblockes ein!" << endl;

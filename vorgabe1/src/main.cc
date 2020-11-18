@@ -19,6 +19,9 @@ FixedHeap<blockSize> heap(mem);
 
 int main(int argc, char** argv)
 {
+	if (blockSize > memSize) {
+		cerr << "Achtung du hast nur ein Block mit " << memSize << "  Bytes." << endl;
+	}
 	
 	void* ptr = heap.alloc(sizeof(int)*10);
 	heap.alloc(sizeof(int)*50);
@@ -32,7 +35,6 @@ int main(int argc, char** argv)
 	heap.alloc(sizeof(int)*10);
 	heap.alloc(sizeof(int)*70);
 	void* ptr2 = heap.alloc(sizeof(int)*100);
-	cout << "ptr1 is " << ptr <<endl;
 	
 	heap.free(ptr2);
 	
@@ -53,7 +55,8 @@ int main(int argc, char** argv)
 		if(input == 'a'){
 			cout << "Insert number of Bytes to allocate, please:" << endl;
 			cin >> input2;
-			heap.alloc(input2);
+			ptr = heap.alloc(input2);
+			cout << "ptr1 is " << ptr <<endl;
 			gui.clearWindow();
 			gui.drawHeapMemory();
 		}
