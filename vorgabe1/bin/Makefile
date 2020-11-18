@@ -1,7 +1,8 @@
 #author Matthias Noack <Ma.Noack@tu-cottbus.de>
 
 SRC_FILES = \
-	gui/DrawingWindow.cc 
+	gui/DrawingWindow.cc
+	
 
 	
 SRC_MAIN = main.cc
