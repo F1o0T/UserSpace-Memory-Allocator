@@ -33,6 +33,7 @@ int main(int argc, char** argv)
 	DrawingWindow window(800,600,"GUI");
 	MemoryGUI gui(&heap, &window);
 	gui.drawHeapMemory();
+	gui.clearWindow();
 	
 		
 	char input = ' ';

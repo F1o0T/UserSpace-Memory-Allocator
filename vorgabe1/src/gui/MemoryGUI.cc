@@ -45,3 +45,7 @@
 			x += 20;
 		}
     }
+
+	void MemoryGUI::clearWindow(){
+		window -> clear();
+	}

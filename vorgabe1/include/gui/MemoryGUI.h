@@ -20,6 +20,10 @@ public:
 
 	void drawHeapMemory();
 
+    void clearWindow();
+
+
+
 	
 private:
     Heap* heap;
