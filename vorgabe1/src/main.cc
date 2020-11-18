@@ -32,6 +32,7 @@ int main(int argc, char** argv)
 	heap.alloc(sizeof(int)*10);
 	heap.alloc(sizeof(int)*70);
 	void* ptr2 = heap.alloc(sizeof(int)*100);
+	cout << "ptr1 is " << ptr <<endl;
 	
 	heap.free(ptr2);
 	
@@ -45,6 +46,7 @@ int main(int argc, char** argv)
 		
 	char input = ' ';
 	size_t input2;
+	void* input3;
 	while(input != 'q') {
 		cout << "Press q and enter to quit, a to allocate memory, f to free memory" << endl;
 		cin >> input;
@@ -57,8 +59,8 @@ int main(int argc, char** argv)
 		}
 		if(input == 'f'){
 			cout << "Insert address of memory to free, please: " << endl;
-			cin >> input2;
-			heap.free((void*)input2);
+			cin >> input3;
+			heap.free(input3);
 			gui.clearWindow();
 			gui.drawHeapMemory();
 		}
