@@ -9,6 +9,10 @@ public:
 	FixedMemory() {
 		this -> memblock = malloc(M);
 	}
+
+	~FixedMemory(){
+		free(this -> memblock);
+	}
 	
 	void* getStart() {
 		return this -> memblock;
