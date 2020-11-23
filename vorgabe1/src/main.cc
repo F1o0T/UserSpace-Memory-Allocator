@@ -11,7 +11,7 @@ using namespace GUI;
 #define width 800
 #define hight 600
 #define blockSize 4
-#define memSize 1024
+#define memSize 0
 
 FixedMemory<memSize> mem;
 FixedHeap<blockSize> heap(mem);
@@ -19,11 +19,6 @@ FixedHeap<blockSize> heap(mem);
 
 int main(int argc, char** argv)
 {
-	if (blockSize > memSize || blockSize < 0) {
-		cerr << "Achtung du hast nur ein Block mit " << memSize << " Bytes." << endl;
-	} else if (blockSize == 0) {
-		return 0;
-	}
 
 	void* ptr;
 
