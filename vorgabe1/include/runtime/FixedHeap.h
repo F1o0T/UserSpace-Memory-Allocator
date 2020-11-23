@@ -17,10 +17,10 @@ public:
 			cerr << "Error: Die Blockgroesse darf nicht 0 sein." << endl;
 
 		} else if (memory.getSize() <= 0) {
-			cerr << "Error: Memory darf nicht 0 sein" << endl;
+			cerr << "Error: Memory darf nicht 0 sein." << endl;
 
 		} else if (N > memory.getSize()) {
-			cerr << "Error: Die Blockgroesse darf nicht groesser als Memory sein" << endl;
+			cerr << "Error: Die Blockgroesse darf nicht groesser als Memory sein." << endl;
 
 		} else {
 			int blocklistlength = (int) (2*(memory.getSize()/N));
@@ -87,10 +87,10 @@ public:
 				}
 			}
 			
-			cerr << "Error: Du hast keinen Platz mehr im Heap." << endl;
+			cerr << "Error: Du hast nicht genug Platz im Heap." << endl;
 
 		} else {
-			cerr << "Error: Heap ist fehlerhaft!" << endl;
+			cerr << "Error: Der Heap ist fehlerhaft!" << endl;
 		}
 
 		return nullptr;
@@ -120,10 +120,10 @@ public:
 				
 				//wenn kein passender Block gefunden wurde oder nicht das erste Element ist
 				if (count > getSize()-1) {
-					cerr << "Die Adresse ist kein Block im Heap." << endl;
+					cerr << "Error: Die Adresse ist kein Block im Heap." << endl;
 					return;
 				} else if (blocklist[count-1] == 1) {
-					cerr << "Bitte gib das erste Element des Speicherblockes ein!" << endl;
+					cerr << "Error: Bitte gib das erste Element des Speicherblockes ein!" << endl;
 					return;
 				}
 			}

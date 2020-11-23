@@ -11,8 +11,8 @@ using namespace GUI;
 
 #define width 800
 #define hight 600
-#define blockSize 4
-#define memSize 1024
+#define blockSize 67
+#define memSize 3
 
 FixedMemory<memSize> mem;
 FixedHeap<blockSize> heap(mem);
@@ -64,7 +64,8 @@ int main(int argc, char** argv)
 				gui.drawHeapMemory();
 			}
 		}
-		cout << "read: '" << input << "' from console" << endl;
+		
+		cout << endl;
 	}
 	
 	return 0;
