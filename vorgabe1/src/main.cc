@@ -4,6 +4,7 @@
 #include "system/FixedMemory.h"
 #include <vector>
 #include "gui/MemoryGUI.h"
+#include <climits>
 
 using namespace std;
 using namespace GUI;
@@ -11,7 +12,7 @@ using namespace GUI;
 #define width 800
 #define hight 600
 #define blockSize 4
-#define memSize 0
+#define memSize 1024
 
 FixedMemory<memSize> mem;
 FixedHeap<blockSize> heap(mem);
@@ -19,7 +20,6 @@ FixedHeap<blockSize> heap(mem);
 
 int main(int argc, char** argv)
 {
-
 	void* ptr;
 
 	DrawingWindow window(width,hight,"GUI");
@@ -33,6 +33,8 @@ int main(int argc, char** argv)
 	while(input != 'q') {
 		cout << "Press q and enter to quit, a to allocate memory, f to free memory" << endl;
 		cin >> input;
+		cin.ignore(INT_MAX, '\n');
+
 		if(input == 'a'){
 			cout << "Insert number of Bytes to allocate, please:" << endl;
 			cin >> input2;

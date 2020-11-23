@@ -14,13 +14,13 @@ public:
 	
 	FixedHeap(Memory& memory) : Heap(memory) {
 		if (N <= 0) {
-			cerr << "Error: Ein Block darf nicht sein" << endl;
+			cerr << "Error: Die Blockgroesse darf nicht 0 sein." << endl;
 
 		} else if (memory.getSize() <= 0) {
 			cerr << "Error: Memory darf nicht 0 sein" << endl;
 
 		} else if (N > memory.getSize()) {
-			cerr << "Error: Bloecke duerfen nicht groesser als Memory sein" << endl;
+			cerr << "Error: Die Blockgroesse darf nicht groesser als Memory sein" << endl;
 
 		} else {
 			int blocklistlength = (int) (2*(memory.getSize()/N));
