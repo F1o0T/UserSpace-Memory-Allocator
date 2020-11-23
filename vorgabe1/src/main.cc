@@ -19,27 +19,13 @@ FixedHeap<blockSize> heap(mem);
 
 int main(int argc, char** argv)
 {
-	if (blockSize > memSize) {
-		cerr << "Achtung du hast nur ein Block mit " << memSize << "  Bytes." << endl;
+	if (blockSize > memSize || blockSize < 0) {
+		cerr << "Achtung du hast nur ein Block mit " << memSize << " Bytes." << endl;
+	} else if (blockSize == 0) {
+		return 0;
 	}
-	
-	void* ptr = heap.alloc(sizeof(int)*10);
-	heap.alloc(sizeof(int)*50);
-	heap.alloc(sizeof(int)*5);
-	
-	heap.free(ptr);
-	
-	heap.alloc(sizeof(int)*50);
-	heap.alloc(sizeof(int)*50);
-	heap.alloc(sizeof(int)*5);
-	heap.alloc(sizeof(int)*10);
-	heap.alloc(sizeof(int)*70);
-	void* ptr2 = heap.alloc(sizeof(int)*100);
-	
-	heap.free(ptr2);
-	
-	heap.alloc(1.45);
-	heap.alloc(0);
+
+	void* ptr;
 
 	DrawingWindow window(width,hight,"GUI");
 	MemoryGUI gui(&heap, &window);
@@ -47,7 +33,7 @@ int main(int argc, char** argv)
 	
 		
 	char input = ' ';
-	size_t input2;
+	int input2;
 	void* input3;
 	while(input != 'q') {
 		cout << "Press q and enter to quit, a to allocate memory, f to free memory" << endl;
@@ -55,17 +41,31 @@ int main(int argc, char** argv)
 		if(input == 'a'){
 			cout << "Insert number of Bytes to allocate, please:" << endl;
 			cin >> input2;
-			ptr = heap.alloc(input2);
-			cout << "ptr1 is " << ptr <<endl;
-			gui.clearWindow();
-			gui.drawHeapMemory();
+			
+			if (cin.fail() || input2 < 0) {
+				cerr << "Eingabe ist fehlgeschlagen!" << endl;
+				cin.clear();
+
+			} else {
+				ptr = heap.alloc(input2);
+				cout << "ptr1 is " << ptr <<endl;
+				gui.clearWindow();
+				gui.drawHeapMemory();
+			}
 		}
 		if(input == 'f'){
 			cout << "Insert address of memory to free, please: " << endl;
 			cin >> input3;
-			heap.free(input3);
-			gui.clearWindow();
-			gui.drawHeapMemory();
+
+			if (cin.fail()) {
+				cerr << "Eingabe ist fehlgeschlagen!" << endl;
+				cin.clear();
+
+			} else {
+				heap.free(input3);
+				gui.clearWindow();
+				gui.drawHeapMemory();
+			}
 		}
 		cout << "read: '" << input << "' from console" << endl;
 	}

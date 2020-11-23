@@ -13,17 +13,25 @@ class FixedHeap:public Heap {
 public:
 	
 	FixedHeap(Memory& memory) : Heap(memory) {
-		int blocklistlength = (int) (2*(memory.getSize()/N));
-		blocklistlength--;
-		
-		if (memory.getSize() % N != 0) {
-			blocklistlength += 2;
-		}
-		
-		for (int i = 0; i < blocklistlength; i++) {
-			blocklist.push_back(false);
+		if (N != 0) {
+			int blocklistlength = (int) (2*(memory.getSize()/N));
+			blocklistlength--;
+			
+			if (memory.getSize() < (size_t) N) {
+				blocklistlength += 2;
+			}
+
+			for (int i = 0; i < blocklistlength; i++) {
+				blocklist.push_back(false);
+			}
+
+		} else {
+			cerr << "Ein Heap mit 0 Blöcken ist nicht möglich" << endl;
+			this -> ~FixedHeap();
 		}
 	}
+
+	~FixedHeap() {}
 	
 	int getSize() {
 		return (int) blocklist.size();
@@ -37,6 +45,7 @@ public:
 		return blocklist[i];
 	}
 	
+
 	//gerade -- false(0) = freie Blöcke -- true(1) = belegte Blöcke
 	//ungerade -- false(0) = keine Beziehung -- true(1) = Beziehung
 	void* alloc(size_t size) {
@@ -45,10 +54,11 @@ public:
 		if (size != 0) {
 			numberofblocks = size/N;
 		} else {
-			cerr << "Bitte keine 0 eingeben!" << endl;
+			cerr << "Bitte keine Zahl kleiner oder gleich 0 eingeben!" << endl;
 			return nullptr;
 		}
 		
+		//kein vollständiger Block bekommt trotzdem ein Block
 		if ((size % N) != 0) {
 			numberofblocks++;
 		}
@@ -81,6 +91,7 @@ public:
 		return nullptr;
 	}
 	
+
 	void free(void* address) {
 		char* start = (char*) (memory.getStart());
 		char* obj = (char*) address;
