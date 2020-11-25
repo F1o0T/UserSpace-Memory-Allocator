@@ -11,8 +11,8 @@ using namespace GUI;
 
 #define width 800
 #define hight 600
-#define blockSize 4
-#define memSize 1024
+#define blockSize 125
+#define memSize 0
 
 FixedMemory<memSize> mem;
 FixedHeap<blockSize> heap(mem);
