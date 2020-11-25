@@ -2,6 +2,7 @@
 #include "gui/DrawingWindow.h"
 #include "runtime/FixedHeap.h"
 #include "system/FixedMemory.h"
+#include "system/BSSMemory.h"
 #include <vector>
 #include "gui/MemoryGUI.h"
 #include <climits>
@@ -11,9 +12,10 @@ using namespace GUI;
 
 #define width 800
 #define hight 600
-#define blockSize 67
-#define memSize 3
+#define blockSize 1
+#define memSize 20
 
+BSSMemory mem2;
 FixedMemory<memSize> mem;
 FixedHeap<blockSize> heap(mem);
 
@@ -25,6 +27,7 @@ int main(int argc, char** argv)
 	DrawingWindow window(width,hight,"GUI");
 	MemoryGUI gui(&heap, &window);
 	gui.drawHeapMemory();
+	cout << mem2.getSize() << endl;
 	
 		
 	char input = ' ';
