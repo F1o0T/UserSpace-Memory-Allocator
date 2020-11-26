@@ -8,6 +8,12 @@
 
 using namespace std;
 
+struct nextFreeUnit {
+    nextFreeUnit* nextAddress;
+    size_t freeSpace;
+    bool tail;
+};
+
 class FirstFitHeap:public Heap {
 public:
 
@@ -17,17 +23,21 @@ public:
             //Achtung brauchen neuen Fehlerzustand blocklist ist nicht mehr
 		} else {
             memory.expand(n);
-            initHeap();
+            initHeap(memory.getSize(), (nextFreeUnit*) memory.getStart());
         }
     }
 
-    void initHeap() {
-        int length = memory.getSize();
-        void* start = memory.getStart();
+    void initHeap(size_t length, nextFreeUnit* start) {
+        size_t length = memory.getSize();
+        nextFreeUnit* first = (nextFreeUnit*) memory.getStart();
 
-        //Bitoperationsmagie
+        this -> head = first;
+        first -> nextAddress = 0;
+        first -> freeSpace = length;
+        first -> tail = true;
 
         //erste direkte Liste angelegt an den Anfang von Memory mit ein free-Block mit Laenge length
+        //muss speichern next (adresse = 8 byte) und wie gross (int = 4 byte) 12 byte pro Block?!!!
     }
 
     void* alloc(size_t size) {//??? muessen alloc und free komplett neu machen
@@ -36,17 +46,20 @@ public:
             return nullptr;
         }
         
-        void* rightPos= 0;
+        nextFreeUnit* rightPos = 0;
+        nextFreeUnit* curPos = this -> head;
 
         do {
-            //ein Listeneintrag weitergehen
-
-            if (/* Size des Free-Blockes */ >= size) {
-                rightPos = /* Adresse des Free-Blockes */;
-            } else if (/* kein naechstes Element */) {
-                memory.expand(size);
+            if ((size_t) (curPos -> freeSpace) >= size) {
+                rightPos = curPos;
+            } else if (curPos -> nextAddress == 0) {
+                void* ptr = memory.expand(size);
                 //neuer Free-Block muss beschrieben werden
+
             }
+
+
+            //ein Listeneintrag weitergehen
         } while (rightPos == 0);
 
         //Block als belegt makieren
@@ -119,6 +132,9 @@ public:
             count++;
         }
     }
+
+private:
+    nextFreeUnit* head;
 
 };
 

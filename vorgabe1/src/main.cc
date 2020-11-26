@@ -12,16 +12,24 @@ using namespace GUI;
 
 #define width 800
 #define hight 600
-#define blockSize 1
-#define memSize 20
+#define blockSize 4
+#define memSize 1024
 
 BSSMemory mem2;
 FixedMemory<memSize> mem;
-FixedHeap<blockSize> heap(mem);
+//FixedHeap<blockSize> heap(mem);
 
 
 int main(int argc, char** argv)
 {
+	cout << sizeof(size_t) << endl;
+	cout << sizeof(mem.getStart()) << endl;
+	
+	void** ptr_void = 0;
+
+	char* ptr_char = (char*) ptr_void;
+	cout << sizeof(ptr_char) << endl;
+	/*
 	void* ptr;
 
 	DrawingWindow window(width,hight,"GUI");
@@ -69,7 +77,7 @@ int main(int argc, char** argv)
 		}
 		
 		cout << endl;
-	}
+	}*/
 	
 	return 0;
 }
