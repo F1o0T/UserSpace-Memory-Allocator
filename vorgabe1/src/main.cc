@@ -3,8 +3,9 @@
 #include "runtime/FixedHeap.h"
 #include "system/FixedMemory.h"
 #include "system/BSSMemory.h"
+#include "runtime/FirstFitHeap.h"
 #include <vector>
-#include "gui/MemoryGUI.h"
+#include "gui/MemoryGUI2.h"
 #include <climits>
 
 using namespace std;
@@ -15,29 +16,23 @@ using namespace GUI;
 #define blockSize 4
 #define memSize 1024
 
-BSSMemory mem2;
-FixedMemory<memSize> mem;
+BSSMemory mem;
+FirstFitHeap heap(mem, 1000);
+DrawingWindow window(width,hight,"GUI");
+MemoryGUI2 gui(&heap, &window);
+
+//FixedMemory<memSize> mem;
 //FixedHeap<blockSize> heap(mem);
 
 
 int main(int argc, char** argv)
 {
-	cout << sizeof(size_t) << endl;
-	cout << sizeof(mem.getStart()) << endl;
-	
-	void** ptr_void = 0;
-
-	char* ptr_char = (char*) ptr_void;
-	cout << sizeof(ptr_char) << endl;
-	/*
 	void* ptr;
 
-	DrawingWindow window(width,hight,"GUI");
-	MemoryGUI gui(&heap, &window);
+	cout << mem.getSize() << endl;
+	cout << heap.getSize() << endl;
 	gui.drawHeapMemory();
-	cout << mem2.getSize() << endl;
-	
-		
+
 	char input = ' ';
 	int input2;
 	void* input3;
@@ -57,6 +52,7 @@ int main(int argc, char** argv)
 			} else {
 				ptr = heap.alloc(input2);
 				cout << "ptr1 is " << ptr <<endl;
+				
 				gui.clearWindow();
 				gui.drawHeapMemory();
 			}
@@ -77,7 +73,7 @@ int main(int argc, char** argv)
 		}
 		
 		cout << endl;
-	}*/
+	}
 	
 	return 0;
 }
