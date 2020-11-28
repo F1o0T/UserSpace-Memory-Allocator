@@ -8,10 +8,13 @@
 
 using namespace std;
 
-struct nextFreeUnit {
+#define minByte sizeof(freeBlock)
+#define sizeUnsi sizeof(unsigned)
+
+struct freeBlock {
     bool tail;//true wenn es der Tail von gesamten Heap ist(also auch belegte Bloecke)
     unsigned freeSpace;
-    nextFreeUnit* nextAddress;
+    freeBlock* nextAddress;
 };
 
 class FirstFitHeap:public Heap {
@@ -29,41 +32,53 @@ public:
 
     void initHeap() {
         unsigned length = (unsigned) memory.getSize();
-        nextFreeUnit* first = (nextFreeUnit*) memory.getStart();
+        freeBlock* first = (freeBlock*) memory.getStart();
 
         this -> head = first;
         first -> tail = true;
-        first -> freeSpace = length;
+        first -> freeSpace = length - sizeUnsi;
         first -> nextAddress = 0;
 
         //erste direkte Liste angelegt an den Anfang von Memory mit ein free-Block mit Laenge length
     }
 
     void* alloc(size_t size) {
+        //Error abfangen
         if (size == 0) {
             cerr << "Error: Bitte keine 0 eingeben!" << endl;
             return nullptr;
+
+        } else if (size < 12) {
+            cerr << "Error: Bitte mindestens 12 Bytes anfordern!" << endl;
+            return nullptr;
         }
         
-        unsigned* rightPos = 0;
-        nextFreeUnit* lastPos = 0;
-        nextFreeUnit* curPos = this -> head;
+        freeBlock* lastPos = 0;//Pointer der auf den FreeBlock vor dem richtigen Block zeigt
+        freeBlock* curPos = this -> head;//Pointer der auf einen passenden Block zeigt
+        char* ar_ptr = 0;//Pointer der durch den gleich belegten Block durchgeht und dahinter ein neuen freeBlock anlegt
 
         while ((size_t) (curPos -> freeSpace) < size) {
 
             if (curPos -> nextAddress == 0) {
-                memory.expand(size);
-
+                int i = memory.getSize();
+                memory.expand(size);//Problem was wenn expand fehlschlägt???
+                cout << "hier1" << endl;
                 if (curPos -> tail) {
-                    curPos -> freeSpace += 1024;
-                    //Problem was wenn mehr als 1024 angefragt wurde (dann wurde zwar mehr erweitert aber wir wissen nicht um wie viel)
-
-                } else {
+                    curPos -> freeSpace += (memory.getSize() - i);
+                    cout << "hier2 " << curPos -> freeSpace << endl;
+                } else {//Hoffe das worked
                     lastPos = curPos;
-                    curPos = curPos -> nextAddress;
+                    cout << "hier3" << endl;
+                    ar_ptr = (char*) curPos;
+                    int steps = ar_ptr - ((char*) memory.getStart());
+                    steps = memory.getSize() - steps;
+                    steps -= i;
+                    ar_ptr += steps;
+
+                    curPos = (freeBlock*) ar_ptr;
 
                     curPos -> tail = true;
-                    curPos -> freeSpace = 1024;
+                    curPos -> freeSpace = (memory.getSize() - i) - sizeUnsi;
                     curPos -> nextAddress = 0;
                 }
 
@@ -74,74 +89,104 @@ public:
             curPos = curPos -> nextAddress;
         }
 
-        //right Posi wird nicht gebraucht brauchen aber letzte Position
-        rightPos = (unsigned*) curPos;//zum gleich belegten Block der Pointer (koennte auch ein unsigned sein dann weniger casts)
+        if ((curPos -> freeSpace) - size < minByte + 12) {
+            cout << "hier4" << endl;
+            if ((curPos -> tail) == true) {
+                cout << "hier5" << endl;
+                memory.expand(1);//mindest Wert expand
+                curPos -> freeSpace += 1024;
 
-        //brauch drei Pointer einer zum Block davor einen zu gleich belegten Block und einer zu naechsten
-        //verschieben des alten Managments
-        //Problem könnte belegt sein
-        char* ar_ptr = (char*) rightPos;//zum naechsten Block der Pointer
-        ar_ptr += sizeof(unsigned);
-        ar_ptr += size;
-
-        if (this -> head == curPos) {
-            this -> head = ((nextFreeUnit*) ar_ptr);
-        } else {
-            lastPos -> nextAddress = ((nextFreeUnit*) ar_ptr);
+            } else {
+                cout << "hier6" << endl;
+                size = (curPos -> freeSpace);
+            }
         }
 
-        ((nextFreeUnit*) ar_ptr) -> tail = ((nextFreeUnit*) rightPos) -> tail;
-        ((nextFreeUnit*) ar_ptr) -> freeSpace = (((nextFreeUnit*) rightPos) -> freeSpace) - size - sizeof(unsigned);
-        ((nextFreeUnit*) ar_ptr) -> nextAddress = ((nextFreeUnit*) rightPos) -> nextAddress;
+        //geht an Position für den neuen FreeBlock
+        ar_ptr = (char*) curPos;
+        ar_ptr += sizeUnsi;
+        ar_ptr += size;
 
-        //Block als belegt makieren
-        *rightPos = (unsigned) size;
-        rightPos++;
+        //Wenn der Block exakt rein gepasst hat dann keinen neuen FreeBlock
+        if ((size_t) (curPos -> freeSpace) == size) {
+            lastPos -> nextAddress = curPos -> nextAddress;
+            cout << "hier7" << endl;
 
-        //Problem sicher stellen das genug Byte übrig sind
-        return (void*) rightPos;
+        } else {//else  neuen FreeBlock anlegen
+            cout << "hier8" << endl;
+
+            //wenn der Head genug Platz hatte muss ein neuer Head bestimmt werden
+            if (this -> head == curPos) { 
+                this -> head = ((freeBlock*) ar_ptr);
+                cout << "eerwer " << (((freeBlock*) curPos) -> freeSpace) << endl;
+                cout << "hier9" << (((freeBlock*) curPos) -> freeSpace) - size << endl;
+
+            } else { //else muss der FreeBlock davor auf einen neuen Blockzeigen
+                lastPos -> nextAddress = ((freeBlock*) ar_ptr);
+                cout << "hier10" << endl;
+            }
+
+            ((freeBlock*) ar_ptr) -> tail = ((freeBlock*) curPos) -> tail;
+            ((freeBlock*) ar_ptr) -> freeSpace = (((freeBlock*) curPos) -> freeSpace) - size - sizeUnsi;
+            ((freeBlock*) ar_ptr) -> nextAddress = ((freeBlock*) curPos) -> nextAddress;
+        }
+
+        //die Groesse des Blockes festhalten
+        *((unsigned*) curPos) = (unsigned) size;
+
+        //Start des nutzbaren Blockes zurückgeben
+        return (void*) (((unsigned*) curPos) + 1);
     }
 
 	int getSize() {
         return memory.getSize();
     }
 
-    void fillArray(char* array) {/*
-        char* ptr1 = (char*) head;//move zeiger
-        void* ptr3 = memory.getStart();//vergleich Zeiger zeigt auf naechsten free Block
+    void fillArray(char* array) {
+        char* ptr1 = (char*) memory.getStart();//move zeiger
+        void* ptr2 = head;//vergleich Zeiger zeigt auf naechsten free Block
         int count = 0;
 
-        while (ptr3 != 0) {
-            if (ptr1 == ptr3) {
+        while (ptr2 != 0) {
+            if (ptr1 == ptr2) {
+                //Array beschreiben
                 array[count] = 'M';
-                count += sizeof(nextFreeUnit);
+                count += sizeUnsi;
+                cout << count << endl;
                 array[count] = 'F';
-                count += (((nextFreeUnit*) ptr1) -> freeSpace);
+                count += (((freeBlock*) ptr1) -> freeSpace);
+                cout << count << endl;
 
-                ptr3 = (((nextFreeUnit*) ptr1) -> nextAddress);
-                ptr1 += (((nextFreeUnit*) ptr1) -> freeSpace);
-                ptr1 += sizeof(nextFreeUnit);
+                //ptr weiterschieben
+                ptr2 = (((freeBlock*) ptr1) -> nextAddress);
+                cout << (void*) ptr1 << endl;
+                ptr1 += (((freeBlock*) ptr1) -> freeSpace);
+                ptr1 += sizeUnsi;
+                cout << (void*) ptr1 << endl;
 
             } else {
+                cout << "hier11" << endl;
+                //Array beschreiben
                 array[count] = 'M';
-                count += sizeof(unsigned);
+                count += sizeUnsi;
                 array[count] = 'B';
                 count += *((unsigned*) ptr1);
 
+                //ptr weiterschieben
                 ptr1 += *((unsigned*) ptr1);
-                ptr1 += sizeof(unsigned);
+                ptr1 += sizeUnsi;
             }
         }
 
-        while (ptr1 != sbrk(0)) {
+        while (count != getSize()) {
             array[count] = 'M';
-            count += sizeof(unsigned);
+            count += sizeUnsi;
             array[count] = 'B';
             count += *((unsigned*) ptr1);
 
             ptr1 += *((unsigned*) ptr1);
-            ptr1 += sizeof(unsigned);
-        }*/
+            ptr1 += sizeUnsi;
+        }
     }
 
 	bool getList(int i) {
@@ -190,7 +235,7 @@ public:
     }
 
 private:
-    nextFreeUnit* head;
+    freeBlock* head;
 
 };
 

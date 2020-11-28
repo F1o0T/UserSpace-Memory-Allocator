@@ -9,6 +9,7 @@
         "string_view": "c",
         "initializer_list": "c",
         "iostream": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "utility": "cpp"
     }
 }

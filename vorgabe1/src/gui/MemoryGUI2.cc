@@ -20,11 +20,11 @@
 			window -> drawText(x,y,to_string(i+1));
 			x += 20;
 		}
-/*
+
 		char* ptr = (char*) calloc(heap -> getSize(), sizeof(char));
 		heap -> fillArray(ptr);
 
-        for (int i = 0; i < heap -> getSize(); i += 2) {
+        for (int i = 0; i < heap -> getSize(); i++) {
 		
 			if (x > 800) {
 				x -= 800;
@@ -35,21 +35,31 @@
 				case 'M':
 					window -> setForegroundColor(RGBColor(0,0,255));
 					window -> drawFilledRectangle(x,y,10,10);
+					window -> setForegroundColor(RGBColor(255,255,0));
+					window -> drawText(x+2,y+10,"M");
 					break;
 				case 'F':
 					window -> setForegroundColor(RGBColor(0,255,0));
 					window -> drawFilledRectangle(x,y,10,10);
+					window -> setForegroundColor(RGBColor(255,0,0));
+					window -> drawText(x+2,y+10,"F");
 					break;
 				case 'B':
 					window -> setForegroundColor(RGBColor(255,0,0));
 					window -> drawFilledRectangle(x,y,10,10);
+					window -> setForegroundColor(RGBColor(0,255,0));
+					window -> drawText(x+2,y+10,"B");
 					break;
 				default:
 					x -= 20;
 			}
 		
 			x += 20;
-		}*/
+		}
+
+		if (ptr != 0) {
+			free(ptr);
+		}
     }
 
 	void MemoryGUI2::clearWindow(){

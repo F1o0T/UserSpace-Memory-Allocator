@@ -11,29 +11,28 @@ public:
 	BSSMemory() {
 		this -> memblock = sbrk(0);
 	}
-/*
-	~BSSMemory(){
-		brk(memblock);
-	}*/
 	
 	void* getStart() {
 		return this -> memblock;
 	}
 	
 	size_t getSize() {
-		return (size_t) ((char*) sbrk(0) - (char*) memblock);
+		return this -> heapSize;
 	}
 	
 	void* expand(size_t size) {
 		if (size < stdMem) {
+			this -> heapSize += stdMem;
 			return sbrk(stdMem);
 		} else {
-			return sbrk((size/stdMem) * stdMem);
+			this -> heapSize += ((size/stdMem) + 1) * stdMem;
+			return sbrk(((size/stdMem) + 1) * stdMem);
 		}
 	}
 	
 private:
 	void* memblock;
+	unsigned heapSize = 0;
 };
 
 #endif

@@ -29,8 +29,6 @@ int main(int argc, char** argv)
 {
 	void* ptr;
 
-	cout << mem.getSize() << endl;
-	cout << heap.getSize() << endl;
 	gui.drawHeapMemory();
 
 	char input = ' ';
