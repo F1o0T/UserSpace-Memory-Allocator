@@ -40,9 +40,28 @@ public:
 		return (blocklist.size() + 1) / 2;
 	}
 	
-	bool getList(int i) {
-		return blocklist[i];
-	}
+    void fillList(list<int>* list) {      
+		bool col = true;  
+		
+		for (int i = 0; i < getSize(); i += 2) {
+		    if (blocklist[i]) {
+			    if (i != 0) {
+				    if (!(blocklist[i-1])) {
+					    col = !col;
+				    }
+			    }
+			
+			    if (col) {
+					list -> push_back(-1);
+			    } else {
+					list -> push_back(-2);
+			    }
+			
+			} else {
+				list -> push_back(-3);
+			}
+		}
+    }
 	
 
 	//gerade -- false(0) = freie Blöcke -- true(1) = belegte Blöcke

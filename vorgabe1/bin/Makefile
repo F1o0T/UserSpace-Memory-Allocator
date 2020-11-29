@@ -2,8 +2,7 @@
 
 SRC_FILES = \
 	gui/DrawingWindow.cc \
-	gui/MemoryGUI.cc \
-	gui/MemoryGUI2.cc
+	gui/MemoryGUI.cc
 	
 
 	

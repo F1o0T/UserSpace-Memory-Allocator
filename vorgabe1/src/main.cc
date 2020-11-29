@@ -5,7 +5,7 @@
 #include "system/BSSMemory.h"
 #include "runtime/FirstFitHeap.h"
 #include <vector>
-#include "gui/MemoryGUI2.h"
+#include "gui/MemoryGUI.h"
 #include <climits>
 
 using namespace std;
@@ -18,11 +18,12 @@ using namespace GUI;
 
 BSSMemory mem;
 FirstFitHeap heap(mem, 1000);
-DrawingWindow window(width,hight,"GUI");
-MemoryGUI2 gui(&heap, &window);
 
 //FixedMemory<memSize> mem;
 //FixedHeap<blockSize> heap(mem);
+
+DrawingWindow window(width,hight,"GUI");
+MemoryGUI gui(&heap, &window);
 
 
 int main(int argc, char** argv)
