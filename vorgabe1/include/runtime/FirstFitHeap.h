@@ -151,25 +151,47 @@ public:
     }
 
     void merge(freeBlock* block1, freeBlock* block2) {
-        if(((char*)block1 + (block1 ->freeSpace)) == ((char*)block2)){
-            block1->freeSpace = block1->freeSpace + block2->freeSpace;
+            cout << "jetzt gehts los" <<endl;
+            block1->freeSpace = block1->freeSpace + (block2->freeSpace + sizeof(unsigned));
+            cout << "freeSpace geändert" <<endl;
             block1->nextAddress = block2->nextAddress;
-
-        }
+            cout << "block geändert" <<endl;
     }
 
     void addBlockInList(freeBlock* block){
-        freeBlock* pred = head;
-        while(pred < block && pred != NULL){
-            pred = pred -> nextAddress;
+        freeBlock* pred = NULL;
+        freeBlock* succ = head;
+        while(succ < block && succ != NULL){
+            cout << "succ" << succ <<endl;
+            pred = succ;
+            succ = succ -> nextAddress;
         }
-        block->nextAddress = pred;
+        block->nextAddress = succ;
+
+        if(head > block){
+            head = block;
+        }
+        
+
+        if((((char*)block) + block->freeSpace + (sizeof(unsigned))) == ((char*)succ)){
+            cout << "merge wird aufgerufen, succ: " << succ <<endl;
+            merge(block, succ);
+        }
+
+        if(pred != NULL){
+            pred->nextAddress = block;
+            if((((char*)pred) + pred->freeSpace + (sizeof(unsigned))) == ((char*)block)){
+                merge(pred, block);
+            }
+        }
+        
     }
 
 
 
     void free(void* address) {
-        unsigned* blockStart = (unsigned*) address - 1;
+        unsigned* blockStart = ((unsigned*) address) - 1;
+        cout << "blockstart:" << blockStart <<endl;
         unsigned int blockSize = *((unsigned*) blockStart);        //ob das hier richtig ist, bin ich noch gespannt, es soll den Größenwert auslesen, der an dieser Stelle gespeichert sein sollte
         freeBlock* block = (freeBlock*) blockStart;
         block->freeSpace = blockSize;
