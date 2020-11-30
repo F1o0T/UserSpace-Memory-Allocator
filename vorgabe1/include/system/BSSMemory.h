@@ -8,31 +8,19 @@
 
 class BSSMemory:public Memory {
 public:
-	BSSMemory() {
-		this -> memblock = sbrk(0);
-	}
+
+	BSSMemory();
+
+	void initMem();
 	
-	void* getStart() {
-		return this -> memblock;
-	}
+	void* getStart();
 	
-	size_t getSize() {
-		return this -> heapSize;
-	}
+	size_t getSize();
 	
-	void* expand(size_t size) {
-		if (size < stdMem) {
-			this -> heapSize += stdMem;
-			return sbrk(stdMem);
-		} else {
-			this -> heapSize += ((size/stdMem) + 1) * stdMem;
-			return sbrk(((size/stdMem) + 1) * stdMem);
-		}
-	}
+	void* expand(size_t size);
 	
 private:
 	void* memblock;
-	unsigned heapSize = 0;
 };
 
 #endif

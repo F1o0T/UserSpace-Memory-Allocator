@@ -17,7 +17,7 @@ using namespace GUI;
 #define memSize 1024
 
 BSSMemory mem;
-FirstFitHeap heap(mem, 1000);
+FirstFitHeap heap(mem);
 
 //FixedMemory<memSize> mem;
 //FixedHeap<blockSize> heap(mem);
@@ -29,6 +29,8 @@ MemoryGUI gui(&heap, &window);
 int main(int argc, char** argv)
 {
 	void* ptr;
+	mem.initMem();
+	heap.initHeap(memSize);
 
 	gui.drawHeapMemory();
 
