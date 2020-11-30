@@ -150,45 +150,31 @@ public:
         }
     }
 
-    void merge(void* deletedBlock) {
-        //verbinden von mindestens zwei Blöcken
+    void merge(freeBlock* block1, freeBlock* block2) {
+        if(((char*)block1 + (block1 ->freeSpace)) == ((char*)block2)){
+            block1->freeSpace = block1->freeSpace + block2->freeSpace;
+            block1->nextAddress = block2->nextAddress;
+
+        }
     }
 
-    void free(void* address) {/*
-        char* start = (char*) (memory.getStart());
-        char* obj = (char*) address;
-        int count = 0;
-        
-        if (start != obj) {
-            //finden des angegebenen Blockes
-            for (int i = 0; i <= getBlockCount(); i++) {
-                
-                //gehen Blockweise durch
-                if (start == obj) {
-                    break;
-                }
-                
-                start += N;
-                count += 2;
-            }
-            
-            //backtracken und Fehlersuche (simpel gehalten)
-            
-            //wenn kein passender Block gefunden wurde oder nicht das erste Element ist
-            if (count > getSize()-1) {
-                cerr << "Error: Die Adresse ist kein Block im Heap." << endl;
-                return;
-            } else if (blocklist[count-1] == 1) {
-                cerr << "Error: Bitte gib das erste Element des Speicherblockes ein!" << endl;
-                return;
-            }
+    void addBlockInList(freeBlock* block){
+        freeBlock* pred = head;
+        while(pred < block && pred != NULL){
+            pred = pred -> nextAddress;
         }
-        
-        //finden aller zusammenhängender Blöcke
-        while (blocklist[count] == 1 && count <= getSize()-1) {
-            blocklist[count] = 0;
-            count++;
-        }*/
+        block->nextAddress = pred;
+    }
+
+
+
+    void free(void* address) {
+        unsigned* blockStart = (unsigned*) address - 1;
+        unsigned int blockSize = *((unsigned*) blockStart);        //ob das hier richtig ist, bin ich noch gespannt, es soll den Größenwert auslesen, der an dieser Stelle gespeichert sein sollte
+        freeBlock* block = (freeBlock*) blockStart;
+        block->freeSpace = blockSize;
+        addBlockInList(block); 
+
     }
 
 private:
