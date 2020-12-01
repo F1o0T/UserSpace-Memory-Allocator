@@ -35,6 +35,8 @@ public:
 
     void free(void* address);
 
+    bool correctAddress(void* address);
+
 private:
     freeBlock* head;
 };

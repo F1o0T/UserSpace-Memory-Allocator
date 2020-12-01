@@ -132,18 +132,14 @@ void FirstFitHeap::fillList(list<int>* list) {
 }
 
 void FirstFitHeap::merge(freeBlock* block1, freeBlock* block2) {
-        cout << "jetzt gehts los" <<endl;
         block1->freeSpace = block1->freeSpace + (block2->freeSpace + sizeUnsi);
-        cout << "freeSpace geändert" <<endl;
         block1->nextAddress = block2->nextAddress;
-        cout << "block geändert" <<endl;
 }
 
 void FirstFitHeap::addBlockInList(freeBlock* block){
     freeBlock* pred = NULL;
     freeBlock* succ = head;
     while(succ < block && succ != NULL){
-        cout << "succ" << succ <<endl;
         pred = succ;
         succ = succ -> nextAddress;
     }
@@ -155,7 +151,6 @@ void FirstFitHeap::addBlockInList(freeBlock* block){
     
 
     if((((char*)block) + block->freeSpace + sizeUnsi) == ((char*)succ)){
-        cout << "merge wird aufgerufen, succ: " << succ <<endl;
         merge(block, succ);
     }
 
@@ -169,11 +164,57 @@ void FirstFitHeap::addBlockInList(freeBlock* block){
 }
 
 void FirstFitHeap::free(void* address) {
+
+    if(address < memory.getStart()){
+        cerr << "Error: Address to free is smaller than start of the heap" << endl;
+        return;
+    }
+    if(address > (((char*) memory.getStart()) + memory.getSize())){
+        cerr << "Error: Address to free is bigger than end of the heap" << endl;
+        return;
+    }
+    list<void*> blockList;
+
+
+    
+    if(!correctAddress((void*) ((unsigned*) address) - sizeUnsi)){
+        cerr << "Error: Address in Heap can't be freed" << endl;
+        return;
+    }
+
+
     unsigned* blockStart = ((unsigned*) address) - 1;
-    cout << "blockstart:" << blockStart <<endl;
-    unsigned int blockSize = *((unsigned*) blockStart);        //ob das hier richtig ist, bin ich noch gespannt, es soll den Größenwert auslesen, der an dieser Stelle gespeichert sein sollte
+    unsigned int blockSize = *((unsigned*) blockStart);
     freeBlock* block = (freeBlock*) blockStart;
     block->freeSpace = blockSize;
     addBlockInList(block); 
+
+}
+
+
+//checks if the address to free is a correct beginning of a block
+bool FirstFitHeap::correctAddress(void* address){
+    char* ptr1 = (char*) memory.getStart();//move zeiger
+    void* ptr2 = head;//vergleich Zeiger zeigt auf naechsten FreeBlock
+
+    while (ptr2 != 0) {
+        if (ptr1 == ptr2) {
+            //ptr weiterschieben
+            ptr2 = (((freeBlock*) ptr1) -> nextAddress);
+            ptr1 += (((freeBlock*) ptr1) -> freeSpace);
+            ptr1 += sizeUnsi;
+
+        } else {
+            //ptr weiterschieben
+            if(address == ptr1){
+                return true;
+            }
+
+            ptr1 += *((unsigned*) ptr1);
+            ptr1 += sizeUnsi;
+        }
+    }
+
+    return false;
 
 }
