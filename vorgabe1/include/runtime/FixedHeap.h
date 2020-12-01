@@ -13,6 +13,11 @@ class FixedHeap:public Heap {
 public:
 	
 	FixedHeap(Memory& memory) : Heap(memory) {
+	}
+
+	void initHeap(int n = 1) {
+		memory.expand(1);
+		
 		if (N <= 0) {
 			cerr << "Error: Die Blockgroesse darf nicht 0 sein." << endl;
 

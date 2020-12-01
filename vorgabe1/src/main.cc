@@ -17,9 +17,9 @@ using namespace GUI;
 #define memSize 1024
 
 BSSMemory mem;
-FirstFitHeap heap(mem);
-
 //FixedMemory<memSize> mem;
+
+FirstFitHeap heap(mem);
 //FixedHeap<blockSize> heap(mem);
 
 DrawingWindow window(width,hight,"GUI");
@@ -33,13 +33,12 @@ int main(int argc, char** argv)
 	heap.initHeap(memSize);
 
 	gui.drawHeapMemory();
+	//gui.drawFixedHeapMemory();
 
 	char input = ' ';
 	int input2;
 	void* input3;
 	while(input != 'q') {
-		//clear input
-
 		cout << "Press q and enter to quit, a to allocate memory, f to free memory" << endl;
 		cin >> input;
 		cin.ignore(INT_MAX, '\n');
@@ -59,6 +58,7 @@ int main(int argc, char** argv)
 				
 				gui.clearWindow();
 				gui.drawHeapMemory();
+				//gui.drawFixedHeapMemory();
 			}
 		}
 		if(input == 'f'){
@@ -74,6 +74,7 @@ int main(int argc, char** argv)
 				heap.free(input3);
 				gui.clearWindow();
 				gui.drawHeapMemory();
+				//gui.drawFixedHeapMemory();
 			}
 		}
 

@@ -16,6 +16,7 @@ void FirstFitHeap::initHeap(int n = 1) {
     ptr = memory.expand(n);
     if (ptr == 0) {
         cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
+        return;
     }
 
     length = (unsigned) memory.getSize();
@@ -46,9 +47,10 @@ void* FirstFitHeap::alloc(size_t size) {
         if (curPos -> nextAddress == 0) {
             int i = memory.getSize();
             void* ptr = memory.expand(size);
-
-            if (ptr == 0) {
+            
+            if (ptr == 0 || ptr == (void*) -1) {
                 cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
+                return nullptr;
             }
             
             curPos -> freeSpace += (memory.getSize() - i);
@@ -63,8 +65,9 @@ void* FirstFitHeap::alloc(size_t size) {
         if (curPos -> nextAddress == 0) {//letzter Block
             void* ptr = memory.expand(1);//mindest Wert expand
 
-            if (ptr == 0) {
+            if (ptr == 0 || ptr == (void*) -1) {
                 cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
+                return nullptr;
             }
 
             curPos -> freeSpace += 1024;
