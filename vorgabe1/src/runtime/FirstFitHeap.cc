@@ -6,13 +6,18 @@ FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {
 void FirstFitHeap::initHeap(int n = 1) {
     unsigned length = 0;
     freeBlock* first = (freeBlock*) memory.getStart();
+    void* ptr = 0;
 
     if (n <= 0) {
         cerr << "Error: Die Heapgroesse darf nicht kleiner gleich 0 sein. Heap wurde auf Standardgroesse gesetzt." << endl;
         n = 1;
     }
 
-    memory.expand(n);
+    ptr = memory.expand(n);
+    if (ptr == 0) {
+        cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
+    }
+
     length = (unsigned) memory.getSize();
 
     this -> head = first;
@@ -40,10 +45,13 @@ void* FirstFitHeap::alloc(size_t size) {
 
         if (curPos -> nextAddress == 0) {
             int i = memory.getSize();
-            memory.expand(size);//Problem was wenn expand fehlschlägt???
+            void* ptr = memory.expand(size);
+
+            if (ptr == 0) {
+                cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
+            }
             
             curPos -> freeSpace += (memory.getSize() - i);
-            cout << "LastBlock after expand new freespace : " << curPos -> freeSpace << endl;
             break;
         }
 
@@ -52,14 +60,17 @@ void* FirstFitHeap::alloc(size_t size) {
     }
 
     if ((curPos -> freeSpace) - size < minByte) {
-        cout << "weniger als 16 Byte uebrig" << endl;
         if (curPos -> nextAddress == 0) {//letzter Block
-            memory.expand(1);//mindest Wert expand
+            void* ptr = memory.expand(1);//mindest Wert expand
+
+            if (ptr == 0) {
+                cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
+            }
+
             curPos -> freeSpace += 1024;
 
         } else {//Mitten im Heap
             size = (curPos -> freeSpace);
-            cout << "kein neuer FreeBlock" << endl;
 
             if (curPos == head) {
                 head = curPos -> nextAddress;
@@ -77,21 +88,17 @@ void* FirstFitHeap::alloc(size_t size) {
 
     //neuen FreeBlock anlegen Falls noch genügend Platz ist
     if ((size_t) (curPos -> freeSpace) > size) {
-        cout << "es wird ein neuer FreeBlock angelegt" << endl;
 
         //wenn der Head genug Platz hatte muss ein neuer Head bestimmt werden
         if (this -> head == curPos) { 
             this -> head = ((freeBlock*) ar_ptr);
-            cout << "hier1 " << endl;
 
         } else { //else muss der FreeBlock davor auf einen neuen Blockzeigen
             lastPos -> nextAddress = ((freeBlock*) ar_ptr);
-            cout << "hier2" << endl;
         }
 
         ((freeBlock*) ar_ptr) -> freeSpace = (((freeBlock*) curPos) -> freeSpace) - size - sizeUnsi;
         ((freeBlock*) ar_ptr) -> nextAddress = ((freeBlock*) curPos) -> nextAddress;
-        cout << "hier3 " << ((freeBlock*) ar_ptr) -> freeSpace << endl;
     }
 
     //die Groesse des Blockes festhalten
@@ -177,7 +184,7 @@ void FirstFitHeap::free(void* address) {
 
 
     
-    if(!correctAddress((void*) ((unsigned*) address) - sizeUnsi)){
+    if(!correctAddress((void*) (((unsigned*) address) - 1))){
         cerr << "Error: Address in Heap can't be freed" << endl;
         return;
     }

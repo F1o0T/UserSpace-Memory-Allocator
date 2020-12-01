@@ -38,6 +38,8 @@ int main(int argc, char** argv)
 	int input2;
 	void* input3;
 	while(input != 'q') {
+		//clear input
+
 		cout << "Press q and enter to quit, a to allocate memory, f to free memory" << endl;
 		cin >> input;
 		cin.ignore(INT_MAX, '\n');
@@ -49,6 +51,7 @@ int main(int argc, char** argv)
 			if (cin.fail() || input2 < 0) {
 				cerr << "Eingabe ist fehlgeschlagen!" << endl;
 				cin.clear();
+				cin.ignore(INT_MAX, '\n');
 
 			} else {
 				ptr = heap.alloc(input2);
@@ -65,6 +68,7 @@ int main(int argc, char** argv)
 			if (cin.fail()) {
 				cerr << "Eingabe ist fehlgeschlagen!" << endl;
 				cin.clear();
+				cin.ignore(INT_MAX, '\n');
 
 			} else {
 				heap.free(input3);
@@ -72,7 +76,7 @@ int main(int argc, char** argv)
 				gui.drawHeapMemory();
 			}
 		}
-		
+
 		cout << endl;
 	}
 	
