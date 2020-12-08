@@ -1,13 +1,14 @@
 #include "runtime/FirstFitHeap.h"
 
 FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {
+    initHeap();
 }
 
-void FirstFitHeap::initHeap(int n = 1) {
+void FirstFitHeap::initHeap() {
     unsigned length = 0;
     freeBlock* first = (freeBlock*) memory.getStart();
-    void* ptr = 0;
-
+    //void* ptr = 0;
+    /*
     if (n <= 0) {
         cerr << "Error: Die Heapgroesse darf nicht kleiner gleich 0 sein. Heap wurde auf Standardgroesse gesetzt." << endl;
         n = 1;
@@ -18,7 +19,7 @@ void FirstFitHeap::initHeap(int n = 1) {
         cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
         return;
     }
-
+    */
     length = (unsigned) memory.getSize();
 
     this -> head = first;
@@ -63,14 +64,14 @@ void* FirstFitHeap::alloc(size_t size) {
 
     if ((curPos -> freeSpace) - size < minByte) {
         if (curPos -> nextAddress == 0) {//letzter Block
+            int i = memory.getSize();
             void* ptr = memory.expand(1);//mindest Wert expand
 
             if (ptr == 0 || ptr == (void*) -1) {
                 cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
                 return nullptr;
             }
-
-            curPos -> freeSpace += 1024;
+            curPos -> freeSpace += (memory.getSize() - i);
 
         } else {//Mitten im Heap
             size = (curPos -> freeSpace);
@@ -96,7 +97,7 @@ void* FirstFitHeap::alloc(size_t size) {
         if (this -> head == curPos) { 
             this -> head = ((freeBlock*) ar_ptr);
 
-        } else { //else muss der FreeBlock davor auf einen neuen Blockzeigen
+        } else { //else muss der FreeBlock davor auf einen neuen Block zeigen
             lastPos -> nextAddress = ((freeBlock*) ar_ptr);
         }
 
@@ -202,7 +203,7 @@ void FirstFitHeap::free(void* address) {
 }
 
 
-//checks if the address to free is a correct beginning of a block
+//checks whether the address to free is a correct start of a block
 bool FirstFitHeap::correctAddress(void* address){
     char* ptr1 = (char*) memory.getStart();//move zeiger
     void* ptr2 = head;//vergleich Zeiger zeigt auf naechsten FreeBlock

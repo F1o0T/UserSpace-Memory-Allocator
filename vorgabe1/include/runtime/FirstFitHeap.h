@@ -21,7 +21,7 @@ public:
 
     FirstFitHeap(Memory& memory);
 
-    void initHeap(int n);
+    void initHeap();
 
     void* alloc(size_t size);
 

@@ -4,14 +4,14 @@
 #include "system/Memory.h"
 #include <unistd.h>
 
-#define stdMem 1024
+//#define stdMem 1024
 
 class BSSMemory:public Memory {
 public:
 
-	BSSMemory();
+	BSSMemory(unsigned int startSize);
 
-	void initMem();
+	void initMem(unsigned startSize);
 	
 	void* getStart();
 	
@@ -21,6 +21,7 @@ public:
 	
 private:
 	void* memblock;
+	unsigned int expandSize;
 };
 
 #endif

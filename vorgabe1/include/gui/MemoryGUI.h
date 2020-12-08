@@ -17,7 +17,9 @@ public:
 
 	MemoryGUI(Heap* heap, DrawingWindow* window);
 
-	void drawHeapMemory();
+    void drawMemory(bool decision);
+
+	void drawBSSMemory();
 
     void drawFixedHeapMemory();
 

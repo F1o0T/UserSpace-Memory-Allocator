@@ -2,7 +2,17 @@
 
 MemoryGUI::MemoryGUI(Heap* heap, DrawingWindow* window) : heap(heap), window(window) {}
 
-void MemoryGUI::drawHeapMemory(){
+
+void MemoryGUI::drawMemory(bool decision){
+	if(decision == true){
+		drawBSSMemory();
+	}
+	else{
+		drawFixedHeapMemory();
+	}
+}
+
+void MemoryGUI::drawBSSMemory(){
 	int x = 5;
 	int y = 15;
 	bool col = true;
