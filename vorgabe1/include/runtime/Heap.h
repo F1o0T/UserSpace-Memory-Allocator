@@ -36,7 +36,7 @@ public:
 
 	virtual int getSize()=0;
 
-	virtual bool getList(int i) = 0;
+	virtual void fillList(std::list<int>* list) = 0;
 
 
 	//virtual list<tuple<size_t, bool>> getMemoryList()=0;

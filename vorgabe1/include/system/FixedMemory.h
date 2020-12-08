@@ -23,7 +23,7 @@ public:
 	}
 	
 	void* expand(size_t size) {
-		return 0;
+		return (void*) -1;
 	}
 	
 private:
