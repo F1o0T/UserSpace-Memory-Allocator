@@ -5,43 +5,30 @@ FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {
 }
 
 void FirstFitHeap::initHeap() {
-    unsigned length = 0;
     freeBlock* first = (freeBlock*) memory.getStart();
-    //void* ptr = 0;
-    /*
-    if (n <= 0) {
-        cerr << "Error: Die Heapgroesse darf nicht kleiner gleich 0 sein. Heap wurde auf Standardgroesse gesetzt." << endl;
-        n = 1;
-    }
-
-    ptr = memory.expand(n);
-    if (ptr == 0) {
-        cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
-        return;
-    }
-    */
-    length = (unsigned) memory.getSize();
+    unsigned length = (unsigned) memory.getSize();
 
     this -> head = first;
     first -> freeSpace = length - sizeUnsi;
     first -> nextAddress = 0;
 
-    //erste direkte Liste angelegt an den Anfang von Memory mit ein free-Block mit Laenge length
+    //create first direct list at the start of the memory
+    //With only one free block with the length of memory - unsigned
 }
 
 void* FirstFitHeap::alloc(size_t size) {
-    //Error abfangen
+    //catch Errors
     if (size == 0) {
-        cerr << "Error: Bitte keine 0 eingeben!" << endl;
+        cerr << "Error: Please dont use a 0!" << endl;
         return nullptr;
 
     } else if (size < 12) {
         size = 12;
     }
     
-    freeBlock* lastPos = 0;//Pointer der auf den FreeBlock vor dem richtigen Block zeigt
-    freeBlock* curPos = this -> head;//Pointer der auf einen passenden Block zeigt
-    char* ar_ptr = 0;//Pointer der durch den gleich belegten Block durchgeht und dahinter ein neuen freeBlock anlegt
+    freeBlock* lastPos = 0;//Pointer to the free block before the right block
+    freeBlock* curPos = this -> head;//Pointer that points to a matching block
+    char* ar_ptr = 0;//Pointer thats create a new free block behind the matching block
 
     while ((size_t) (curPos -> freeSpace) < size) {
 
@@ -50,7 +37,7 @@ void* FirstFitHeap::alloc(size_t size) {
             void* ptr = memory.expand(size);
             
             if (ptr == 0 || ptr == (void*) -1) {
-                cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
+                cerr << "Error: There is not enough memory available." << endl;
                 return nullptr;
             }
             
@@ -63,9 +50,9 @@ void* FirstFitHeap::alloc(size_t size) {
     }
 
     if ((curPos -> freeSpace) - size < minByte) {
-        if (curPos -> nextAddress == 0) {//letzter Block
+        if (curPos -> nextAddress == 0) {//last block in heap
             int i = memory.getSize();
-            void* ptr = memory.expand(1);//mindest Wert expand
+            void* ptr = memory.expand(1);//minimum to expand
 
             if (ptr == 0 || ptr == (void*) -1) {
                 cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
@@ -73,7 +60,7 @@ void* FirstFitHeap::alloc(size_t size) {
             }
             curPos -> freeSpace += (memory.getSize() - i);
 
-        } else {//Mitten im Heap
+        } else {//somewhere in the middle of the heap
             size = (curPos -> freeSpace);
 
             if (curPos == head) {
@@ -85,19 +72,19 @@ void* FirstFitHeap::alloc(size_t size) {
         }
     }
 
-    //geht an Position fuer den neuen FreeBlock
+    //goes to the Position for the next free block
     ar_ptr = (char*) curPos;
     ar_ptr += sizeUnsi;
     ar_ptr += size;
 
-    //neuen FreeBlock anlegen Falls noch genügend Platz ist
+    //if enough space left then create a new free block
     if ((size_t) (curPos -> freeSpace) > size) {
 
-        //wenn der Head genug Platz hatte muss ein neuer Head bestimmt werden
+        //if the matching block were the head then create a new head
         if (this -> head == curPos) { 
             this -> head = ((freeBlock*) ar_ptr);
 
-        } else { //else muss der FreeBlock davor auf einen neuen Block zeigen
+        } else { //else the free block before the matching block need to point on him
             lastPos -> nextAddress = ((freeBlock*) ar_ptr);
         }
 
@@ -105,10 +92,10 @@ void* FirstFitHeap::alloc(size_t size) {
         ((freeBlock*) ar_ptr) -> nextAddress = ((freeBlock*) curPos) -> nextAddress;
     }
 
-    //die Groesse des Blockes festhalten
+    //record the size of the block
     *((unsigned*) curPos) = (unsigned) size;
 
-    //Start des nutzbaren Blockes zurückgeben
+    //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
 }
 
@@ -117,16 +104,16 @@ int FirstFitHeap::getSize() {
 }
 
 void FirstFitHeap::fillList(list<int>* list) {
-    char* ptr1 = (char*) memory.getStart();//move zeiger
-    void* ptr2 = head;//vergleich Zeiger zeigt auf naechsten FreeBlock
+    char* ptr1 = (char*) memory.getStart();//move pointer
+    void* ptr2 = head;//comparison pointer points on the next free block
 
     while (ptr2 != 0) {
         if (ptr1 == ptr2) {
-            //Liste beschreiben
+            //fill list
             list -> push_back(-1);// -1 = FreeBlockManagment
             list -> push_back(((freeBlock*) ptr1) -> freeSpace);
 
-            //ptr weiterschieben
+            //move on ptr
             ptr2 = (((freeBlock*) ptr1) -> nextAddress);
             ptr1 += (((freeBlock*) ptr1) -> freeSpace);
             ptr1 += sizeUnsi;
@@ -135,7 +122,7 @@ void FirstFitHeap::fillList(list<int>* list) {
             list -> push_back(-2);// -2 = BlockedBlockManagment
             list -> push_back(*((unsigned*) ptr1));
 
-            //ptr weiterschieben
+            //move on ptr
             ptr1 += *((unsigned*) ptr1);
             ptr1 += sizeUnsi;
         }
@@ -206,17 +193,17 @@ void FirstFitHeap::free(void* address) {
 //checks whether the address to free is a correct start of a block
 bool FirstFitHeap::correctAddress(void* address){
     char* ptr1 = (char*) memory.getStart();//move zeiger
-    void* ptr2 = head;//vergleich Zeiger zeigt auf naechsten FreeBlock
+    void* ptr2 = head;//comparison pointer points on the next free block
 
     while (ptr2 != 0) {
         if (ptr1 == ptr2) {
-            //ptr weiterschieben
+            //move on ptr
             ptr2 = (((freeBlock*) ptr1) -> nextAddress);
             ptr1 += (((freeBlock*) ptr1) -> freeSpace);
             ptr1 += sizeUnsi;
 
         } else {
-            //ptr weiterschieben
+            //move on ptr
             if(address == ptr1){
                 return true;
             }

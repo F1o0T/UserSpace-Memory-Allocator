@@ -33,8 +33,6 @@ int main(int argc, char** argv)
 {
 	void* ptr;
 
-
-	//gui.drawHeapMemory();
 	gui.drawMemory(GUIClass);
 
 	char input = ' ';
@@ -50,7 +48,7 @@ int main(int argc, char** argv)
 			cin >> input2;
 			
 			if (cin.fail() || input2 < 0) {
-				cerr << "Eingabe ist fehlgeschlagen!" << endl;
+				cerr << "Input failed!" << endl;
 				cin.clear();
 				cin.ignore(INT_MAX, '\n');
 
@@ -60,7 +58,6 @@ int main(int argc, char** argv)
 				
 				gui.clearWindow();
 				gui.drawMemory(GUIClass);
-				//gui.drawFixedHeapMemory();
 			}
 		}
 		if(input == 'f'){
@@ -68,7 +65,7 @@ int main(int argc, char** argv)
 			cin >> input3;
 
 			if (cin.fail()) {
-				cerr << "Eingabe ist fehlgeschlagen!" << endl;
+				cerr << "Input failed!" << endl;
 				cin.clear();
 				cin.ignore(INT_MAX, '\n');
 
@@ -76,7 +73,6 @@ int main(int argc, char** argv)
 				heap.free(input3);
 				gui.clearWindow();
 				gui.drawMemory(GUIClass);
-				//gui.drawFixedHeapMemory();
 			}
 		}
 

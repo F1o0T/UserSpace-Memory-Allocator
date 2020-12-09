@@ -4,10 +4,8 @@ BSSMemory::BSSMemory(unsigned int startSize) {
     initMem(startSize);
 }
 
-
-
 void BSSMemory::initMem(unsigned startSize) {
-    //16 = Mindestgroesse wegen der Informationen
+    //16 = minimum of size (because the heap struct)
     if(startSize > 16){
         this ->expandSize = startSize;
     } else{
