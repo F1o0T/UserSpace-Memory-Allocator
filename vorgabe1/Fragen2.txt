@@ -1,0 +1,25 @@
+Ist eine Sortierung der Freiblöcke sinnvoll?
+    ja, nach Adresse wegen zusammenfügen von Blöcken zu einem Block
+
+Welche Informationen werden benötigt um einen Block zu beschreiben
+    Startadresse, Größe
+
+Wann muss neuer Speicher vom System angefordert werden?
+    wenn kein Block der angeforderten Größe bereitgestellt werden kann und Heap erweitert werden muss
+
+Wie wird vom System bereit gestellter Speicher (nach einer Expansion) initialisiert?
+    -Größe des Speichers, neuer Speicher wird in Liste eingehangen, Ende des  nun letzten Blocks auf 0
+
+
+In welchen Schritten ist es sinnvoll Speicher zu vergörßern?
+    keine Ahnung
+
+Was gibt sbrk zurück, wenn man das Datensegment vergrößert?
+    Den neuen Break (Ende des Heaps)
+
+Wie groß ist der von BSSMemory verwaltete Speicher initial?
+    0, erst wenn Heap dazu kommt wird das erste mal expanded
+
+Sollte es möglich sein, dass der BSSMemory nicht konsektuiv ist? Wann? Ist eine Behandlung möglich?
+    -ja, wenn Speicher ausgelagert werden muss (Heap wächst in den Stack hinein)
+    -schwierig ob was möglich ist

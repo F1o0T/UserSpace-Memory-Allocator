@@ -2,6 +2,8 @@
 #include "gui/DrawingWindow.h"
 #include "runtime/FixedHeap.h"
 #include "system/FixedMemory.h"
+#include "system/BSSMemory.h"
+#include "runtime/FirstFitHeap.h"
 #include <vector>
 #include "gui/MemoryGUI.h"
 #include <climits>
@@ -10,23 +12,29 @@ using namespace std;
 using namespace GUI;
 
 #define width 800
-#define hight 600
-#define blockSize 67
-#define memSize 3
+#define height 600
+#define blockSize 50
+#define memSize 10000
+#define GUIClass true //true = FirstFitHeap, false = FixedHeap
 
-FixedMemory<memSize> mem;
-FixedHeap<blockSize> heap(mem);
+
+BSSMemory mem(memSize);
+//FixedMemory<memSize> mem;
+
+FirstFitHeap heap(mem);
+//FixedHeap<blockSize> heap(mem);
+
+
+DrawingWindow window(width,height,"GUI");
+MemoryGUI gui(&heap, &window);
 
 
 int main(int argc, char** argv)
 {
 	void* ptr;
 
-	DrawingWindow window(width,hight,"GUI");
-	MemoryGUI gui(&heap, &window);
-	gui.drawHeapMemory();
-	
-		
+	gui.drawMemory(GUIClass);
+
 	char input = ' ';
 	int input2;
 	void* input3;
@@ -40,14 +48,16 @@ int main(int argc, char** argv)
 			cin >> input2;
 			
 			if (cin.fail() || input2 < 0) {
-				cerr << "Eingabe ist fehlgeschlagen!" << endl;
+				cerr << "Input failed!" << endl;
 				cin.clear();
+				cin.ignore(INT_MAX, '\n');
 
 			} else {
 				ptr = heap.alloc(input2);
 				cout << "ptr1 is " << ptr <<endl;
+				
 				gui.clearWindow();
-				gui.drawHeapMemory();
+				gui.drawMemory(GUIClass);
 			}
 		}
 		if(input == 'f'){
@@ -55,16 +65,17 @@ int main(int argc, char** argv)
 			cin >> input3;
 
 			if (cin.fail()) {
-				cerr << "Eingabe ist fehlgeschlagen!" << endl;
+				cerr << "Input failed!" << endl;
 				cin.clear();
+				cin.ignore(INT_MAX, '\n');
 
 			} else {
 				heap.free(input3);
 				gui.clearWindow();
-				gui.drawHeapMemory();
+				gui.drawMemory(GUIClass);
 			}
 		}
-		
+
 		cout << endl;
 	}
 	
