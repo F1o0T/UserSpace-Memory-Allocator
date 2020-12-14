@@ -5,7 +5,8 @@ SRC_FILES = \
 	gui/MemoryGUI.cc \
 	runtime/FirstFitHeap.cc \
 	system/BssMemory.cc \
-	system/MappedMemory.cc
+	system/MappedMemory.cc\
+	system/MappedChunk.cc
 	
 
 	

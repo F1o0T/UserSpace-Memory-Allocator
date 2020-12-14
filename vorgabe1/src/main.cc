@@ -1,9 +1,13 @@
 #include <iostream>
+#include <signal.h>
 #include "gui/DrawingWindow.h"
 #include "runtime/FixedHeap.h"
 #include "system/FixedMemory.h"
 #include "system/BSSMemory.h"
 #include "runtime/FirstFitHeap.h"
+
+#include "system/MappedChunk.h"
+
 #include <vector>
 #include "gui/MemoryGUI.h"
 #include <climits>
@@ -15,69 +19,102 @@ using namespace GUI;
 #define height 600
 #define blockSize 50
 #define memSize 10000
-#define GUIClass true //true = FirstFitHeap, false = FixedHeap
+//true = FirstFitHeap, false = FixedHeap
+#define GUIClass true 
 
 
-BSSMemory mem(memSize);
-//FixedMemory<memSize> mem;
-
-FirstFitHeap heap(mem);
-//FixedHeap<blockSize> heap(mem);
-
-
-DrawingWindow window(width,height,"GUI");
-MemoryGUI gui(&heap, &window);
-
+MappedChunk chunk(600, 6, 3); 
+void MappedChunk::SignalHandeler(int sigNUmber)
+{
+    write(STDERR_FILENO, "|<<<| Error: Permission issues!, lets fix it.\n\0", 48); 
+    chunk.FixPermissions();
+} 
 
 int main(int argc, char** argv)
 {
-	void* ptr;
+	system("clear"); 
+	struct sigaction SigAction;
+	SigAction.sa_handler = chunk.SignalHandeler; 
+	sigaction(SIGSEGV, &SigAction, NULL);
+	chunk.printChunkStarts();
 
-	gui.drawMemory(GUIClass);
+	// gui.drawMemory(GUIClass);
+	unsigned long address;
+	while(1)
+	{
 
-	char input = ' ';
-	int input2;
-	void* input3;
-	while(input != 'q') {
-		cout << "Press q and enter to quit, a to allocate memory, f to free memory" << endl;
-		cin >> input;
-		cin.ignore(INT_MAX, '\n');
-
-		if(input == 'a'){
-			cout << "Insert number of Bytes to allocate, please:" << endl;
-			cin >> input2;
-			
-			if (cin.fail() || input2 < 0) {
-				cerr << "Input failed!" << endl;
-				cin.clear();
-				cin.ignore(INT_MAX, '\n');
-
-			} else {
-				ptr = heap.alloc(input2);
-				cout << "ptr1 is " << ptr <<endl;
-				
-				gui.clearWindow();
-				gui.drawMemory(GUIClass);
-			}
-		}
-		if(input == 'f'){
-			cout << "Insert address of memory to free, please: " << endl;
-			cin >> input3;
-
-			if (cin.fail()) {
-				cerr << "Input failed!" << endl;
-				cin.clear();
-				cin.ignore(INT_MAX, '\n');
-
-			} else {
-				heap.free(input3);
-				gui.clearWindow();
-				gui.drawMemory(GUIClass);
-			}
-		}
-
-		cout << endl;
-	}
-	
+			cout << "|>>>  Insert an address: ";
+			cin >> address;
+			cout << "|>>>  Write a char: "; char ch; 
+			cin >> ch; 
+			*( (char*) address ) = ch; 
+			cout << "|###  The written char is: " <<  *( (char*) address ) <<endl; 
+	}	
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// BSSMemory mem(memSize);
+// FixedMemory<memSize> mem;
+
+// FirstFitHeap heap(mem);
+// FixedHeap<blockSize> heap(mem);
+
+// DrawingWindow window(width,height,"GUI");
+// MemoryGUI gui(&heap, &window);

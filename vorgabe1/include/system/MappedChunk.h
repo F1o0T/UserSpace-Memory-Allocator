@@ -10,31 +10,30 @@
 using namespace std;
 
 
-class MappedChunk:public Memory {
+class MappedChunk{
 public:
-
-	MappedChunk(size_t startSize);
-
+	/////////////////////////////////////////////////
+	// Signal handeler, constructor and deconstructor. 
+	static void SignalHandeler(int SigNumber); 
 	MappedChunk(size_t startSize, size_t blocks, size_t maxactBlocks);
-
 	~MappedChunk();
-	
+	/////////////////////////////////////////////////
+	// Basic Methods
 	void* getStart();
-	
 	size_t getSize();
-
-	void* activateChunk();
-
-	void deactivateChunk(void* chunkStart);
-	
-	void* expand(size_t size);
-	
+ 	void* expand(size_t size);
+ 	/////////////////////////////////////////////////
+ 	// Advanced Methods
+ 	void FixPermissions();
+	void MapSomeoneOut();
+	void printChunkStarts(); 
+	/////////////////////////////////////////////////
 private:
-	void* memblock;
-	size_t chunks;		//number of blocks the momory is devided into
-	size_t maxactChunks;
+	void* memblock = NULL;
+	size_t chunksNumber = 0;
+	size_t maxActChunks = 0;
 	size_t chunkSize;
-	vector<bool> chunkList;
+	vector<bool> chunksTable;
 
 };
 
