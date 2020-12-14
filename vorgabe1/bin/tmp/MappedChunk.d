@@ -139,12 +139,8 @@ MappedChunk.o: ../src/system/MappedChunk.cc /usr/include/stdc-predef.h \
  /usr/include/c++/7/bits/locale_facets.tcc \
  /usr/include/c++/7/bits/basic_ios.tcc \
  /usr/include/c++/7/bits/ostream.tcc /usr/include/c++/7/istream \
- /usr/include/c++/7/bits/istream.tcc /usr/include/c++/7/vector \
- /usr/include/c++/7/bits/stl_construct.h \
- /usr/include/c++/7/bits/stl_uninitialized.h \
- /usr/include/c++/7/bits/stl_vector.h \
- /usr/include/c++/7/bits/stl_bvector.h /usr/include/c++/7/bits/vector.tcc \
- /usr/include/signal.h /usr/include/x86_64-linux-gnu/bits/signum.h \
+ /usr/include/c++/7/bits/istream.tcc /usr/include/signal.h \
+ /usr/include/x86_64-linux-gnu/bits/signum.h \
  /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
  /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h \
@@ -162,9 +158,4 @@ MappedChunk.o: ../src/system/MappedChunk.cc /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/sigstack.h \
  /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
- /usr/include/x86_64-linux-gnu/bits/sigthread.h \
- /usr/include/c++/7/algorithm /usr/include/c++/7/utility \
- /usr/include/c++/7/bits/stl_relops.h /usr/include/c++/7/bits/stl_algo.h \
- /usr/include/c++/7/bits/algorithmfwd.h \
- /usr/include/c++/7/bits/stl_heap.h /usr/include/c++/7/bits/stl_tempbuf.h \
- /usr/include/c++/7/bits/uniform_int_dist.h /usr/include/c++/7/limits
+ /usr/include/x86_64-linux-gnu/bits/sigthread.h

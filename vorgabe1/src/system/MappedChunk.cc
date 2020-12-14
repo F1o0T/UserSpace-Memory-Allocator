@@ -1,42 +1,90 @@
 #include "system/MappedChunk.h"
 #include <signal.h>
-#include <vector>
-#include <algorithm>
-MappedChunk::MappedChunk(size_t Size, size_t chunksNumber, size_t maxActChunks)
-{
+#include <unistd.h>
 
-    if((Size % chunksNumber == 0) && (Size != 0) && (maxActChunks <= chunksNumber)){
-        memblock = mmap(NULL, Size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS,-1,0);
-        this->chunksNumber = chunksNumber;
-        this->maxActChunks = maxActChunks;
-        this->chunkSize = Size / chunksNumber; 
-        this->chunksTable = vector<bool>(chunksNumber, false);
-        for (int i = 0; i < chunksNumber; i++)
-        {
-            cout << chunksTable.at(i) << "\t";  
-        }
-        cout << endl;
-    }
-    else
+#define PAGESIZE sysconf(_SC_PAGESIZE)
+
+MappedChunk::MappedChunk(size_t UserSize, size_t ChunksNumber, size_t MaxActChunks)
+{   
+    /////////////////////////////////////////////////
+    /*Converting the size to multiple of PAGESIZE*/
+    size_t CorrectSize; 
+    if(!(UserSize % PAGESIZE))
     {
-        cerr << "Error occured" << endl;
+        CorrectSize = UserSize; 
+        // cout << CorrectSize << endl;
+    }
+    else 
+    {
+        CorrectSize = (UserSize / PAGESIZE) * PAGESIZE + PAGESIZE;
+        // cout << CorrectSize << endl;
+    }
+    /////////////////////////////////////////////////
+    /*Validating the chunksNumber and the maxActChunks*/
+    if((CorrectSize / ChunksNumber) % PAGESIZE != 0)
+    {
+        cerr << "|###> Error: wrong number of chunks" << endl; 
         exit(1);
     }
+    if(MaxActChunks >= ChunksNumber)
+    {
+        cerr << "|###> Error: Wrong max number of active chunks" << endl;
+        exit(1); 
+    }
+    /////////////////////////////////////////////////
+    this->chunksNumber = ChunksNumber;
+    this->maxActChunks = MaxActChunks;
+    this->chunkSize = CorrectSize / ChunksNumber; 
+    /////////////////////////////////////////////////
+    /*Mapping the whole size*/
+    this->memblock = mmap(NULL, CorrectSize, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if(this->memblock == MAP_FAILED)
+    {
+        cerr << "|###> Error: Mmap Failed" <<endl;
+        exit(1); 
+    }
+    else 
+        cout << "|###> An anonymous mapping with length = " << CorrectSize << " has been created" <<endl; 
+    /////////////////////////////////////////////////
+    /*Seperating the (same size) chunks by marking each one as PROT_NONE*/
+    unsigned long startAddress   =  reinterpret_cast<unsigned long>(this->memblock); 
+    unsigned long lastAddress    =  startAddress + this->chunkSize * this->chunksNumber; 
+    for(unsigned long chunkStartAddress = startAddress; chunkStartAddress < lastAddress; chunkStartAddress += this->chunkSize)
+    {
+        cout << "|###> " << chunkStartAddress << " has been marked with PROT_NONE" << endl;
+        mprotect((void*) chunkStartAddress, this->chunkSize, PROT_NONE);
+    }
 }
 
-void MappedChunk::FixPermissions()
+void MappedChunk::FixPermissions(void *address)
 {
-    this->MapSomeoneOut();
-    mprotect(this->memblock, this->chunkSize, PROT_READ | PROT_WRITE);
-    cout << "|<<<| Permissions were fixed!" << endl; 
+    //mprotect(address, this->chunkSize, PROT_READ | PROT_WRITE);
+    if(this->ChunkQueue.isFull(this->maxActChunks)) 
+    {
+        void* add = ChunkQueue.deQueue();
+
+        mprotect(add, this->chunkSize, PROT_NONE);
+        mprotect(this->FindStartAddress(address), this->chunkSize, PROT_READ | PROT_WRITE);
+
+        this->ChunkQueue.enQueue(this->FindStartAddress(address));
+    }
+    else 
+    {   
+        this->ChunkQueue.enQueue(this->FindStartAddress(address));
+        mprotect(this->FindStartAddress(address), this->chunkSize, PROT_READ | PROT_WRITE);
+    }
 }
 
-void MappedChunk::MapSomeoneOut()
+void* MappedChunk::FindStartAddress(void* ptr)
 {
-    std::vector<bool>::iterator it = std::find(this->chunksTable.begin(), this->chunksTable.end(), 0);
-    int index = std::distance(this->chunksTable.begin(), it);
-    cout << "Index is: " << index << endl;
-
+   unsigned long address        =  reinterpret_cast<unsigned long>(ptr); 
+   unsigned long startAddress   =  reinterpret_cast<unsigned long>(this->memblock); 
+   unsigned long lastAddress    =  startAddress + this->chunkSize * this->chunksNumber; 
+   for(unsigned long chunkStartAddress = startAddress; chunkStartAddress < lastAddress; chunkStartAddress += this->chunkSize)
+   {
+        if(address >= chunkStartAddress && address < chunkStartAddress + chunkSize) 
+            return (void*) chunkStartAddress; 
+   }
 }
 
 void* MappedChunk::getStart()
@@ -59,6 +107,12 @@ void MappedChunk::printChunkStarts()
     }
 }
 
+void MappedChunk::DisplayActiveChunks()
+{
+
+    this->ChunkQueue.displayQueue();
+}
+
 void* MappedChunk::expand(size_t size)
 {
     /*
@@ -79,20 +133,3 @@ MappedChunk::~MappedChunk()
 
     munmap(this->memblock, this->chunksNumber * this -> chunkSize);
 }
-
-
-// void MappedChunk::fixPermissions()
-// {
-//     mprotect(this->memblock, this->chunkSize, PROT_READ | PROT_WRITE);
-// }
-
-// void* MappedChunk::activateChunk(){
-//     int i = 0;
-
-//     while(chunkList[i] && i < chunkList.size()){
-//         i++;
-//     }
-
-//     void* address = (void*) (i *chunkSize + ((char*) (memblock)));
-//     mprotect(address, chunkSize, PROT_READ);
-// }

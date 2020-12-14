@@ -1,19 +1,12 @@
 #include <iostream>
 #include <signal.h>
-#include "gui/DrawingWindow.h"
-#include "runtime/FixedHeap.h"
-#include "system/FixedMemory.h"
-#include "system/BSSMemory.h"
-#include "runtime/FirstFitHeap.h"
-
 #include "system/MappedChunk.h"
 
-#include <vector>
-#include "gui/MemoryGUI.h"
-#include <climits>
+// #include "gui/DrawingWindow.h"
+// #include "gui/MemoryGUI.h"
+// using namespace GUI; 
 
 using namespace std;
-using namespace GUI;
 
 #define width 800
 #define height 600
@@ -22,99 +15,51 @@ using namespace GUI;
 //true = FirstFitHeap, false = FixedHeap
 #define GUIClass true 
 
+#define MAPPING_SIZE  6 * 4096
+#define CHUNKS_NUMBER 6
+#define NUMBER_ACTIVE_CHUNKS 3
 
-MappedChunk chunk(600, 6, 3); 
-void MappedChunk::SignalHandeler(int sigNUmber)
+MappedChunk chunk(MAPPING_SIZE, CHUNKS_NUMBER, NUMBER_ACTIVE_CHUNKS); 
+
+void MappedChunk::SignalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
-    write(STDERR_FILENO, "|<<<| Error: Permission issues!, lets fix it.\n\0", 48); 
-    chunk.FixPermissions();
+    if(info->si_code == SEGV_ACCERR)
+    {   
+    	// cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
+    	chunk.FixPermissions(info->si_addr);
+    	// cout << "|>>> Permissions were fixed!" << endl; 
+    }
+    else if(info->si_code == SEGV_MAPERR)
+    {
+    	cout << "|>>> Error: Access denied, unmapped address!" << endl; 
+    	exit(1);
+    }
 } 
 
 int main(int argc, char** argv)
 {
 	system("clear"); 
+	///////////////////////////////////////////
 	struct sigaction SigAction;
-	SigAction.sa_handler = chunk.SignalHandeler; 
+	SigAction.sa_sigaction = chunk.SignalHandeler;
+	SigAction.sa_flags = SA_SIGINFO;
 	sigaction(SIGSEGV, &SigAction, NULL);
+	///////////////////////////////////////////
 	chunk.printChunkStarts();
 
 	// gui.drawMemory(GUIClass);
 	unsigned long address;
 	while(1)
 	{
-
-			cout << "|>>>  Insert an address: ";
+			cout << "|>>> Insert an address: ";
 			cin >> address;
-			cout << "|>>>  Write a char: "; char ch; 
+			cout << "|>>> Write a char: "; char ch; 
 			cin >> ch; 
 			*( (char*) address ) = ch; 
-			cout << "|###  The written char is: " <<  *( (char*) address ) <<endl; 
-	}	
+			cout << "|>>> " << *((char*)address ) << " successfully written to " << address << endl; 
+			cout << "######################################" <<endl;
+			chunk.DisplayActiveChunks(); 
+			cout << "######################################" <<endl;
+	}		
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// BSSMemory mem(memSize);
-// FixedMemory<memSize> mem;
-
-// FirstFitHeap heap(mem);
-// FixedHeap<blockSize> heap(mem);
-
-// DrawingWindow window(width,height,"GUI");
-// MemoryGUI gui(&heap, &window);
