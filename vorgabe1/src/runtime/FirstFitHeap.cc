@@ -1,7 +1,7 @@
 #include "runtime/FirstFitHeap.h"
 
 FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {
-    initHeap();
+    //initHeap();
 }
 
 void FirstFitHeap::initHeap() {

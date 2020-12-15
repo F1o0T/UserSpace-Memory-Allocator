@@ -16,6 +16,8 @@ public:
 	MappedMemory(unsigned int startSize);
 
 	~MappedMemory();
+
+	void initMem();
 	
 	void* getStart();
 	

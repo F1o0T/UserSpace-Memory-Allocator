@@ -40,6 +40,8 @@ void lol() {
 
 int main(int argc, char** argv)
 {
+	mem.initMem();
+	heap.initHeap();
 	int fd;
 	fd = shm_open("shm-file", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 	if (fd == -1) perror("shm_open failed");
