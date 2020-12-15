@@ -1,25 +1,24 @@
 #include <iostream>
-#include "gui/DrawingWindow.h"
 #include "runtime/FixedHeap.h"
 #include "system/FixedMemory.h"
 #include "system/BSSMemory.h"
+#include "system/MappedMemory.h"
 #include "runtime/FirstFitHeap.h"
-#include <vector>
 #include "gui/MemoryGUI.h"
 #include <climits>
 
 using namespace std;
-using namespace GUI;
 
 #define width 800
 #define height 600
 #define blockSize 50
-#define memSize 10000
+#define memSize 1024
 #define GUIClass true //true = FirstFitHeap, false = FixedHeap
 
 
-BSSMemory mem(memSize);
+//BSSMemory mem(memSize);
 //FixedMemory<memSize> mem;
+MappedMemory mem(memSize);
 
 FirstFitHeap heap(mem);
 //FixedHeap<blockSize> heap(mem);
@@ -28,9 +27,40 @@ FirstFitHeap heap(mem);
 DrawingWindow window(width,height,"GUI");
 MemoryGUI gui(&heap, &window);
 
+void lol() {	
+	int fd = shm_open("shm-file", O_RDWR, S_IRUSR | S_IWUSR);
+	if (fd == -1) perror("shm_open failed");
+	void* addr = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (addr == (void*)-1) perror("mmap failed");
+	int x = *((int*)addr);
+	printf("0x%.2x\n", x);
+	*((int*)addr) = 0xbeef;
+}
+
 
 int main(int argc, char** argv)
 {
+	int fd;
+	fd = shm_open("shm-file", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+	if (fd == -1) perror("shm_open failed");
+	if (ftruncate(fd, 4096) == -1) perror("ftruncate failed");
+	/*void* addr = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	if (addr == (void*)-1) perror("mmap failed");
+	*((int*)addr) = 0xcafe;
+	while (*((int*)addr) == 0xcafe) {
+		lol();
+	}
+	printf("0x%.2x\n", *((int*)addr));
+	if (shm_unlink("shm-file") == -1) perror("shm_unlink failed");*/
+
+	void* addr = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	if (addr == (void*)-1) perror("mmap failed");
+	int number = *(int*)addr;
+	char* buffer = (char*)(((int*)addr) + 1);
+	printf("data: %d, %s\n", number, buffer);
+
+
+
 	void* ptr;
 
 	gui.drawMemory(GUIClass);
