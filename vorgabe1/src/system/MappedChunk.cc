@@ -58,6 +58,10 @@ MappedChunk::MappedChunk(size_t UserSize, size_t ChunksNumber, size_t MaxActChun
 
 void MappedChunk::FixPermissions(void *address)
 {
+    if(address<this->memblock || address >= (this->memblock + this->chunksNumber * this->chunkSize ))
+    {
+        cout << "|>>> Error: SIGSEGV outside of the mmaped range! " << endl;
+    }
     //mprotect(address, this->chunkSize, PROT_READ | PROT_WRITE);
     if(this->ChunkQueue.isFull(this->maxActChunks)) 
     {
