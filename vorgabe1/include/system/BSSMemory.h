@@ -9,9 +9,9 @@
 class BSSMemory:public Memory {
 public:
 
-	BSSMemory(unsigned int startSize);
+	BSSMemory(unsigned startSize);
 
-	void initMem(unsigned startSize);
+	void initMem();
 	
 	void* getStart();
 	

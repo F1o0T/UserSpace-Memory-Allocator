@@ -12,7 +12,9 @@ template <int N = 1>
 class FixedHeap:public Heap {
 public:
 	
-	FixedHeap(Memory& memory) : Heap(memory) {
+	FixedHeap(Memory& memory) : Heap(memory) {}
+
+	void initHeap() {
 		if (N <= 0) {
 			cerr << "Error: The block size should not be 0." << endl;
 

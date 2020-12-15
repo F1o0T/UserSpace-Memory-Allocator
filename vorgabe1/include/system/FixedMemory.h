@@ -6,7 +6,9 @@
 template <int M>
 class FixedMemory:public Memory {
 public:
-	FixedMemory() {
+	FixedMemory() {}
+
+	void initMem() {
 		this -> memblock = malloc(M);
 	}
 

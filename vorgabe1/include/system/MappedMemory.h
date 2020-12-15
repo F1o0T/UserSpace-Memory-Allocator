@@ -13,7 +13,7 @@
 class MappedMemory:public Memory {
 public:
 
-	MappedMemory(unsigned int startSize);
+	MappedMemory();
 
 	~MappedMemory();
 

@@ -1,8 +1,6 @@
 #include "runtime/FirstFitHeap.h"
 
-FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {
-    //initHeap();
-}
+FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {}
 
 void FirstFitHeap::initHeap() {
     freeBlock* first = (freeBlock*) memory.getStart();
@@ -34,14 +32,12 @@ void* FirstFitHeap::alloc(size_t size) {
 
         if (curPos -> nextAddress == 0) {
             int i = memory.getSize();
-            cout << "ok2 " << i << endl;
             void* ptr = memory.expand(size);
             
             if (ptr == 0 || ptr == (void*) -1) {
                 cerr << "Error: There is not enough memory available." << endl;
                 return nullptr;
             }
-            cout << " ok3 " << (memory.getSize() - i) << endl;
             
             curPos -> freeSpace += (memory.getSize() - i);
             break;
@@ -50,12 +46,10 @@ void* FirstFitHeap::alloc(size_t size) {
         lastPos = curPos;
         curPos = curPos -> nextAddress;
     }
-    cout << "ok4 " << endl;
 
     if ((curPos -> freeSpace) - size < minByte) {
         if (curPos -> nextAddress == 0) {//last block in heap
             int i = memory.getSize();
-            cout << "ok1" << endl;
             void* ptr = memory.expand(1);//minimum to expand
 
             if (ptr == 0 || ptr == (void*) -1) {
@@ -75,13 +69,11 @@ void* FirstFitHeap::alloc(size_t size) {
             }
         }
     }
-    cout << "ok5 " << endl;
 
     //goes to the Position for the next free block
     ar_ptr = (char*) curPos;
     ar_ptr += sizeUnsi;
     ar_ptr += size;
-    cout << "ok6 " << endl;
 
     //if enough space left then create a new free block
     if ((size_t) (curPos -> freeSpace) > size) {
@@ -97,7 +89,6 @@ void* FirstFitHeap::alloc(size_t size) {
         ((freeBlock*) ar_ptr) -> freeSpace = (((freeBlock*) curPos) -> freeSpace) - size - sizeUnsi;
         ((freeBlock*) ar_ptr) -> nextAddress = ((freeBlock*) curPos) -> nextAddress;
     }
-    cout << "ok7 " << endl;
 
     //record the size of the block
     *((unsigned*) curPos) = (unsigned) size;
