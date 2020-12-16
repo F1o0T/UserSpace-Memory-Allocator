@@ -83,6 +83,12 @@ void MappedChunk::FixPermissions(void *address)
     }
 }
 
+int MappedChunk::getAccessLevel(void * address)
+{
+    return ChunkQueue.getAccessLevel(FindStartAddress(address));
+}
+
+
 void* MappedChunk::FindStartAddress(void* ptr)
 {
    unsigned long address        =  reinterpret_cast<unsigned long>(ptr); 

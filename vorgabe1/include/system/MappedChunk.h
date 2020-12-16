@@ -9,8 +9,8 @@
 
 using namespace std;
 
-enum access_flag{
-    NON,
+enum access_flag: int{
+    NON = 0,
     READ,
     WRITTEN
 };
@@ -125,6 +125,20 @@ public:
         }
     }
 
+    //0 = NON, 1 = READ, 2 = WRITTEN
+    int getAccessLevel(void * nodeStartAddress)
+    {
+        QNode *currNode = this->front;
+
+        while(nodeStartAddress != currNode->address)
+        {
+            currNode = currNode->next;
+        }
+
+        return currNode->acc_flag;
+
+    }
+
 
 }; 
 
@@ -144,6 +158,7 @@ public:
 	// Advanced Methods
 	void FixPermissions(void*);
 	void* FindStartAddress(void* ptr);
+    int getAccessLevel(void* ptr);
 	void printChunkStarts();
 	void DisplayActiveChunks();
 	/////////////////////////////////////////////////
