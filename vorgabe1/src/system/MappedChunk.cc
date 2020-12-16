@@ -72,16 +72,19 @@ void MappedChunk::FixPermissions(void *address)
                 mprotect(startAddress, this->chunkSize, PROT_READ);
                 this->ChunkQueue.enQueue(startAddress);
                 ChunkQueue.decreaseAccessLevel(startAddress);
+                cout << "changed Accesslevel to READ" << endl;
             }
             {   
                 this->ChunkQueue.enQueue(startAddress);
                 mprotect(startAddress, this->chunkSize, PROT_READ);
                 ChunkQueue.decreaseAccessLevel(startAddress);
+                cout << "changed Accesslevel to READ" << endl;
             }
             break;
         case 1:
             mprotect(startAddress, this->chunkSize, PROT_WRITE);
             ChunkQueue.decreaseAccessLevel(startAddress);
+            cout << "changed Accesslevel to WRITE" << endl;
             break;
     }
 }
