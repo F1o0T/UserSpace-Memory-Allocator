@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <signal.h>
+#include <list>
 
 using namespace std;
 
@@ -130,9 +131,16 @@ public:
     {
         QNode *currNode = this->front;
 
+        if (currNode == 0) {
+            return 0;
+        } 
+
         while(nodeStartAddress != currNode->address)
         {
             currNode = currNode->next;
+            if (currNode == 0) {
+                return 0;
+            }
         }
 
         return currNode->acc_flag;
@@ -161,6 +169,7 @@ public:
     int getAccessLevel(void* ptr);
 	void printChunkStarts();
 	void DisplayActiveChunks();
+    void fillList(list<int>* list);
 	/////////////////////////////////////////////////
 private:
 	void* memblock = NULL;

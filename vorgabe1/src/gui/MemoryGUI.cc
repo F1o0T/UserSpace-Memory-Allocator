@@ -1,14 +1,17 @@
 #include "gui/MemoryGUI.h"
 
-MemoryGUI::MemoryGUI(Heap* heap, DrawingWindow* window) : heap(heap), window(window) {}
+MemoryGUI::MemoryGUI(DrawingWindow* window, Heap* heap, int mode) : window(window), heap(heap), chunk(0), mode(mode) {}
+MemoryGUI::MemoryGUI(DrawingWindow* window, MappedChunk* chunk, int mode) : window(window), heap(0), chunk(chunk), mode(mode) {}
 
-
-void MemoryGUI::drawMemory(bool decision){
-	if(decision == true){
+void MemoryGUI::drawMemory(){
+	if(mode == MO_BSSM){
 		drawBSSMemory();
-	}
-	else{
+
+	} else if (mode == MO_FIXM) {
 		drawFixedHeapMemory();
+
+	} else if (mode == MO_CHUNK) {
+		drawMappedChunk();
 	}
 }
 
@@ -97,6 +100,42 @@ void MemoryGUI::drawFixedHeapMemory(){
 	
 		window -> drawFilledRectangle(x,y,10,10);
 		x += 20;
+	}
+}
+
+void MemoryGUI::drawMappedChunk() {
+	int x = 5;
+	int y = 15;
+	
+	window -> setBackgroundColor(RGBColor(0,0,0));
+	window -> setForegroundColor(RGBColor(255,255,255));
+	
+	std::list<int> ptr;
+	chunk -> fillList(&ptr);
+
+	for (size_t i = 0; i < ptr.size(); i++) {
+		window -> drawText(x, y, "chunk " + to_string(i));
+		x += 60;
+	}
+	y += 15;
+	x = 5;
+
+	for (int i : ptr) {
+		if (i == 0) {
+			window -> setForegroundColor(RGBColor(255,0,0));
+		} else if (i == 1) {
+			window -> setForegroundColor(RGBColor(255,165,0));
+		} else if (i == 2) {
+			window -> setForegroundColor(RGBColor(0,255,0));
+		}
+	
+		if (x > 800) {
+			x -= 800;
+			y += 15;
+		}
+	
+		window -> drawFilledRectangle(x,y,40,10);
+		x += 60;
 	}
 }
 

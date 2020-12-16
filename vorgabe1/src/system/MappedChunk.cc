@@ -1,6 +1,4 @@
 #include "system/MappedChunk.h"
-#include <signal.h>
-#include <unistd.h>
 
 #define PAGESIZE sysconf(_SC_PAGESIZE)
 
@@ -73,7 +71,7 @@ void MappedChunk::FixPermissions(void *address)
                 this->ChunkQueue.enQueue(startAddress);
                 ChunkQueue.decreaseAccessLevel(startAddress);
                 cout << "changed Accesslevel to READ" << endl;
-            }
+            } else
             {   
                 this->ChunkQueue.enQueue(startAddress);
                 mprotect(startAddress, this->chunkSize, PROT_READ);
@@ -90,9 +88,9 @@ void MappedChunk::FixPermissions(void *address)
 }
 
 //0 = NON, 1 = READ, 2 = WRITE
-int MappedChunk::getAccessLevel(void * activeChunkAddress)
+int MappedChunk::getAccessLevel(void * address)
 {
-    return ChunkQueue.getAccessLevel(FindStartAddress(activeChunkAddress));
+    return ChunkQueue.getAccessLevel(FindStartAddress(address));
 }
 
 
@@ -128,7 +126,7 @@ void MappedChunk::printChunkStarts()
 {
     for(unsigned int i = 0; i < this -> chunksNumber; i++)
     {
-        cout << reinterpret_cast<unsigned long>(memblock) + i * this->chunkSize <<endl;
+        cout << "chunk " << i << " : " << reinterpret_cast<unsigned long>(memblock) + i * this->chunkSize <<endl;
     }
 }
 
@@ -136,6 +134,23 @@ void MappedChunk::DisplayActiveChunks()
 {
 
     this->ChunkQueue.displayQueue();
+}
+
+void MappedChunk::fillList(list<int>* list) {
+    char* ptr1 = (char*) memblock;
+    unsigned size = chunkSize * chunksNumber;
+    unsigned i = 0;
+
+    while (size > i) {
+        //fill list
+
+        // 0 or 1 or 2 = none or read or write
+        list -> push_back(getAccessLevel(ptr1));
+
+        //move on ptr
+        ptr1 += chunkSize;
+        i += chunkSize;
+    }
 }
 
 void* MappedChunk::expand(size_t size)
