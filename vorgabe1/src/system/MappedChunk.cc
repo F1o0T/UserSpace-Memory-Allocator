@@ -58,6 +58,9 @@ MappedChunk::MappedChunk(size_t UserSize, size_t ChunksNumber, size_t MaxActChun
 
 void MappedChunk::FixPermissions(void *address)
 {
+    void* startAddress = this->FindStartAddress(address);
+
+
     if(address<this->memblock || reinterpret_cast<size_t>(address) >= reinterpret_cast<size_t>(this->memblock) + this->chunksNumber * this->chunkSize)
     {
         cout << "|>>> Error: SIGSEGV outside of the mmaped range! " << endl;
@@ -68,14 +71,15 @@ void MappedChunk::FixPermissions(void *address)
         void* add = ChunkQueue.deQueue();
 
         mprotect(add, this->chunkSize, PROT_NONE);
-        mprotect(this->FindStartAddress(address), this->chunkSize, PROT_READ | PROT_WRITE);
-
-        this->ChunkQueue.enQueue(this->FindStartAddress(address));
+        mprotect(startAddress, this->chunkSize, PROT_READ | PROT_WRITE);
+        this->ChunkQueue.enQueue(startAddress);
+        ChunkQueue.decreaseAccessLevel(startAddress);
     }
     else 
     {   
-        this->ChunkQueue.enQueue(this->FindStartAddress(address));
-        mprotect(this->FindStartAddress(address), this->chunkSize, PROT_READ | PROT_WRITE);
+        this->ChunkQueue.enQueue(startAddress);
+        mprotect(startAddress, this->chunkSize, PROT_READ | PROT_WRITE);
+        ChunkQueue.decreaseAccessLevel(startAddress);
     }
 }
 

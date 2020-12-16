@@ -9,13 +9,23 @@
 
 using namespace std;
 
+enum access_flag{
+    NON,
+    READ,
+    WRITTEN
+};
+
 struct QNode { 
-    void* address; 
-    QNode* next; 
+    void* address;
+    access_flag acc_flag;
+    QNode* next;
+
     QNode(void* add) 
     { 
-        address = add; 
-        next = NULL; 
+        address = add;
+        acc_flag = NON;
+        next = NULL;
+
     } 
 }; 
   
@@ -97,6 +107,25 @@ public:
     	cout << reinterpret_cast<unsigned long>(temp->address);
     	cout << endl;
     }
+
+
+    void decreaseAccessLevel(void* nodeStartAddress)    
+    {
+        QNode *currNode = this->front;
+        while(currNode->address != nodeStartAddress)
+        {
+            currNode = currNode->next;
+        }
+        if(currNode->acc_flag == NON)
+        {
+            currNode->acc_flag = READ;
+        }else
+        {
+            currNode->acc_flag = WRITTEN;
+        }
+    }
+
+
 }; 
 
 class MappedChunk {
