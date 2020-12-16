@@ -59,33 +59,37 @@ MappedChunk::MappedChunk(size_t UserSize, size_t ChunksNumber, size_t MaxActChun
 void MappedChunk::FixPermissions(void *address)
 {
     void* startAddress = this->FindStartAddress(address);
+    int accessFlag = getAccessLevel(startAddress);
 
-
-    if(address<this->memblock || reinterpret_cast<size_t>(address) >= reinterpret_cast<size_t>(this->memblock) + this->chunksNumber * this->chunkSize)
+    switch(accessFlag)
     {
-        cout << "|>>> Error: SIGSEGV outside of the mmaped range! " << endl;
-    }
-    //mprotect(address, this->chunkSize, PROT_READ | PROT_WRITE);
-    if(this->ChunkQueue.isFull(this->maxActChunks)) 
-    {
-        void* add = ChunkQueue.deQueue();
+        case 0://not in queue yet
+            if(this->ChunkQueue.isFull(this->maxActChunks)) 
+            {
+                void* add = ChunkQueue.deQueue();
 
-        mprotect(add, this->chunkSize, PROT_NONE);
-        mprotect(startAddress, this->chunkSize, PROT_READ | PROT_WRITE);
-        this->ChunkQueue.enQueue(startAddress);
-        ChunkQueue.decreaseAccessLevel(startAddress);
-    }
-    else 
-    {   
-        this->ChunkQueue.enQueue(startAddress);
-        mprotect(startAddress, this->chunkSize, PROT_READ | PROT_WRITE);
-        ChunkQueue.decreaseAccessLevel(startAddress);
+                mprotect(add, this->chunkSize, PROT_NONE);
+                mprotect(startAddress, this->chunkSize, PROT_READ);
+                this->ChunkQueue.enQueue(startAddress);
+                ChunkQueue.decreaseAccessLevel(startAddress);
+            }
+            {   
+                this->ChunkQueue.enQueue(startAddress);
+                mprotect(startAddress, this->chunkSize, PROT_READ);
+                ChunkQueue.decreaseAccessLevel(startAddress);
+            }
+            break;
+        case 1:
+            mprotect(startAddress, this->chunkSize, PROT_WRITE);
+            ChunkQueue.decreaseAccessLevel(startAddress);
+            break;
     }
 }
 
-int MappedChunk::getAccessLevel(void * address)
+//0 = NON, 1 = READ, 2 = WRITE
+int MappedChunk::getAccessLevel(void * activeChunkAddress)
 {
-    return ChunkQueue.getAccessLevel(FindStartAddress(address));
+    return ChunkQueue.getAccessLevel(FindStartAddress(activeChunkAddress));
 }
 
 
