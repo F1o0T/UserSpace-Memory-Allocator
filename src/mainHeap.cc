@@ -13,7 +13,6 @@ using namespace std;
 #define height 600
 #define blockSize 50
 #define memSize 1024
-#define GUIClass true //true = FirstFitHeap, false = FixedHeap
 
 MappedMemory mem;
 //BSSMemory mem(memSize);
@@ -23,7 +22,7 @@ FirstFitHeap heap(mem);
 //FixedHeap<blockSize> heap(mem);
 
 DrawingWindow window(width,height,"GUI");
-MemoryGUI gui(&heap, &window);
+MemoryGUI gui(&window, &heap, MO_BSSM);
 
 int main(int argc, char** argv)
 {
@@ -32,7 +31,7 @@ int main(int argc, char** argv)
 	mem.initMem();
 	heap.initHeap();
 
-	gui.drawMemory(GUIClass);
+	gui.drawMemory();
 
 	char input = ' ';
 	int input2;
@@ -56,7 +55,7 @@ int main(int argc, char** argv)
 				cout << "ptr1 is " << ptr <<endl;
 				
 				gui.clearWindow();
-				gui.drawMemory(GUIClass);
+				gui.drawMemory();
 			}
 		}
 		if(input == 'f'){
@@ -71,7 +70,7 @@ int main(int argc, char** argv)
 			} else {
 				heap.free(input3);
 				gui.clearWindow();
-				gui.drawMemory(GUIClass);
+				gui.drawMemory();
 			}
 		}
 
