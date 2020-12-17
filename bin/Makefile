@@ -29,7 +29,7 @@ CXXFLAGS = -g -Wall
 INCLUDES = -I$(INC_DIR)
 
 XLIBDIR   = /usr/X11R6/lib/
-XLIBS   = -L$(XLIBDIR) -lX11
+XLIBS   = -L$(XLIBDIR) -lX11 -lrt
 PTHREADLIBS = -lpthread
 LIBS = $(XLIBS) $(PTHREADLIBS)
 

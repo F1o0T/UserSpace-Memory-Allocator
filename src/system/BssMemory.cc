@@ -1,16 +1,15 @@
 #include "system/BSSMemory.h"
 
-BSSMemory::BSSMemory(unsigned int startSize) {
-    initMem(startSize);
-}
-
-void BSSMemory::initMem(unsigned startSize) {
+BSSMemory::BSSMemory(unsigned startSize) {
     //16 = minimum of size (because the heap struct)
     if(startSize > 16){
         this ->expandSize = startSize;
     } else{
         this ->expandSize = 16;
     }
+}
+
+void BSSMemory::initMem() {
     this -> memblock = sbrk(expandSize);
 }
 

@@ -1,8 +1,6 @@
 #include "runtime/FirstFitHeap.h"
 
-FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {
-    initHeap();
-}
+FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {}
 
 void FirstFitHeap::initHeap() {
     freeBlock* first = (freeBlock*) memory.getStart();
