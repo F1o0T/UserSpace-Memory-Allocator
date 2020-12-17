@@ -7,27 +7,36 @@
 #include "gui/DrawingWindow.h"
 #include "runtime/FixedHeap.h"
 #include "runtime/FirstFitHeap.h"
+#include "system/MappedChunk.h"
 #include <list>
 
 using namespace std;
 using namespace GUI;
 
+#define MO_BSSM 1
+#define MO_FIXM 2
+#define MO_CHUNK 3
+
 class MemoryGUI {
 public:
+	MemoryGUI(DrawingWindow* window, Heap* heap, int mode);
+    MemoryGUI(DrawingWindow* window, MappedChunk* chunk, int mode);
 
-	MemoryGUI(Heap* heap, DrawingWindow* window);
-
-    void drawMemory(bool decision);
-
+    void drawMemory();
+	
+private:
 	void drawBSSMemory();
 
     void drawFixedHeapMemory();
 
+    void drawMappedChunk();
+
     void clearWindow();
-	
-private:
-    Heap* heap;
+
     DrawingWindow* window;
+    Heap* heap;
+    MappedChunk* chunk;
+    int mode;
 };
 
 
