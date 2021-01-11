@@ -23,6 +23,26 @@ void bubbleSort(unsigned** array, unsigned nrElements)
     }
 }
 
+
+MappedChunk mem;
+
+void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
+{
+    if(info->si_code == SEGV_ACCERR)
+    {   
+        // cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
+        mem.fixPermissions(info->si_addr);
+        // cout << "|>>> Permissions were fixed!" << endl; 
+    }
+    else if(info->si_code == SEGV_MAPERR)
+    {
+        cout << "|### Error: Access denied, unmapped address!" << endl; 
+        exit(1);
+    }
+
+} 
+
+
 /**
  * A simple benchmark for mapped chunk.
  *
@@ -36,6 +56,7 @@ void bubbleSort(unsigned** array, unsigned nrElements)
  */
 int main(int argc, char** argv)
 {
+    system("clear"); 
     /** 
      * parse command line arguments
      */
@@ -79,14 +100,21 @@ int main(int argc, char** argv)
      * read configuration.
      */
     // MappedChunk mem(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
-    MappedChunk mem(DEFAULT_CHUNKSIZE, totalChunks, maxChunksAvailable, writeBackAll);
+    mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
+
+    ///////////////////////////////////////////
+    struct sigaction SigAction;
+    SigAction.sa_sigaction = signalHandeler;
+    SigAction.sa_flags = SA_SIGINFO;
+    sigaction(SIGSEGV, &SigAction, NULL);
+    ///////////////////////////////////////////
 
     if (showGUI) {
         // TODO
         // create visualization
     }
     std::cout << "# totalChunks,maxChunksAvailable,blockSize,writeBackAll,times" << std::endl;
-    std::cout << totalChunks << "," << maxChunksAvailable << "," << blockSize << "," << writeBackAll;
+    std::cout << totalChunks << "," << maxChunksAvailable << "," << blockSize << "," << writeBackAll << std::endl;
 
     // each element has a size of blockSize
     // how many can we store in the memory?
@@ -111,11 +139,13 @@ int main(int argc, char** argv)
             // *blocks[i] = nrElements-i; // reverse sorted
         }
 
+        unsigned j = *blocks[2];
+
         // start the timer
         auto start = std::chrono::high_resolution_clock::now();
 
         // run sort
-        bubbleSort(blocks, nrElements);
+        // bubbleSort(blocks, nrElements);
 
         // stop timer and print
         auto end = std::chrono::high_resolution_clock::now();
@@ -131,7 +161,7 @@ int main(int argc, char** argv)
         // TODO
         // clean up
     }
-
+    mem.displayChunks();
     return 0;
 }
 

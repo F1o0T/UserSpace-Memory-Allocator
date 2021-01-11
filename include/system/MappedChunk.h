@@ -125,24 +125,39 @@ public:
     }
 
     void dropLastEnqueuedAddress()
-    {
-        rear = previousRear; 
-        rear->next = NULL; 
+    {   
+        cout << "In dropLastEnqueuedAddress Function ";
+        this->currentQueueSize--;
+        QNode* temp = rear;
+        this->rear = this->previousRear;
+        delete(temp);
+        if(rear == NULL)
+        {   
+            this->front = NULL;  
+            this->displayQueue();
+            return;
+        }
+        this->rear->next = NULL; 
+        this->displayQueue();
+
     }
 
     void displayQueue()
     {
     	QNode* temp = front;
     	cout << "Active chunks displayed in FirstIn/FirstOut" << endl;
-    	while(temp->next != NULL)
+    	while(temp != NULL)
     	{
     		cout << reinterpret_cast<unsigned long>(temp->address) << " <= ";
     		temp = temp->next; 
     	}
-    	cout << reinterpret_cast<unsigned long>(temp->address);
     	cout << endl;
     }
 
+    int size()
+    {
+        return currentQueueSize; 
+    }
 
     // void decreaseAccessLevel(void* nodeStartAddress)    
     // {
@@ -209,7 +224,9 @@ class SwapFile: public RandomAccessFile
         */
         virtual ssize_t swapFileRead(void* addr, off_t offset, size_t bytes)
         {
-            return 0; 
+            lseek(fd, offset, SEEK_SET);
+            read(offset, addr, bytes);
+            return bytes;
         }
 
         /**
@@ -247,8 +264,9 @@ class MappedChunk {
 public:
 	/////////////////////////////////////////////////
 	// Signal handeler, constructor and deconstructor.
-	static void SignalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
-	MappedChunk(size_t chunkSize, size_t chunksNumber, size_t maxChunksAvailable, bool writeBackAll);
+	// static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
+	// MappedChunk(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
+    void mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
 	~MappedChunk();
 	/////////////////////////////////////////////////
 	// Basic Methods
@@ -268,7 +286,7 @@ public:
     void swapOut(void* ptr); 
     void swapIn(void* ptr);
 	void printChunkStarts();
-	void displayActiveChunks();
+	void displayChunks();
     void fillList(list<int>* list);
 	/////////////////////////////////////////////////
 private:
