@@ -24,12 +24,12 @@ ASM	= g++
 CXX	= g++
 LD	= g++
 
-CXXFLAGS = -g -Wall -lboost_program_options
+CXXFLAGS = -g -Wall 
 
 INCLUDES = -I$(INC_DIR)
 
 XLIBDIR   = /usr/X11R6/lib/
-XLIBS   = -L$(XLIBDIR) -lX11 -lrt
+XLIBS   = -L$(XLIBDIR) -lX11 -lrt -lboost_program_options
 PTHREADLIBS = -lpthread
 LIBS = $(XLIBS) $(PTHREADLIBS)
 
