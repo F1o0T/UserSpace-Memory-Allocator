@@ -21,7 +21,7 @@ class RandomAccessFile
             @param bytes is the amount of bytes, which should be copied
             @return value is the amount of bytes, which was copied
         */
-        virtual ssize_t read(void* addr, off_t offset, size_t bytes) = 0;
+        virtual ssize_t swapFileRead(void* addr, off_t offset, size_t bytes) = 0;
 
         /**
             This function writes a specified amount of bytes from memory to file.
@@ -32,7 +32,7 @@ class RandomAccessFile
             @param bytes is the amount of bytes, which should be copied
             @return value is the amount of bytes, which was copied
         */
-        virtual ssize_t write(void* addr, off_t offset, size_t bytes) = 0;
+        virtual ssize_t swapFileWrite(void* addr, off_t offset, size_t bytes) = 0;
 
         /**
             This function reserves a specified amount of bytes.
@@ -42,7 +42,7 @@ class RandomAccessFile
             @param bytes is the amount of bytes, which should be reserved
             @return value is the amount of bytes which could be reserved
         */
-        virtual ssize_t reserve(off_t offset, size_t bytes) = 0;
+        virtual ssize_t swapFilereserve(off_t offset, size_t bytes) = 0;
 };
 
 #endif
