@@ -78,7 +78,8 @@ int main(int argc, char** argv)
      * create memory with the above 
      * read configuration.
      */
-    MappedChunk mem(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
+    // MappedChunk mem(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
+    MappedChunk mem(DEFAULT_CHUNKSIZE, totalChunks, maxChunksAvailable, writeBackAll);
 
     if (showGUI) {
         // TODO

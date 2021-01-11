@@ -248,7 +248,7 @@ public:
 	/////////////////////////////////////////////////
 	// Signal handeler, constructor and deconstructor.
 	static void SignalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
-	MappedChunk(size_t startSize, size_t blocks, size_t maxactBlocks);
+	MappedChunk(size_t chunkSize, size_t chunksNumber, size_t maxChunksAvailable, bool writeBackAll);
 	~MappedChunk();
 	/////////////////////////////////////////////////
 	// Basic Methods

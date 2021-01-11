@@ -24,7 +24,7 @@ ASM	= g++
 CXX	= g++
 LD	= g++
 
-CXXFLAGS = -g -Wall
+CXXFLAGS = -g -Wall -lboost_program_options
 
 INCLUDES = -I$(INC_DIR)
 

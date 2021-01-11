@@ -3,47 +3,23 @@
 
 #define PAGESIZE sysconf(_SC_PAGESIZE)
 
-MappedChunk::MappedChunk(size_t userSize, size_t chunksNumber, size_t maxActChunks)
+MappedChunk::MappedChunk::MappedChunk(size_t chunkSize, size_t chunksNumber, size_t maxChunksAvailable, bool writeBackAll)
 {   
     /////////////////////////////////////////////////
-    /*Converting the size to multiple of PAGESIZE*/
-    size_t correctSize; 
-    if(!(userSize % PAGESIZE))
-    {
-        correctSize = userSize; 
-        // cout << correctSize << endl;
-    }
-    else 
-    {
-        correctSize = (userSize / PAGESIZE) * PAGESIZE + PAGESIZE;
-        // cout << correctSize << endl;
-    }
-    /////////////////////////////////////////////////
-    /*Validating the chunksNumber and the maxActChunks*/
-    if((correctSize / chunksNumber) % PAGESIZE != 0)
-    {
-        cerr << "|###> Error: wrong number of chunks" << endl; 
-        exit(1);
-    }
-    if(maxActChunks >= chunksNumber)
-    {
-        cerr << "|###> Error: Wrong max number of active chunks" << endl;
-        exit(1); 
-    }
-    /////////////////////////////////////////////////
     this->chunksNumber = chunksNumber;
-    this->maxActChunks = maxActChunks;
-    this->chunkSize = correctSize / chunksNumber; 
+    this->maxActChunks = maxChunksAvailable;
+    this->chunkSize = chunkSize;
+    size_t totalSize = chunksNumber * chunkSize;
     /////////////////////////////////////////////////
     /*Mapping the whole size*/
-    this->memBlockStartAddress = mmap(NULL, correctSize, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    this->memBlockStartAddress = mmap(NULL, totalSize, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if(this->memBlockStartAddress == MAP_FAILED)
     {
         cerr << "|###> Error: Mmap Failed" <<endl;
         exit(1); 
     }
     else 
-        cout << "|###> An anonymous mapping with length = " << correctSize << " has been created" <<endl; 
+        cout << "|###> An anonymous mapping with length = " << totalSize << " has been created" <<endl; 
     /////////////////////////////////////////////////
     /*Seperating the (same size) chunks by marking each one as PROT_NONE*/
     size_t startAddress   =  reinterpret_cast<size_t>(this->memBlockStartAddress); 
