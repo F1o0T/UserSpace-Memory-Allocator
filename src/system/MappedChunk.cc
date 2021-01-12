@@ -62,30 +62,19 @@ void MappedChunk::fixPermissions(void *address)
     {
     	if(accessFlag == NON)
     	{
-    		if(swapFlag == NON_SWAPPED)
-    		{
-    			readChunkActivate((void*)chunckStartAddress);
-    		}
-    		else
-    		{
-    			this->swapIn((void*)chunckStartAddress);
-    			readChunkActivate((void*)chunckStartAddress);
-    		}
+			if (swapFlag == SWAPPED) 
+			{
+				this->swapIn((void*)chunckStartAddress);
+			}
+
+			readChunkActivate((void*)chunckStartAddress);
     	}	
 		else if(accessFlag == READ)
 		{
+			this->chuncksInformation[chunckStartAddress].swapFlag = NON_SWAPPED;
 
-			if(swapFlag == NON_SWAPPED)
-			{
-				writeChunkActivate((void*)chunckStartAddress);
-			}
-			else
-			{
-				this->swapIn((void*)chunckStartAddress);
-				writeChunkActivate((void*)chunckStartAddress);
-			}
+			writeChunkActivate((void*)chunckStartAddress);
 		}
-
 	}
 	else
 	{
@@ -95,14 +84,14 @@ void MappedChunk::fixPermissions(void *address)
 		if(!this->readQueue.isEmpty())
 		{
 			void* kickedReadChunkAddr = this->readQueue.deQueue();
+			kickedChunkDeactivate(kickedReadChunkAddr);
+
 			if(accessFlag == NON)
 			{
-				kickedChunkDeactivate(kickedReadChunkAddr);
 				readChunkActivate((void*)chunckStartAddress);
 			}
 			else if (accessFlag == READ)
 			{
-				kickedChunkDeactivate(kickedReadChunkAddr);
 				writeChunkActivate((void*)chunckStartAddress);
 			}
 		}
@@ -110,42 +99,26 @@ void MappedChunk::fixPermissions(void *address)
 		{
 			// cout << "################ReadQueue is isEmpty#####################" << endl;
 			void* kickedWriteChunkAddr = this->writeQueue.deQueue();
+			this->swapOut(kickedWriteChunkAddr);
+			kickedChunkDeactivate(kickedWriteChunkAddr);
+
 			if(accessFlag == NON)
 			{
-				if(swapFlag == NON_SWAPPED)
+				if(swapFlag == SWAPPED)
 				{
-					this->swapOut(kickedWriteChunkAddr);
-					kickedChunkDeactivate(kickedWriteChunkAddr);
-					readChunkActivate((void*)chunckStartAddress);
-				}
-				else 
-				{
-					this->swapOut(kickedWriteChunkAddr);
-					kickedChunkDeactivate(kickedWriteChunkAddr);
-
 					this->swapIn((void*)chunckStartAddress);
-					readChunkActivate((void*)chunckStartAddress);
 				}
+				
+				readChunkActivate((void*)chunckStartAddress);
+				
 			}
 			else if(accessFlag == READ)
 			{
-				if(swapFlag == NON_SWAPPED)
-				{
-					this->swapOut(kickedWriteChunkAddr);
-					kickedChunkDeactivate(kickedWriteChunkAddr);
-					writeChunkActivate((void*)chunckStartAddress);
-				}
-				else
-				{
-					this->swapOut(kickedWriteChunkAddr);
-					kickedChunkDeactivate(kickedWriteChunkAddr);
+				this->chuncksInformation[chunckStartAddress].swapFlag = NON_SWAPPED;
 
-					this->swapIn((void*)chunckStartAddress);
-					writeChunkActivate((void*)chunckStartAddress);
-				}
+				writeChunkActivate((void*)chunckStartAddress);
 			}
 		}
-
 	}
 }
 
@@ -166,7 +139,7 @@ void MappedChunk::readChunkActivate(void* chunckStartAddr)
 	this->chuncksInformation[chunckStartAddress].accessFlag = READ;
 	if(!(this->currentActChuncks >= this->maxActChunks))
 		this->currentActChuncks += 1;
-	cout << chunckStartAddress << " marked as READ and  currentActChuncks = "<< currentActChuncks << endl;
+	//cout << chunckStartAddress << " marked as READ and  currentActChuncks = "<< currentActChuncks << endl;
 }
 
 void MappedChunk::writeChunkActivate(void* chunckStartAddr)
@@ -179,7 +152,7 @@ void MappedChunk::writeChunkActivate(void* chunckStartAddr)
 	this->chuncksInformation[chunckStartAddress].accessFlag = WRITTEN;
 	if(!(this->currentActChuncks >= this->maxActChunks))
 		this->currentActChuncks += 1;
-	cout << chunckStartAddress << " marked as WRITE and currentActChuncks = "<< currentActChuncks << endl;
+	//cout << chunckStartAddress << " marked as WRITE and currentActChuncks = "<< currentActChuncks << endl;
 }
 
 
@@ -191,16 +164,15 @@ void MappedChunk::swapOut(void* kickedChunkAddr)
 	size_t kickedChunkAddress = reinterpret_cast<size_t> (kickedChunkAddr);
 	this->chuncksInformation[kickedChunkAddress].swapFlag = SWAPPED;
 
-	cout << kickedChunkAddress << " chunck has been swappedOut" << endl;
+	//cout << kickedChunkAddress << " chunck has been swappedOut" << endl;
 }
 void MappedChunk::swapIn(void* chunckStartAddr)
 {
 	off_t offset = reinterpret_cast<off_t>(chunckStartAddr)-reinterpret_cast<off_t>(this->memBlockStartAddress); 
 	this->swapFile.swapFileRead(chunckStartAddr, offset , this->chunkSize);
 
-	size_t chunckStartAddress = reinterpret_cast<size_t> (chunckStartAddr);
-	this->chuncksInformation[chunckStartAddress].swapFlag = NON_SWAPPED;
-	cout << chunckStartAddress << " chunck has been swappedIn" << endl;
+	//size_t chunckStartAddress = reinterpret_cast<size_t> (chunckStartAddr);
+	//cout << chunckStartAddress << " chunck has been swappedIn" << endl;
 }
 
 void* MappedChunk::findStartAddress(void * chunckStartAddress)
@@ -236,7 +208,7 @@ void MappedChunk::printChunkStarts()
 {
     for(unsigned int i = 0; i < this -> chunksNumber; i++)
     {
-        cout << "chunk " << i << " : " << reinterpret_cast<unsigned long>(memBlockStartAddress) + i * this->chunkSize <<endl;
+        //cout << "chunk " << i << " : " << reinterpret_cast<unsigned long>(memBlockStartAddress) + i * this->chunkSize <<endl;
     }
 }
 

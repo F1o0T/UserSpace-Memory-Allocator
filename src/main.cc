@@ -56,7 +56,7 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
  */
 int main(int argc, char** argv)
 {
-    system("clear"); 
+    //system("clear"); 
     /** 
      * parse command line arguments
      */
@@ -134,8 +134,8 @@ int main(int argc, char** argv)
     {
         // initialize the field 
         for (unsigned i = 0; i < nrElements; i++) {
-            *blocks[i] = i; // already sorted
-            // *blocks[i] = std::rand() % 100; // pseudo-random values
+            //*blocks[i] = i; // already sorted
+            *blocks[i] = std::rand() % 100; // pseudo-random values
             // *blocks[i] = nrElements-i; // reverse sorted
         }
 
@@ -146,19 +146,28 @@ int main(int argc, char** argv)
         // 140285661429760 2   0
         // 140285661433856 2   0
 
-        unsigned j = *blocks[1] + *blocks[2] + *blocks[0];
-        cout << "Content = " << j << endl;
+        //unsigned j = *blocks[1] + *blocks[2] + *blocks[0];
+        //cout << "Content = " << j << endl;    
+        for (unsigned int* n : blocks) {
+            cout << *(n) << ", ";
+        }
+        cout << endl;
         // start the timer
         auto start = std::chrono::high_resolution_clock::now();
 
         // run sort
-        // bubbleSort(blocks, nrElements);
+        bubbleSort(blocks, nrElements);
 
         // stop timer and print
-        auto end = std::chrono::high_resolution_clock::now();
+        auto end = std::chrono::high_resolution_clock::now();   
+        for (unsigned int* n : blocks) {
+            cout << *(n) << ", ";
+        }
+        cout << endl;
         // options: milli, micro or nano
         long time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         std::cout << "," << time;
+        cout << endl;
 
         if (showGUI) break;
     }

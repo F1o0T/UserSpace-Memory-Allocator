@@ -225,7 +225,7 @@ class SwapFile: public RandomAccessFile
         virtual ssize_t swapFileRead(void* addr, off_t offset, size_t bytes)
         {
             lseek(fd, offset, SEEK_SET);
-            read(offset, addr, bytes);
+            read(fd, addr, bytes);
             return bytes;
         }
 
