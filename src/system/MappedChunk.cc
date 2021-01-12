@@ -89,9 +89,9 @@ void MappedChunk::fixPermissions(void *address)
 	}
 	else
 	{
-		cout << "=================The limit had been reached ===========================" << endl;
-		cout << "ReadQueue Size is " << this->readQueue.size() << endl; 
-		this->readQueue.displayQueue();
+		// cout << "=================The limit had been reached ===========================" << endl;
+		// cout << "ReadQueue Size is " << this->readQueue.size() << endl; 
+		// this->readQueue.displayQueue();
 		if(!this->readQueue.isEmpty())
 		{
 			void* kickedReadChunkAddr = this->readQueue.deQueue();
@@ -108,7 +108,7 @@ void MappedChunk::fixPermissions(void *address)
 		}
 		else
 		{
-			cout << "################ReadQueue is isEmpty#####################" << endl;
+			// cout << "################ReadQueue is isEmpty#####################" << endl;
 			void* kickedWriteChunkAddr = this->writeQueue.deQueue();
 			if(accessFlag == NON)
 			{
@@ -172,18 +172,6 @@ void MappedChunk::readChunkActivate(void* chunckStartAddr)
 void MappedChunk::writeChunkActivate(void* chunckStartAddr)
 {
 
-	// // remove this chunck from the readQueue if it is there
-	// if(!this->readQueue.isEmpty())
-	// {
-		 
-	// 	if(readQueue.getLastEnqueuedAddress() == chunckStartAddr)
-	// 	{
-	// 		readQueue.dropLastEnqueuedAddress();
-	// 		this->currentActChuncks -= 1;
-	// 	}
-	// }
-
-
 	mprotect(chunckStartAddr, this->chunkSize, PROT_WRITE);
 	this->writeQueue.enQueue(chunckStartAddr);
 
@@ -191,7 +179,7 @@ void MappedChunk::writeChunkActivate(void* chunckStartAddr)
 	this->chuncksInformation[chunckStartAddress].accessFlag = WRITTEN;
 	if(!(this->currentActChuncks >= this->maxActChunks))
 		this->currentActChuncks += 1;
-	cout << chunckStartAddress << "  marked as WRITE and currentActChuncks = "<< currentActChuncks << endl;
+	cout << chunckStartAddress << " marked as WRITE and currentActChuncks = "<< currentActChuncks << endl;
 }
 
 
@@ -213,26 +201,6 @@ void MappedChunk::swapIn(void* chunckStartAddr)
 	size_t chunckStartAddress = reinterpret_cast<size_t> (chunckStartAddr);
 	this->chuncksInformation[chunckStartAddress].swapFlag = NON_SWAPPED;
 	cout << chunckStartAddress << " chunck has been swappedIn" << endl;
-}
-//0 = NON, 1 = READ, 2 = WRITE
-int MappedChunk::getAccessLevel(void* chunckStartAddr)
-{
-	size_t chunckStartAddress = reinterpret_cast<size_t> (chunckStartAddr);
-    return chuncksInformation[chunckStartAddress].accessFlag; 
-}
-
-void MappedChunk::decreaseAccessLevel(void* chunckStartAddr)
-{
-	size_t chunckStartAddress = reinterpret_cast<size_t> (chunckStartAddr);
-	int acc_flag = chuncksInformation[chunckStartAddress].accessFlag; 
-	if(acc_flag == NON)
-    {
-        acc_flag = READ;
-    }
-    else
-    {
-        acc_flag = WRITTEN;
-    }
 }
 
 void* MappedChunk::findStartAddress(void * chunckStartAddress)
@@ -276,9 +244,12 @@ void MappedChunk::displayChunks()
 {
 	size_t startAddress   =  reinterpret_cast<size_t>(this->memBlockStartAddress); 
 	size_t lastAddress    =  startAddress + this->chunkSize * this->chunksNumber; 
+	int count = 1; 
 	for(unsigned long chunkStartAddress = startAddress; chunkStartAddress < lastAddress; chunkStartAddress += this->chunkSize)
 	{
-	    cout << chunkStartAddress << "\t" << this->chuncksInformation[chunkStartAddress].accessFlag << "\t" << this->chuncksInformation[chunkStartAddress].swapFlag << endl;
+	    cout << count << "   " << chunkStartAddress << "\t" << this->chuncksInformation[chunkStartAddress].accessFlag << "\t" << this->chuncksInformation[chunkStartAddress].swapFlag << endl;
+		count++;
+		cout << endl;
 	}	
 }
 
@@ -291,7 +262,8 @@ void MappedChunk::fillList(list<int>* list) {
         //fill list
 
         // 0 or 1 or 2 = none or read or write
-        list -> push_back(getAccessLevel(ptr1));
+        size_t chunkStartAddress = reinterpret_cast<size_t>(ptr1);
+        list->push_back(this->chuncksInformation[chunkStartAddress].accessFlag);
 
         //move on ptr
         ptr1 += chunkSize;

@@ -126,7 +126,7 @@ public:
 
     void dropLastEnqueuedAddress()
     {   
-        cout << "In dropLastEnqueuedAddress Function ";
+        // cout << "In dropLastEnqueuedAddress Function ";
         this->currentQueueSize--;
         QNode* temp = rear;
         this->rear = this->previousRear;
@@ -134,11 +134,11 @@ public:
         if(rear == NULL)
         {   
             this->front = NULL;  
-            this->displayQueue();
+            // this->displayQueue();
             return;
         }
         this->rear->next = NULL; 
-        this->displayQueue();
+        // this->displayQueue();
 
     }
 
@@ -278,9 +278,6 @@ public:
 	void fixPermissions(void*);
 	void* findStartAddress(void* ptr);
     void kickedChunkDeactivate(void* ptr);
-
-    int getAccessLevel(void* ptr);
-    void decreaseAccessLevel(void* ptr);
     void readChunkActivate(void* ptr);
     void writeChunkActivate(void* ptr);
     void swapOut(void* ptr); 

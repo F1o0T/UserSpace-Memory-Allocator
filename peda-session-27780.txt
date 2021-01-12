@@ -1,4 +1,0 @@
-break main
-break main.cc:59
-
-set exec-wrapper The wrapper for running programs is \

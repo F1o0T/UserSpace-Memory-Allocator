@@ -139,8 +139,15 @@ int main(int argc, char** argv)
             // *blocks[i] = nrElements-i; // reverse sorted
         }
 
-        unsigned j = *blocks[2];
+        // 140285661413376 0   1
+        // 140285661417472 0   1
+        // 140285661421568 0   1
+        // 140285661425664 2   0
+        // 140285661429760 2   0
+        // 140285661433856 2   0
 
+        unsigned j = *blocks[1] + *blocks[2] + *blocks[0];
+        cout << "Content = " << j << endl;
         // start the timer
         auto start = std::chrono::high_resolution_clock::now();
 
