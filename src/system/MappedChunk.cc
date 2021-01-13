@@ -31,7 +31,7 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t b
         chInfo.swapFlag = NON_SWAPPED;
         this->chuncksInformation[chunkStartAddress] = chInfo;
         mprotect((void*) chunkStartAddress, this->chunkSize, PROT_NONE);
-        cout << "|###> " << chunkStartAddress << " has been marked with PROT_NONE" << endl;
+        //cout << "|###> " << chunkStartAddress << " has been marked with PROT_NONE" << endl;
     }
 }
 

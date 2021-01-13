@@ -1,30 +1,43 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <chrono>
 #include <boost/program_options.hpp>
+#include "timer/CycleTimer.h"
 
 #include "system/MappedChunk.h"
 
 // size of a chunk
 static const unsigned DEFAULT_CHUNKSIZE = 4096;
 
+//MappedChunk to simulate logical and physical memory
+MappedChunk mem;
+
+//file to store the measured times
+std::ofstream myfile;
+
+
+
+
+
 // a simple version of bubble sort
-void bubbleSort(unsigned** array, unsigned nrElements)
+int bubbleSort(unsigned** array, unsigned nrElements)
 {
+    int temp;
     for (unsigned i = 0; i < nrElements; i++) {
         for (unsigned j = i; j < nrElements; j++) {
             if (*(array[i]) > *(array[j])) {
-                int temp = *(array[i]);
+                temp = *(array[i]);
                 *(array[i]) = *(array[j]);
                 *(array[j]) = temp;
             }
         }
     }
+    return temp;
 }
 
 
-MappedChunk mem;
 
 void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
@@ -41,6 +54,87 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
     }
 
 } 
+
+
+
+void measureAndStore(uint64_t totalChunks, uint64_t maxChunksAvailable, bool writeBackAll, uint64_t blockSize)
+{
+    // each element has a size of blockSize
+    // how many can we store in the memory?
+    unsigned nrElements = (totalChunks*DEFAULT_CHUNKSIZE)/blockSize;
+
+    // this array stores pointers to the blocks
+    unsigned* blocks[nrElements];
+
+    unsigned randNumbers[nrElements];
+
+    // initialize the field 
+    for (unsigned i = 0; i < nrElements; i++) {
+        //*blocks[i] = i; // already sorted
+        randNumbers[i] = std::rand() % 100; // pseudo-random values
+        // *blocks[i] = nrElements-i; // reverse sorted
+    }
+
+
+    //in each iteration the maxChunksAvailable is decreased by 10, so the sorting should take more
+    //time with every iteration
+    while(maxChunksAvailable > 0)
+    {   
+
+        //initialize the MappedChunk with the current maxChunkAvailable
+        mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
+
+
+        // store the start address of each block in the array
+        unsigned* memStart = static_cast<unsigned*>(mem.getStart());
+        for (unsigned i = 0; i < nrElements; i++) {
+            blocks[i] = memStart + (i * blockSize/sizeof(unsigned));
+        }
+
+
+        // initialize the field 
+        for (unsigned i = 0; i < nrElements; i++) {
+            //*blocks[i] = i; // already sorted
+            *blocks[i] = randNumbers[i]; // pseudo-random values
+            // *blocks[i] = nrElements-i; // reverse sorted
+        }
+
+        CycleTimer timer;
+        int useless;
+        // measure the time
+        //auto start = std::chrono::high_resolution_clock::now();
+        timer.start();
+        asm volatile("":: "g"(&useless): "memory");
+        useless = bubbleSort(blocks, nrElements);
+        asm volatile("":: "g"(&useless): "memory");
+        //auto end = std::chrono::high_resolution_clock::now();
+        ticks result = timer.stop() / 1000;
+      
+
+
+
+        // options: milli, micro or nano
+        //long time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+
+        //storing time value in the csvfile
+        //myfile << maxChunksAvailable << ",";
+
+        //decrease
+        maxChunksAvailable -= 10;
+        myfile << result;
+
+        if(maxChunksAvailable > 0)
+        {
+            myfile <<  ",";
+        }
+
+
+    }
+
+    myfile << "\n";
+    
+
+}
 
 
 /**
@@ -116,58 +210,18 @@ int main(int argc, char** argv)
     std::cout << "# totalChunks,maxChunksAvailable,blockSize,writeBackAll,times" << std::endl;
     std::cout << totalChunks << "," << maxChunksAvailable << "," << blockSize << "," << writeBackAll << std::endl;
 
-    // each element has a size of blockSize
-    // how many can we store in the memory?
-    unsigned nrElements = (totalChunks*DEFAULT_CHUNKSIZE)/blockSize;
+    //creating the file, where the values shall be stored
+    //////////////////////////////////////////
+    myfile.open("values.csv", std::ofstream::trunc);
+    //////////////////////////////////////////
 
-    // this array stores pointers to the blocks
-    unsigned* blocks[nrElements];
-
-    // store the start address of each block in the array
-    unsigned* memStart = static_cast<unsigned*>(mem.getStart());
-    for (unsigned i = 0; i < nrElements; i++) {
-        blocks[i] = memStart + (i * blockSize/sizeof(unsigned));
-    }
 
     // for each run
     for (uint64_t run = 0; run < runs; run++) 
     {
-        // initialize the field 
-        for (unsigned i = 0; i < nrElements; i++) {
-            //*blocks[i] = i; // already sorted
-            *blocks[i] = std::rand() % 100; // pseudo-random values
-            // *blocks[i] = nrElements-i; // reverse sorted
-        }
 
-        // 140285661413376 0   1
-        // 140285661417472 0   1
-        // 140285661421568 0   1
-        // 140285661425664 2   0
-        // 140285661429760 2   0
-        // 140285661433856 2   0
+        measureAndStore(totalChunks, maxChunksAvailable, writeBackAll, blockSize);
 
-        //unsigned j = *blocks[1] + *blocks[2] + *blocks[0];
-        //cout << "Content = " << j << endl;    
-        for (unsigned int* n : blocks) {
-            cout << *(n) << ", ";
-        }
-        cout << endl;
-        // start the timer
-        auto start = std::chrono::high_resolution_clock::now();
-
-        // run sort
-        bubbleSort(blocks, nrElements);
-
-        // stop timer and print
-        auto end = std::chrono::high_resolution_clock::now();   
-        for (unsigned int* n : blocks) {
-            cout << *(n) << ", ";
-        }
-        cout << endl;
-        // options: milli, micro or nano
-        long time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
-        std::cout << "," << time;
-        cout << endl;
 
         if (showGUI) break;
     }
@@ -180,4 +234,6 @@ int main(int argc, char** argv)
     mem.displayChunks();
     return 0;
 }
+
+
 

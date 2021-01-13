@@ -285,6 +285,7 @@ public:
 	void printChunkStarts();
 	void displayChunks();
     void fillList(list<int>* list);
+    void decreaseMaxActChunks(unsigned subtrahend);
 	/////////////////////////////////////////////////
 private:
 	void* memBlockStartAddress = NULL;
