@@ -5,6 +5,7 @@
 #include <chrono>
 #include <boost/program_options.hpp>
 #include "timer/CycleTimer.h"
+#include <string>
 
 #include "gui/MemoryGUI.h"
 #include "system/MappedChunk.h"
@@ -93,6 +94,7 @@ int main(int argc, char** argv)
         ("blocksize,b", po::value<uint64_t>()->required(), "Size of a block (determines access pattern)")
         (",r", po::value<uint64_t>()->default_value(10), "Repeat benchmark <arg> times")
         ("wball,w", "Write everything back (otherwise only dirty chunks are written back")
+        (",o", po::value<string>()->default_value("values.csv"),"Name of the output file")
         ("gui,g", "Enable GUI"); 
 
     // read arguments
@@ -109,6 +111,7 @@ int main(int argc, char** argv)
     uint64_t maxChunksAvailable = vm["max-chunks"].as<uint64_t>();
     uint64_t blockSize = vm["blocksize"].as<uint64_t>();
     uint64_t runs = vm["-r"].as<uint64_t>();
+    string outputFileName = vm["-o"].as<string>();
     ///////////////////////////////////////////////////////////////////////////////////
     bool showGUI = false;
     if (vm.count("gui")) {
@@ -141,7 +144,7 @@ int main(int argc, char** argv)
 
     //creating the file, where the values shall be stored
     //////////////////////////////////////////
-    myfile.open("values.csv", std::ofstream::trunc);
+    myfile.open(outputFileName, std::ofstream::trunc);
     //////////////////////////////////////////
 
     // each element has a size of blockSize
@@ -221,7 +224,7 @@ int main(int argc, char** argv)
     	mem.displayChunks();
     }
     myfile << "\n";
-    myfile << "writeBackAll" << writeBackAll << "\n";
+    myfile << "writeBackAll = " << writeBackAll << "\n";
     myfile.close();
     std::cout << std::endl;
 
