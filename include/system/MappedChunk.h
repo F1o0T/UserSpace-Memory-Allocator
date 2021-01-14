@@ -103,6 +103,37 @@ public:
         return ptr;
     } 
 
+    void* deQueue(void* ptr) {
+        if (front == NULL) {
+            return NULL;
+        }
+
+        QNode* currNode = front;
+        QNode* befor = 0;
+
+        for (unsigned i = 0; i < currentQueueSize; i++) {
+            if (ptr == currNode) {
+                break;
+            }
+
+            befor = currNode;
+            currNode = currNode -> next;
+        }
+
+        if (befor == 0) {
+            front = front -> next;
+            if (front == NULL) {
+                rear = NULL;
+            }
+        } else {
+            befor -> next = currNode -> next;
+        }
+
+        delete(currNode);
+        currentQueueSize--;
+        return ptr;
+    }
+
     bool isFull(unsigned MaxSize)
     {
     	if(currentQueueSize >= MaxSize)
@@ -284,24 +315,27 @@ public:
     void kickedChunkDeactivate(void* ptr);
     void readChunkActivate(void* ptr);
     void writeChunkActivate(void* ptr);
+    void addPinnedChunk(void* ptr);
+    void deletePinnedChunk(void* ptr);
     void swapOut(void* ptr); 
     void swapIn(void* ptr);
 	void printChunkStarts();
 	void displayChunks();
     void fillList(list<int>* list);
     void decreaseMaxActChunks(unsigned subtrahend);
-    void reset();
+    void resetQueues();
 	/////////////////////////////////////////////////
 private:
 	void* memBlockStartAddress = NULL;
 	size_t chunksNumber = 0;
 	size_t maxActChunks = 0 ;
-    size_t currentActChuncks = 0; 
+    size_t currentActChunks = 0; 
 	size_t chunkSize = 0;
     Queue readQueue;
-    Queue writeQueue; 
+    Queue writeQueue;
+    Queue pinnedQueue;
     SwapFile swapFile;
-    map<size_t, struct chunckInfo>chuncksInformation; 
+    map<size_t, struct chunckInfo>chunksInformation; 
 };
 
 #endif

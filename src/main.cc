@@ -18,12 +18,9 @@ MappedChunk mem;
 //file to store the measured times
 std::ofstream myfile;
 
-#define width 800
-#define height 600
-DrawingWindow window(width, height, "GUI");
-MemoryGUI gui(&window, &mem, MO_CHUNK);
+MemoryGUI gui(&mem, MO_CHUNK);
 
-bool showGui = false;
+bool showGUI = false;
 
 // a simple version of bubble sort
 void bubbleSort(unsigned** array, unsigned nrElements)
@@ -36,7 +33,7 @@ void bubbleSort(unsigned** array, unsigned nrElements)
                 *(array[j]) = temp;
             }
 
-			if (showGui) {
+			if (showGUI) {
 				gui.drawMemory();	
 				sleep(0.2);			
 				//cout << "|>>> Write a char: "; char ch; 
@@ -110,7 +107,6 @@ int main(int argc, char** argv)
     uint64_t blockSize = vm["blocksize"].as<uint64_t>();
     uint64_t runs = vm["-r"].as<uint64_t>();
     ///////////////////////////////////////////////////////////////////////////////////
-    bool showGUI = false;
     if (vm.count("gui")) {
         showGUI = true;
     }
@@ -131,10 +127,6 @@ int main(int argc, char** argv)
     SigAction.sa_flags = SA_SIGINFO;
     sigaction(SIGSEGV, &SigAction, NULL);
     ///////////////////////////////////////////
-
-    if (showGUI) {
-        showGui = showGUI;
-    }
     std::cout << "# totalChunks,maxChunksAvailable,blockSize,writeBackAll,times" << std::endl;
     std::cout << totalChunks << "," << maxChunksAvailable << "," << blockSize << "," << writeBackAll << std::endl;
 
@@ -170,7 +162,7 @@ int main(int argc, char** argv)
 
         for (uint64_t run = 0; run < runs; run++)
         {   
-			mem.reset();
+			mem.resetQueues();
             //initialize the MappedChunk with the current maxChunkAvailable
             mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, decreasableMaxChunkNumber, writeBackAll);
 
@@ -218,8 +210,7 @@ int main(int argc, char** argv)
 
         //decrease
         decreasableMaxChunkNumber -= 10;
-        cout << "ok 1 = " << endl;
-    	mem.displayChunks();
+    	//mem.displayChunks();
     }
 
     std::cout << std::endl;
