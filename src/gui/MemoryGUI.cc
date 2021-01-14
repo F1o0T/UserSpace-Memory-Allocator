@@ -107,17 +107,47 @@ void MemoryGUI::drawMappedChunk() {
 	int x = 5;
 	int y = 15;
 	
-	window -> setBackgroundColor(RGBColor(0,0,0));
-	window -> setForegroundColor(RGBColor(255,255,255));
-	
 	std::list<int> ptr;
 	chunk -> fillList(&ptr);
 
-	for (size_t i = 0; i < ptr.size(); i++) {
-		window -> drawText(x, y, "chunk " + to_string(i));
-		x += 60;
+	if (first == true) {
+		window -> drawText(x, y, "NONE");
+		x += 120;
+		window -> drawText(x, y, "READ");
+		x += 120;
+		window -> drawText(x, y, "WRITE");
+
+		y = 6;
+		x = 45;
+		window -> setForegroundColor(RGBColor(255,0,0));
+		window -> drawFilledRectangle(x,y,40,10);
+		x += 120;
+		window -> setForegroundColor(RGBColor(255,165,0));
+		window -> drawFilledRectangle(x,y,40,10);
+		x += 120;
+		window -> setForegroundColor(RGBColor(0,255,0));
+		window -> drawFilledRectangle(x,y,40,10);
+
+		y = 35;
+		x = 5;
+
+		window -> setBackgroundColor(RGBColor(0,0,0));
+		window -> setForegroundColor(RGBColor(255,255,255));
+
+		for (size_t i = 0; i < ptr.size(); i++) {
+			window -> drawText(x, y, "chunk " + to_string(i));
+			x += 60;	
+
+			if (x > 780) {
+				x -= 780;
+				y += 40;
+			}
+		}
+
+		this -> first = false;
 	}
-	y += 15;
+
+	y = 40;
 	x = 5;
 
 	for (int i : ptr) {
@@ -129,9 +159,9 @@ void MemoryGUI::drawMappedChunk() {
 			window -> setForegroundColor(RGBColor(0,255,0));
 		}
 	
-		if (x > 800) {
-			x -= 800;
-			y += 15;
+		if (x > 780) {
+			x -= 780;
+			y += 40;
 		}
 	
 		window -> drawFilledRectangle(x,y,40,10);

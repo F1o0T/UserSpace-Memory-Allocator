@@ -126,7 +126,6 @@ public:
 
     void dropLastEnqueuedAddress()
     {   
-        // cout << "In dropLastEnqueuedAddress Function ";
         this->currentQueueSize--;
         QNode* temp = rear;
         this->rear = this->previousRear;
@@ -205,12 +204,17 @@ class SwapFile: public RandomAccessFile
 
         SwapFile()
         {
-            fd = open("SwapFile", O_RDWR | O_CREAT);
+            fd = open("SwapFile", O_RDWR | O_CREAT | O_TRUNC);
             if (fd == -1)
             {
                 cerr << "Error Openining the swap file"; 
                 exit(1); 
             }
+        }
+
+        ~SwapFile() {
+            close(fd);
+            unlink("SwapFile");
         }
 
         /**
@@ -285,6 +289,8 @@ public:
 	void printChunkStarts();
 	void displayChunks();
     void fillList(list<int>* list);
+    void decreaseMaxActChunks(unsigned subtrahend);
+    void reset();
 	/////////////////////////////////////////////////
 private:
 	void* memBlockStartAddress = NULL;
