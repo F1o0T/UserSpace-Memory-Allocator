@@ -17,10 +17,14 @@ using namespace GUI;
 #define MO_FIXM 2
 #define MO_CHUNK 3
 
+#define width 800
+#define height 600
+
 class MemoryGUI {
 public:
-	MemoryGUI(DrawingWindow* window, Heap* heap, int mode);
-    MemoryGUI(DrawingWindow* window, MappedChunk* chunk, int mode);
+    MemoryGUI();
+	MemoryGUI(Heap* heap, int mode);
+    MemoryGUI(MappedChunk* chunk, int mode);
 
     void drawMemory();
 	
@@ -33,7 +37,6 @@ private:
 
     void clearWindow();
 
-    DrawingWindow* window;
     Heap* heap;
     MappedChunk* chunk;
     int mode;
