@@ -37,6 +37,7 @@ private:
     Heap* heap;
     MappedChunk* chunk;
     int mode;
+    bool first = true;
 };
 
 

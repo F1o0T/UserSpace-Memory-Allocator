@@ -18,8 +18,8 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t b
         cerr << "|###> Error: Mmap Failed" <<endl;
         exit(1); 
     }
-    else 
-        cout << "|###> An anonymous mapping with length = " << totalSize << " has been created" <<endl; 
+    //else 
+        //cout << "|###> An anonymous mapping with length = " << totalSize << " has been created" <<endl; 
     /////////////////////////////////////////////////
     /*Seperating the (same size) chunks by marking each one as PROT_NONE*/
     size_t startAddress   =  reinterpret_cast<size_t>(this->memBlockStartAddress); 
@@ -37,8 +37,6 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t b
 
 void MappedChunk::fixPermissions(void *address)
 {
-
-	//cout << this->currentActChuncks << endl;
     void* chunckStartAddr = this->findStartAddress(address);
 
     ////////////////////////////////////////////////////////////////////////
@@ -49,7 +47,7 @@ void MappedChunk::fixPermissions(void *address)
 		if(readQueue.getLastEnqueuedAddress() == chunckStartAddr)
 		{
 			readQueue.dropLastEnqueuedAddress();
-			this->currentActChuncks -= 1;
+			this->currentActChuncks--;
 		}
 	}
 	//////////////////////////////////////////////////////////////////////// 
@@ -84,6 +82,7 @@ void MappedChunk::fixPermissions(void *address)
 		if(!this->readQueue.isEmpty())
 		{
 			void* kickedReadChunkAddr = this->readQueue.deQueue();
+			this -> currentActChuncks--;
 			kickedChunkDeactivate(kickedReadChunkAddr);
 
 			if(accessFlag == NON)
@@ -99,6 +98,7 @@ void MappedChunk::fixPermissions(void *address)
 		{
 			// cout << "################ReadQueue is isEmpty#####################" << endl;
 			void* kickedWriteChunkAddr = this->writeQueue.deQueue();
+			this -> currentActChuncks--;
 			this->swapOut(kickedWriteChunkAddr);
 			kickedChunkDeactivate(kickedWriteChunkAddr);
 
@@ -134,25 +134,21 @@ void MappedChunk::readChunkActivate(void* chunckStartAddr)
 {
 	mprotect(chunckStartAddr, this->chunkSize, PROT_READ);
 	this->readQueue.enQueue(chunckStartAddr);
+	this -> currentActChuncks++;
 
 	size_t chunckStartAddress = reinterpret_cast<size_t> (chunckStartAddr);
 	this->chuncksInformation[chunckStartAddress].accessFlag = READ;
-	if(!(this->currentActChuncks >= this->maxActChunks))
-		this->currentActChuncks += 1;
-	//cout << chunckStartAddress << " marked as READ and  currentActChuncks = "<< currentActChuncks << endl;
 }
 
 void MappedChunk::writeChunkActivate(void* chunckStartAddr)
 {
-
 	mprotect(chunckStartAddr, this->chunkSize, PROT_WRITE);
 	this->writeQueue.enQueue(chunckStartAddr);
+	this -> currentActChuncks++;
 
 	size_t chunckStartAddress = reinterpret_cast<size_t> (chunckStartAddr);
 	this->chuncksInformation[chunckStartAddress].accessFlag = WRITTEN;
-	if(!(this->currentActChuncks >= this->maxActChunks))
-		this->currentActChuncks += 1;
-	//cout << chunckStartAddress << " marked as WRITE and currentActChuncks = "<< currentActChuncks << endl;
+
 }
 
 
@@ -208,7 +204,7 @@ void MappedChunk::printChunkStarts()
 {
     for(unsigned int i = 0; i < this -> chunksNumber; i++)
     {
-        //cout << "chunk " << i << " : " << reinterpret_cast<unsigned long>(memBlockStartAddress) + i * this->chunkSize <<endl;
+        cout << "chunk " << i << " : " << reinterpret_cast<unsigned long>(memBlockStartAddress) + i * this->chunkSize <<endl;
     }
 }
 
@@ -216,13 +212,18 @@ void MappedChunk::displayChunks()
 {
 	size_t startAddress   =  reinterpret_cast<size_t>(this->memBlockStartAddress); 
 	size_t lastAddress    =  startAddress + this->chunkSize * this->chunksNumber; 
-	int count = 1; 
+	int count = 0; 
 	for(unsigned long chunkStartAddress = startAddress; chunkStartAddress < lastAddress; chunkStartAddress += this->chunkSize)
 	{
 	    cout << count << "   " << chunkStartAddress << "\t" << this->chuncksInformation[chunkStartAddress].accessFlag << "\t" << this->chuncksInformation[chunkStartAddress].swapFlag << endl;
 		count++;
 		cout << endl;
 	}	
+
+	/*cout << writeQueue.size() << " = write " << endl;
+	cout << readQueue.size() << " = read " << endl;
+	cout << maxActChunks << " = maxChunks" << endl;
+	cout << currentActChuncks << " = currentChunks" << endl;*/
 }
 
 void MappedChunk::fillList(list<int>* list) {
@@ -264,4 +265,30 @@ MappedChunk::~MappedChunk()
     munmap(this->memBlockStartAddress, this->chunksNumber * this -> chunkSize);
 }
 
+void MappedChunk::reset() {
+	for (int i = 0; i < writeQueue.size(); i++) {
+		void* kickedWriteChunkAddr = this->writeQueue.deQueue();
+		this -> currentActChuncks--;
+		kickedChunkDeactivate(kickedWriteChunkAddr);
+	}
 
+	for (int i = 0; i < readQueue.size(); i++) {
+		void* kickedReadChunkAddr = this->readQueue.deQueue();
+		this -> currentActChuncks--;
+		kickedChunkDeactivate(kickedReadChunkAddr);
+	}
+
+	size_t startAddress   =  reinterpret_cast<size_t>(this->memBlockStartAddress); 
+    size_t lastAddress    =  startAddress + this->chunkSize * this->chunksNumber; 
+    for(size_t chunkStartAddress = startAddress; chunkStartAddress < lastAddress; chunkStartAddress += this->chunkSize)
+    {
+        struct chunckInfo chInfo; 
+        chInfo.accessFlag = NON;
+        chInfo.swapFlag = NON_SWAPPED;
+        this->chuncksInformation[chunkStartAddress] = chInfo;
+    }
+	/*cout << writeQueue.size() << " = write1 " << endl;
+	cout << readQueue.size() << " = read1 " << endl;
+	cout << maxActChunks << " = maxChunks1" << endl;
+	cout << currentActChuncks << " = currentChunks1" << endl;*/
+}
