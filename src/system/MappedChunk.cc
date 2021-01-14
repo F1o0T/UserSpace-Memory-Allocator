@@ -82,8 +82,15 @@ void MappedChunk::fixPermissions(void *address)
 		if(!this->readQueue.isEmpty())
 		{
 			void* kickedReadChunkAddr = this->readQueue.deQueue();
-			this -> currentActChunks--;
+			if(writeBackAll)
+			{
+				this->chuncksInformation[reinterpret_cast<size_t> (kickedReadChunkAddr)].swapFlag = SWAPPED;
+				this->swapOut(kickedReadChunkAddr);
+
+			}
+			this -> currentActChuncks--;
 			kickedChunkDeactivate(kickedReadChunkAddr);
+			
 
 			if(accessFlag == NON)
 			{

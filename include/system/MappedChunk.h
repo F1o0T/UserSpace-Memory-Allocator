@@ -335,7 +335,8 @@ private:
     Queue writeQueue;
     Queue pinnedQueue;
     SwapFile swapFile;
-    map<size_t, struct chunckInfo>chunksInformation; 
+    map<size_t, struct chunckInfo>chuncksInformation;
+    bool writeBackAll;
 };
 
 #endif
