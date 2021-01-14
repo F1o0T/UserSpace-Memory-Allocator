@@ -301,7 +301,8 @@ private:
     Queue readQueue;
     Queue writeQueue; 
     SwapFile swapFile;
-    map<size_t, struct chunckInfo>chuncksInformation; 
+    map<size_t, struct chunckInfo>chuncksInformation;
+    bool writeBackAll;
 };
 
 #endif

@@ -122,6 +122,7 @@ int main(int argc, char** argv)
      * parsing command line arguments done.
      * create memory with the above 
      * read configuration.
+     * 
      */
     mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
 
@@ -213,15 +214,15 @@ int main(int argc, char** argv)
             asm volatile("" :: "g"(&blocks), "g"(&nrElements) : "memory");
         	if (showGUI) break;
         }
-
         myfile << "\n";
-
         //decrease
         decreasableMaxChunkNumber -= 10;
         cout << "ok 1 = " << endl;
     	mem.displayChunks();
     }
-
+    myfile << "\n";
+    myfile << "writeBackAll" << writeBackAll << "\n";
+    myfile.close();
     std::cout << std::endl;
 
     if (showGUI) {
