@@ -29,7 +29,7 @@ enum swapped_flag: bool
     NON_SWAPPED = 0
 };
 
-struct chunckInfo
+struct chunkInfo
 {
     access_flag accessFlag;
     swapped_flag swapFlag; 
@@ -188,43 +188,6 @@ public:
     {
         return currentQueueSize; 
     }
-
-    // void decreaseAccessLevel(void* nodeStartAddress)    
-    // {
-    //     QNode *currNode = this->front;
-    //     while(currNode->address != nodeStartAddress)
-    //     {
-    //         currNode = currNode->next;
-    //     }
-    //     if(currNode->acc_flag == NON)
-    //     {
-    //         currNode->acc_flag = READ;
-    //     }else
-    //     {
-    //         currNode->acc_flag = WRITTEN;
-    //     }
-    // }
-
-    //0 = NON, 1 = READ, 2 = WRITTEN
-    // int getAccessLevel(void * nodeStartAddress)
-    // {
-    //     QNode *currNode = this->front;
-
-    //     if (currNode == 0) {
-    //         return 0;
-    //     } 
-
-    //     while(nodeStartAddress != currNode->address)
-    //     {
-    //         currNode = currNode->next;
-    //         if (currNode == 0) {
-    //             return 0;
-    //         }
-    //     }
-
-    //     return currNode->acc_flag;
-
-    // }
 };
 
 class SwapFile: public RandomAccessFile
@@ -335,7 +298,7 @@ private:
     Queue writeQueue;
     Queue pinnedQueue;
     SwapFile swapFile;
-    map<size_t, struct chunckInfo>chuncksInformation;
+    map<size_t, struct chunkInfo>chunksInformation;
     bool writeBackAll;
 };
 

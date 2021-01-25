@@ -132,7 +132,7 @@ int main(int argc, char** argv)
     sigaction(SIGSEGV, &SigAction, NULL);
     ///////////////////////////////////////////
     std::cout << "# totalChunks,maxChunksAvailable,blockSize,writeBackAll,times" << std::endl;
-    std::cout << totalChunks << "," << maxChunksAvailable << "," << blockSize << "," << writeBackAll << std::endl;
+    std::cout << totalChunks << "," << maxChunksAvailable << "," << blockSize << "," << writeBackAll << "," << runs << std::endl;
 
     //creating the file, where the values shall be stored
     //////////////////////////////////////////
@@ -181,30 +181,12 @@ int main(int argc, char** argv)
                 *blocks[i] = randNumbers[i]; // pseudo-random values
             }
 
-			/*for (unsigned* n : blocks) {
-                cout << *n << ", ";
-            }
-			cout << endl;*/
-
             // measure the time
             t.start();
-            //auto start = std::chrono::high_resolution_clock::now();
-            //asm volatile("" ::: "memory");
             bubbleSort(blocks, nrElements);
-            //asm volatile("" ::: "memory");
-            //auto end = std::chrono::high_resolution_clock::now();
             uint64_t time = t.stop();
-        
-
-            // options: milli, micro or nano
-            //long time = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
 
             myfile << "," << time;
-
-            /*for (unsigned* n : blocks) {
-                cout << *n << ", ";
-            }
-			cout << endl;*/
             
             asm volatile("" :: "g"(&blocks), "g"(&nrElements) : "memory");
         	if (showGUI) break;

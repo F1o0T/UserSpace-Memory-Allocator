@@ -26,7 +26,7 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t b
     size_t lastAddress    =  startAddress + this->chunkSize * this->chunksNumber; 
     for(size_t chunkStartAddress = startAddress; chunkStartAddress < lastAddress; chunkStartAddress += this->chunkSize)
     {
-        struct chunckInfo chInfo; 
+        struct chunkInfo chInfo; 
         chInfo.accessFlag = NON;
         chInfo.swapFlag = NON_SWAPPED;
         this->chunksInformation[chunkStartAddress] = chInfo;
@@ -84,11 +84,11 @@ void MappedChunk::fixPermissions(void *address)
 			void* kickedReadChunkAddr = this->readQueue.deQueue();
 			if(writeBackAll)
 			{
-				this->chuncksInformation[reinterpret_cast<size_t> (kickedReadChunkAddr)].swapFlag = SWAPPED;
+				this->chunksInformation[reinterpret_cast<size_t> (kickedReadChunkAddr)].swapFlag = SWAPPED;
 				this->swapOut(kickedReadChunkAddr);
 
 			}
-			this -> currentActChuncks--;
+			this -> currentActChunks--;
 			kickedChunkDeactivate(kickedReadChunkAddr);
 			
 
