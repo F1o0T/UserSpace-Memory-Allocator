@@ -23,8 +23,8 @@ using namespace GUI;
 class MemoryGUI {
 public:
     MemoryGUI();
-	MemoryGUI(Heap* heap, int mode);
-    MemoryGUI(MappedChunk* chunk, int mode);
+	MemoryGUI(Heap* heap, DrawingWindow* window, int mode);
+    MemoryGUI(MappedChunk* chunk, DrawingWindow* window, int mode);
 
     void drawMemory();
 	
@@ -39,6 +39,7 @@ private:
 
     Heap* heap;
     MappedChunk* chunk;
+    DrawingWindow* window;
     int mode;
     bool first = true;
 };

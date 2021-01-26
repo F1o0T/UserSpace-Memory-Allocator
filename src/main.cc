@@ -19,7 +19,8 @@ MappedChunk mem;
 //file to store the measured times
 std::ofstream myfile;
 
-MemoryGUI gui(&mem, MO_CHUNK);
+DrawingWindow* window;
+MemoryGUI* gui;
 
 bool showGUI = false;
 
@@ -35,7 +36,7 @@ void bubbleSort(unsigned** array, unsigned nrElements)
             }
 
 			if (showGUI) {
-				gui.drawMemory();	
+				gui -> drawMemory();	
 				//sleep(1);			
 				//cout << "|>>> Write a char: "; char ch; 
 				//cin >> ch; 
@@ -126,7 +127,11 @@ int main(int argc, char** argv)
      * 
      */
     mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, pinnedChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
-
+    
+    if (showGUI) {
+        window = new DrawingWindow(width, height, "GUI");
+        gui = new MemoryGUI(&mem, window, MO_CHUNK);
+    }
     ///////////////////////////////////////////
     struct sigaction SigAction;
     SigAction.sa_sigaction = signalHandeler;
@@ -156,15 +161,8 @@ int main(int argc, char** argv)
         randNumbers[i] = nrElements-i; // reverse sorted
     }
 
-    long decreasableMaxChunkNumber = 0;
-    if(pinnedChunks >= maxChunksAvailable)
-    {
-        decreasableMaxChunkNumber = (long) pinnedChunks + 1;
-    }else
-    {
-        decreasableMaxChunkNumber = (long) maxChunksAvailable;
-    }
-    
+    long decreasableMaxChunkNumber = (long) maxChunksAvailable;
+
     CycleTimer t;
 
     //in each iteration the maxChunksAvailable is decreased by 10, so the sorting should take more
@@ -179,7 +177,6 @@ int main(int argc, char** argv)
 			mem.resetQueues();
             //initialize the MappedChunk with the current maxChunkAvailable
             mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, pinnedChunks, DEFAULT_CHUNKSIZE, decreasableMaxChunkNumber, writeBackAll);
-
             // store the start address of each block in the array
             unsigned* memStart = static_cast<unsigned*>(mem.getStart());
             for (unsigned i = 0; i < nrElements; i++) {
@@ -204,7 +201,6 @@ int main(int argc, char** argv)
         myfile << "\n";
         //decrease
         decreasableMaxChunkNumber -= 10;
-
     	//mem.displayChunks();
     }
     myfile << "\n";
@@ -214,7 +210,10 @@ int main(int argc, char** argv)
 
     if (showGUI) {
         cout << "|>>> Write a char: "; char ch; 
-		cin >> ch; 
+		cin >> ch;
+        delete(window);
+        delete(gui);
     }
+    cout << "ok" << endl;
     return 0;
 }

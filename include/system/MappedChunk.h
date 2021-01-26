@@ -110,7 +110,6 @@ public:
         return ptr;
     } 
 
- 
     bool isFull(unsigned MaxSize)
     {
     	if(currentQueueSize >= MaxSize)
@@ -185,7 +184,9 @@ class SwapFile: public RandomAccessFile
 
         ~SwapFile() {
             close(fd);
-            unlink("SwapFile");
+            if (unlink("SwapFile") == -1) {
+                cerr << "Error unlink didn't delete the swapfile" << endl;
+            }
         }
 
         /**
