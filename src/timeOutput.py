@@ -24,8 +24,8 @@ def plotBoxes(x, y):
     
 inputs, times = readCSV('../bin/values.csv')
 plt.style.use('ggplot')
-plotPoints(inputs, times)
-#plotBoxes(inputs, times)
+#plotPoints(inputs, times)
+plotBoxes(inputs, times)
 
 timeMin = times.min()
 timeMax = times.max()

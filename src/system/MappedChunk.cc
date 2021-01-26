@@ -8,7 +8,6 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t p
     /////////////////////////////////////////////////
     this->chunksNumber = chunksNumber;
     this->maxActChunks = maxChunksAvailable;
-	this->pinnedChunks = pinnedChunks;
     this->chunkSize = chunkSize;
     size_t totalSize = chunksNumber * chunkSize;
     /////////////////////////////////////////////////
@@ -17,7 +16,7 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t p
     if(this->memBlockStartAddress == MAP_FAILED)
     {
         cerr << "|###> Error: Mmap Failed" <<endl;
-        exit(1); 
+        exit(0.1); 
     }
     //else 
         //cout << "|###> An anonymous mapping with length = " << totalSize << " has been created" <<endl; 
@@ -41,6 +40,12 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t p
 		this->maxActChunks = 1;
 	}else{
 		this->maxActChunks -= this->pinnedChunks;
+	}
+
+	if(this->chunksNumber < (this->maxActChunks + this->pinnedChunks))
+	{
+		cerr << "chunksNumber can't be smaller than maxChunksNumber + pinnedChunks" << endl;
+		_exit(1);
 	}
 }
 
@@ -181,6 +186,7 @@ void MappedChunk::markPinnedChunks(size_t numberOfChunksToPin)
 void MappedChunk::pinOneChunk(size_t chunkStartAddr) {
 	this->chunksInformation[chunkStartAddr].pinnedFlag = PINNED;
 	mprotect(reinterpret_cast<void*>(chunkStartAddr), this->chunkSize, PROT_READ | PROT_WRITE);
+	this->chunksInformation[chunkStartAddr].accessFlag = WRITTEN;
 	this->pinnedChunks++;
 
 	/*
@@ -313,17 +319,21 @@ MappedChunk::~MappedChunk()
 }
 
 void MappedChunk::resetQueues() {
-	for (int i = 0; i < writeQueue.size(); i++) {
+	int writeQueueSize = writeQueue.size();
+	int readQueueSize = readQueue.size();
+	for (int i = 0; i < writeQueueSize; i++) {
 		void* kickedWriteChunkAddr = this->writeQueue.deQueue();
 		this -> currentActChunks--;
 		kickedChunkDeactivate(kickedWriteChunkAddr);
 	}
 
-	for (int i = 0; i < readQueue.size(); i++) {
+	for (int i = 0; i < readQueueSize; i++) {
 		void* kickedReadChunkAddr = this->readQueue.deQueue();
 		this -> currentActChunks--;
 		kickedChunkDeactivate(kickedReadChunkAddr);
 	}
+
+	this->pinnedChunks = 0;
 	/*
 	for (int i = 0; i < pinnedQueue.size(); i++) {
 		void* kickedPinnedChunkAddr = this->pinnedQueue.deQueue();

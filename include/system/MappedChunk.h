@@ -110,37 +110,7 @@ public:
         return ptr;
     } 
 
-    void* deQueue(void* ptr) {
-        if (front == NULL) {
-            return NULL;
-        }
-
-        QNode* currNode = front;
-        QNode* befor = 0;
-
-        for (unsigned i = 0; i < currentQueueSize; i++) {
-            if (ptr == currNode) {
-                break;
-            }
-
-            befor = currNode;
-            currNode = currNode -> next;
-        }
-
-        if (befor == 0) {
-            front = front -> next;
-            if (front == NULL) {
-                rear = NULL;
-            }
-        } else {
-            befor -> next = currNode -> next;
-        }
-
-        delete(currNode);
-        currentQueueSize--;
-        return ptr;
-    }
-
+ 
     bool isFull(unsigned MaxSize)
     {
     	if(currentQueueSize >= MaxSize)

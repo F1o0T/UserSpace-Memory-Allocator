@@ -36,7 +36,7 @@ void bubbleSort(unsigned** array, unsigned nrElements)
 
 			if (showGUI) {
 				gui.drawMemory();	
-				sleep(0.2);			
+				//sleep(1);			
 				//cout << "|>>> Write a char: "; char ch; 
 				//cin >> ch; 
 			}
@@ -156,12 +156,20 @@ int main(int argc, char** argv)
         randNumbers[i] = nrElements-i; // reverse sorted
     }
 
-    long decreasableMaxChunkNumber = (long) maxChunksAvailable;
+    long decreasableMaxChunkNumber = 0;
+    if(pinnedChunks >= maxChunksAvailable)
+    {
+        decreasableMaxChunkNumber = (long) pinnedChunks + 1;
+    }else
+    {
+        decreasableMaxChunkNumber = (long) maxChunksAvailable;
+    }
+    
     CycleTimer t;
 
     //in each iteration the maxChunksAvailable is decreased by 10, so the sorting should take more
     //time with every iteration
-    while(decreasableMaxChunkNumber > 0)
+    while(decreasableMaxChunkNumber > (long) pinnedChunks)
     {
         //storing time value in the csvfile
         myfile << decreasableMaxChunkNumber;
@@ -196,6 +204,7 @@ int main(int argc, char** argv)
         myfile << "\n";
         //decrease
         decreasableMaxChunkNumber -= 10;
+
     	//mem.displayChunks();
     }
     myfile << "\n";
