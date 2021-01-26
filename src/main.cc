@@ -88,6 +88,7 @@ int main(int argc, char** argv)
         ("help,h", "Print help message")
         ("total-chunks,t", po::value<uint64_t>()->required(), "Number of chunks (total)")
         ("max-chunks,m", po::value<uint64_t>()->required(), "Number of chunks available at the same time)")
+        ("pinned-chunks,p", po::value<uint64_t>()->required(), "Number of pinned chunks")
         ("blocksize,b", po::value<uint64_t>()->required(), "Size of a block (determines access pattern)")
         (",r", po::value<uint64_t>()->default_value(10), "Repeat benchmark <arg> times")
         ("wball,w", "Write everything back (otherwise only dirty chunks are written back")
@@ -106,6 +107,7 @@ int main(int argc, char** argv)
     po::notify(vm);
     uint64_t totalChunks = vm["total-chunks"].as<uint64_t>();
     uint64_t maxChunksAvailable = vm["max-chunks"].as<uint64_t>();
+    uint64_t pinnedChunks = vm["pinned-chunks"].as<uint64_t>();
     uint64_t blockSize = vm["blocksize"].as<uint64_t>();
     uint64_t runs = vm["-r"].as<uint64_t>();
     string outputFileName = vm["-o"].as<string>();
@@ -123,7 +125,7 @@ int main(int argc, char** argv)
      * read configuration.
      * 
      */
-    mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
+    mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, pinnedChunks, DEFAULT_CHUNKSIZE, maxChunksAvailable, writeBackAll);
 
     ///////////////////////////////////////////
     struct sigaction SigAction;
@@ -168,7 +170,7 @@ int main(int argc, char** argv)
         {   
 			mem.resetQueues();
             //initialize the MappedChunk with the current maxChunkAvailable
-            mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, DEFAULT_CHUNKSIZE, decreasableMaxChunkNumber, writeBackAll);
+            mem.mappedChunkSet(DEFAULT_CHUNKSIZE, totalChunks, pinnedChunks, DEFAULT_CHUNKSIZE, decreasableMaxChunkNumber, writeBackAll);
 
             // store the start address of each block in the array
             unsigned* memStart = static_cast<unsigned*>(mem.getStart());

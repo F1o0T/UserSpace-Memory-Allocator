@@ -3,11 +3,12 @@
 
 #define PAGESIZE sysconf(_SC_PAGESIZE)
 
-void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll)
+void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t pinnedChunks, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll)
 {   
     /////////////////////////////////////////////////
     this->chunksNumber = chunksNumber;
     this->maxActChunks = maxChunksAvailable;
+	this->pinnedChunks = pinnedChunks;
     this->chunkSize = chunkSize;
     size_t totalSize = chunksNumber * chunkSize;
     /////////////////////////////////////////////////
@@ -33,6 +34,14 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t b
         mprotect((void*) chunkStartAddress, this->chunkSize, PROT_NONE);
         //cout << "|###> " << chunkStartAddress << " has been marked with PROT_NONE" << endl;
     }
+
+	markPinnedChunks(pinnedChunks);
+	if(this->maxActChunks <= this->pinnedChunks)
+	{
+		this->maxActChunks = 1;
+	}else{
+		this->maxActChunks -= this->pinnedChunks;
+	}
 }
 
 void MappedChunk::fixPermissions(void *address)
@@ -157,10 +166,25 @@ void MappedChunk::writeChunkActivate(void* chunkStartAddr)
 	this->chunksInformation[chunkStartAddress].accessFlag = WRITTEN;
 }
 
-void MappedChunk::addPinnedChunk(void* chunkStartAddr) {
-	size_t chunckStartAddress = reinterpret_cast<size_t> (chunkStartAddr);
-	int accFlag = this->chunksInformation[chunckStartAddress].accessFlag;
+void MappedChunk::markPinnedChunks(size_t numberOfChunksToPin)
+{
+	size_t chunckStartAddress = reinterpret_cast<size_t> (this->memBlockStartAddress);
+	for(size_t i = 0; i < numberOfChunksToPin; i++)
+	{
+		pinOneChunk(chunckStartAddress);
+		chunckStartAddress += this->chunkSize;
+	}
+}
 
+
+
+void MappedChunk::pinOneChunk(size_t chunkStartAddr) {
+	this->chunksInformation[chunkStartAddr].pinnedFlag = PINNED;
+	mprotect(reinterpret_cast<void*>(chunkStartAddr), this->chunkSize, PROT_READ | PROT_WRITE);
+	this->pinnedChunks++;
+
+	/*
+	int accFlag = this->chunksInformation[chunckStartAddress].accessFlag;
 	if (accFlag == WRITTEN) {
 		this -> writeQueue.deQueue();
 		this -> pinnedQueue.enQueue(chunkStartAddr);
@@ -168,12 +192,16 @@ void MappedChunk::addPinnedChunk(void* chunkStartAddr) {
 		this -> readQueue.deQueue();
 		this -> pinnedQueue.enQueue(chunkStartAddr);
 	}
+	*/
 }
 
-void MappedChunk::deletePinnedChunk(void* chunkStartAddr) {
+void MappedChunk::unpinChunk(void* chunkStartAddr) {
+	
+	/*
 	pinnedQueue.deQueue(chunkStartAddr);
 	this -> currentActChunks--;
 	kickedChunkDeactivate(chunkStartAddr);
+	*/
 }
 
 void MappedChunk::swapOut(void* kickedChunkAddr)
@@ -296,10 +324,11 @@ void MappedChunk::resetQueues() {
 		this -> currentActChunks--;
 		kickedChunkDeactivate(kickedReadChunkAddr);
 	}
-
+	/*
 	for (int i = 0; i < pinnedQueue.size(); i++) {
 		void* kickedPinnedChunkAddr = this->pinnedQueue.deQueue();
 		this -> currentActChunks--;
 		kickedChunkDeactivate(kickedPinnedChunkAddr);
 	}
+	*/
 }

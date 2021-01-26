@@ -29,10 +29,17 @@ enum swapped_flag: bool
     NON_SWAPPED = 0
 };
 
+enum pinned_flag: bool
+{
+    PINNED = 1,
+    NOT_PINNED = 0
+};
+
 struct chunkInfo
 {
     access_flag accessFlag;
-    swapped_flag swapFlag; 
+    swapped_flag swapFlag;
+    pinned_flag pinnedFlag;
 };
 
 struct QNode { 
@@ -264,7 +271,7 @@ public:
 	// Signal handeler, constructor and deconstructor.
 	// static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
 	// MappedChunk(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
-    void mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
+    void mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t pinnedChunks, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
 	~MappedChunk();
 	/////////////////////////////////////////////////
 	// Basic Methods
@@ -278,8 +285,6 @@ public:
     void kickedChunkDeactivate(void* ptr);
     void readChunkActivate(void* ptr);
     void writeChunkActivate(void* ptr);
-    void addPinnedChunk(void* ptr);
-    void deletePinnedChunk(void* ptr);
     void swapOut(void* ptr); 
     void swapIn(void* ptr);
 	void printChunkStarts();
@@ -287,16 +292,20 @@ public:
     void fillList(list<int>* list);
     void decreaseMaxActChunks(unsigned subtrahend);
     void resetQueues();
+    void unpinChunk(void* ptr);
+    void markPinnedChunks(size_t numberOfChunksToPin);
+    void pinOneChunk(size_t chunkStartAddr);
 	/////////////////////////////////////////////////
 private:
 	void* memBlockStartAddress = NULL;
 	size_t chunksNumber = 0;
 	size_t maxActChunks = 0 ;
+    size_t pinnedChunks = 0;
     size_t currentActChunks = 0; 
 	size_t chunkSize = 0;
     Queue readQueue;
     Queue writeQueue;
-    Queue pinnedQueue;
+    //Queue pinnedQueue;
     SwapFile swapFile;
     map<size_t, struct chunkInfo>chunksInformation;
     bool writeBackAll;
