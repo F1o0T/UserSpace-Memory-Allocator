@@ -42,6 +42,8 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t p
 		cerr << "chunksNumber can't be smaller than max + pin" << endl;
 		_exit(1);
 	}
+
+	this -> writeBackAll = writeBackAll;
 }
 
 void MappedChunk::fixPermissions(void *address)
@@ -52,7 +54,7 @@ void MappedChunk::fixPermissions(void *address)
 	// remove this chunck from the readQueue if it is there
 	if(!this->readQueue.isEmpty())
 	{
-		 
+		
 		if(readQueue.getLastEnqueuedAddress() == chunkStartAddr)
 		{
 			readQueue.dropLastEnqueuedAddress();
@@ -76,7 +78,7 @@ void MappedChunk::fixPermissions(void *address)
 
 			readChunkActivate((void*)chunkStartAddress);
     	}	
-		else if(accessFlag == READ)
+		else if(accessFlag == READ) // read wird nicht entfernt
 		{
 			this->chunksInformation[chunkStartAddress].swapFlag = NON_SWAPPED;
 

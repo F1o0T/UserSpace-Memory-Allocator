@@ -156,9 +156,9 @@ int main(int argc, char** argv)
 
     // initialize the field 
     for (unsigned i = 0; i < nrElements; i++) {
-        //*blocks[i] = i; // already sorted
+        randNumbers[i] = i; // already sorted
         //randNumbers[i] = std::rand() % 100; // pseudo-random values
-        randNumbers[i] = nrElements-i; // reverse sorted
+        //randNumbers[i] = nrElements-i; // reverse sorted
     }
 
     long decreasableMaxChunkNumber = (long) maxChunksAvailable;
