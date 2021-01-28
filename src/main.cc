@@ -34,13 +34,12 @@ void bubbleSort(unsigned** array, unsigned nrElements)
                 *(array[i]) = *(array[j]);
                 *(array[j]) = temp;
             }
-
-			if (showGUI) {
+            if (showGUI) {
 				gui -> drawMemory();	
-				//sleep(1);			
+				sleep(1);			
 				//cout << "|>>> Write a char: "; char ch; 
 				//cin >> ch; 
-			}
+		    }
         }
     }
 }
@@ -53,7 +52,15 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
     {   
         // cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
         mem.fixPermissions(info->si_addr);
-        // cout << "|>>> Permissions were fixed!" << endl; 
+        // cout << "|>>> Permissions were fixed!" << endl;
+        /*
+        if (showGUI) {
+				gui -> drawMemory();	
+				sleep(1);			
+				//cout << "|>>> Write a char: "; char ch; 
+				//cin >> ch; 
+		}
+        */
     }
     else if(info->si_code == SEGV_MAPERR)
     {
@@ -209,7 +216,7 @@ int main(int argc, char** argv)
     std::cout << std::endl;
 
     if (showGUI) {
-        cout << "|>>> Write a char: "; char ch; 
+        cout << "|>>> Write a char to close: "; char ch; 
 		cin >> ch;
         delete(window);
         delete(gui);

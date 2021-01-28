@@ -45,7 +45,7 @@ void MappedChunk::mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t p
 
 	this -> writeBackAll = writeBackAll;
 }
-
+/*
 void MappedChunk::fixPermissions(void *address)
 {
     void* chunkStartAddr = this->findStartAddress(address);
@@ -139,6 +139,75 @@ void MappedChunk::fixPermissions(void *address)
 		}
 	}
 }
+*/
+
+void MappedChunk::fixPermissions(void *address)
+{
+	void* chunkStartAddr = this->findStartAddress(address);
+    size_t chunkStartAddress = reinterpret_cast<size_t> (chunkStartAddr);
+    int accessFlag = chunksInformation[chunkStartAddress].accessFlag;
+    bool swapFlag = this->chunksInformation[chunkStartAddress].swapFlag;
+
+	permission_change permissionChange;
+
+	//determine which permission change is the right one
+	if(accessFlag == NON)
+	{
+		//this is the case when we change the permission from non to read
+		if(this->currentActChunks < this->maxActChunks)
+		{
+			permissionChange = NONTOREAD_NOTFULL;
+		}else
+		{
+			permissionChange = NONTOREAD_FULL;
+		}
+	}else{
+		//this is the case when we change the permission from read to write
+			permissionChange = READTOWRITE;
+	}
+
+
+	switch(permissionChange)
+	{
+		case NONTOREAD_NOTFULL:
+			//if there is already data on the disk, we have to this data in
+			if(swapFlag == SWAPPED){
+				this->swapIn(chunkStartAddr);
+			}
+			readChunkActivate(chunkStartAddr);
+			break;
+		case NONTOREAD_FULL:
+			//first we have to kick out one chunk, preferibly in the readQueue
+			void* kickedChunkAddr;
+			if(!this->readQueue.isEmpty()){
+				kickedChunkAddr = this->readQueue.deQueue();
+				//if writeBackAll is activated, we have to write this chunk on the disk
+				if(writeBackAll){
+					this->swapOut(kickedChunkAddr);
+				}
+			}else{
+				//kickout a chunk in the writeQueue
+				kickedChunkAddr = this->writeQueue.deQueue();
+				this->swapOut(kickedChunkAddr);
+			}
+			//now just deactivate all the stuff
+			kickedChunkDeactivate(kickedChunkAddr);
+
+			//last but not least: activate the chunk just like in case 1
+			if(swapFlag == SWAPPED){
+				this->swapIn(chunkStartAddr);
+			}
+			//
+			readChunkActivate(chunkStartAddr);
+			break;
+		case READTOWRITE:
+			//first we have to delete the chunk in the read queue
+			this->readQueue.deQueue(chunkStartAddr);
+			//last we set all the flags right
+			writeChunkActivate(chunkStartAddr);
+			break;
+	}
+}
 
 
 void MappedChunk::kickedChunkDeactivate(void* kickedChunkAddr)
@@ -146,6 +215,7 @@ void MappedChunk::kickedChunkDeactivate(void* kickedChunkAddr)
 	mprotect(kickedChunkAddr, this->chunkSize, PROT_NONE);
 	size_t kickedChunkAddress = reinterpret_cast<size_t> (kickedChunkAddr);
     this->chunksInformation[kickedChunkAddress].accessFlag = NON;
+	this->currentActChunks--;
 }
 
 void MappedChunk::readChunkActivate(void* chunkStartAddr)
@@ -162,10 +232,10 @@ void MappedChunk::writeChunkActivate(void* chunkStartAddr)
 {
 	mprotect(chunkStartAddr, this->chunkSize, PROT_WRITE);
 	this->writeQueue.enQueue(chunkStartAddr);
-	this -> currentActChunks++;
 
 	size_t chunkStartAddress = reinterpret_cast<size_t> (chunkStartAddr);
 	this->chunksInformation[chunkStartAddress].accessFlag = WRITTEN;
+	this->chunksInformation[chunkStartAddress].swapFlag = NON_SWAPPED;
 }
 
 void MappedChunk::markPinnedChunks(size_t numberOfChunksToPin)
@@ -309,13 +379,11 @@ void MappedChunk::resetQueues() {
 	int l = readQueue.size();
 	for (int i = 0; i < k; i++) {
 		void* kickedWriteChunkAddr = this->writeQueue.deQueue();
-		this -> currentActChunks--;
 		kickedChunkDeactivate(kickedWriteChunkAddr);
 	}
 
 	for (int i = 0; i < l; i++) {
 		void* kickedReadChunkAddr = this->readQueue.deQueue();
-		this -> currentActChunks--;
 		kickedChunkDeactivate(kickedReadChunkAddr);
 	}
 

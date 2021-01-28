@@ -17,6 +17,11 @@
 
 
 using namespace std;
+enum permission_change:int{
+    NONTOREAD_NOTFULL,
+    NONTOREAD_FULL,
+    READTOWRITE
+};
 
 enum access_flag: int{
     NON = 0,
@@ -108,7 +113,48 @@ public:
         delete (temp); 
         currentQueueSize--;
         return ptr;
-    } 
+    }
+
+    void* deQueue(void* addr)
+    {   
+
+        QNode* predTemp = NULL;
+        QNode* temp = this->front;
+        QNode* succTemp = temp->next;
+
+
+
+        while(temp->address != addr && temp->address != NULL)
+        {
+            predTemp = temp;
+            temp = temp->next;
+            succTemp = temp->next;
+        }
+
+        if(this->front == temp){
+            this->front = temp->next;
+        }
+
+        if(this->previousRear == temp)
+        {
+            this->previousRear = predTemp;
+        }
+
+
+        if(this->rear == temp){
+            this->rear = predTemp;
+        }
+
+
+        if(predTemp != NULL){
+            predTemp->next = succTemp;
+        }
+
+        currentQueueSize--;
+
+        return temp->address;
+    }
+
 
     bool isFull(unsigned MaxSize)
     {
