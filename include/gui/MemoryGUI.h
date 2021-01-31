@@ -7,7 +7,7 @@
 #include "gui/DrawingWindow.h"
 #include "runtime/FixedHeap.h"
 #include "runtime/FirstFitHeap.h"
-#include "system/MappedChunk.h"
+#include "system/VirtualMem.h"
 #include <list>
 
 using namespace std;
@@ -24,7 +24,7 @@ class MemoryGUI {
 public:
     MemoryGUI();
 	MemoryGUI(Heap* heap, DrawingWindow* window, int mode);
-    MemoryGUI(MappedChunk* chunk, DrawingWindow* window, int mode);
+    MemoryGUI(VirtualMem* chunk, DrawingWindow* window, int mode);
 
     void drawMemory();
 	
@@ -33,12 +33,12 @@ private:
 
     void drawFixedHeapMemory();
 
-    void drawMappedChunk();
+    void drawVirtualMem();
 
     void clearWindow();
 
     Heap* heap;
-    MappedChunk* chunk;
+    VirtualMem* chunk;
     DrawingWindow* window;
     int mode;
     bool first = true;

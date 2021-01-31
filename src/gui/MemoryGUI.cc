@@ -2,7 +2,7 @@
 
 MemoryGUI::MemoryGUI() : heap(0), chunk(0), mode(MO_CHUNK) {}
 MemoryGUI::MemoryGUI(Heap* heap, DrawingWindow* window, int mode) : heap(heap), chunk(0), window(window), mode(mode) {}
-MemoryGUI::MemoryGUI(MappedChunk* chunk, DrawingWindow* window, int mode) : heap(0), chunk(chunk), window(window), mode(mode) {}
+MemoryGUI::MemoryGUI(VirtualMem* chunk, DrawingWindow* window, int mode) : heap(0), chunk(chunk), window(window), mode(mode) {}
 
 void MemoryGUI::drawMemory(){
 	if(mode == MO_BSSM){
@@ -12,7 +12,7 @@ void MemoryGUI::drawMemory(){
 		drawFixedHeapMemory();
 
 	} else if (mode == MO_CHUNK) {
-		drawMappedChunk();
+		drawVirtualMem();
 	}
 }
 
@@ -104,7 +104,7 @@ void MemoryGUI::drawFixedHeapMemory(){
 	}
 }
 
-void MemoryGUI::drawMappedChunk() {
+void MemoryGUI::drawVirtualMem() {
 	int x = 5;
 	int y = 15;
 	

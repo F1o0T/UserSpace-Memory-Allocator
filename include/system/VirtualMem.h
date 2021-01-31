@@ -1,8 +1,10 @@
-#ifndef MappedChunk_h
-#define MappedChunk_h
+#ifndef VirtualMem_h
+#define VirtualMem_h
 
 #include "system/Memory.h"
 #include "misc/RandomAccessFile.h"
+#include "system/AddressMapping.h"
+
 #include <sys/mman.h>
 #include <unistd.h>
 #include <iostream>
@@ -17,6 +19,7 @@
 
 
 using namespace std;
+
 enum permission_change:int{
     NONTOREAD_NOTFULL,
     NONTOREAD_FULL,
@@ -113,7 +116,7 @@ public:
         delete (temp); 
         currentQueueSize--;
         return ptr;
-    }
+    } 
 
     void* deQueue(void* addr)
     {   
@@ -154,7 +157,6 @@ public:
 
         return temp->address;
     }
-
 
     bool isFull(unsigned MaxSize)
     {
@@ -282,14 +284,14 @@ class SwapFile: public RandomAccessFile
         }
 };  
 
-class MappedChunk {
+class VirtualMem {
 public:
 	/////////////////////////////////////////////////
 	// Signal handeler, constructor and deconstructor.
 	// static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
-	// MappedChunk(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
-    void mappedChunkSet(size_t chunkSize, size_t chunksNumber, size_t pinnedChunks, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
-	~MappedChunk();
+	// VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
+    void virtualMemSet(size_t pinnedChunks, bool writeBackAll);
+	~VirtualMem();
 	/////////////////////////////////////////////////
 	// Basic Methods
 	void* getStart();
@@ -302,8 +304,10 @@ public:
     void kickedChunkDeactivate(void* ptr);
     void readChunkActivate(void* ptr);
     void writeChunkActivate(void* ptr);
-    void swapOut(void* ptr); 
-    void swapIn(void* ptr);
+    void pageOut(void* ptr); 
+    void pageIn(void* ptr);
+    void mapOut(void* pageStartAddress);
+    void mapIn(void* pageStartAddress);
 	void printChunkStarts();
 	void displayChunks();
     void fillList(list<int>* list);
@@ -314,12 +318,11 @@ public:
     void pinOneChunk(size_t chunkStartAddr);
 	/////////////////////////////////////////////////
 private:
-	void* memBlockStartAddress = NULL;
-	size_t chunksNumber = 0;
-	size_t maxActChunks = 0 ;
+	void* virtualMemStartAddress = NULL;
+    int fd = 0;
+    AddressMapping mappingUnit;
     size_t pinnedChunks = 0;
-    size_t currentActChunks = 0; 
-	size_t chunkSize = 0;
+    size_t currentActChunks = 0;
     Queue readQueue;
     Queue writeQueue;
     //Queue pinnedQueue;
