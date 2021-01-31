@@ -10,9 +10,8 @@
 #define PHY_MEM_LENGTH PAGESIZE*NUMBER_OF_PAGEFRAMES
 
 void VirtualMem::virtualMemSet(size_t pinnedChunks, bool writeBackAll)
-{   
-    /////////////////////////////////////////////////
-	int fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+{
+	this -> fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 	if (fd == -1) {
 		cerr << "|###> Error: open the shm failed" <<endl;
         exit(1); 
@@ -21,13 +20,8 @@ void VirtualMem::virtualMemSet(size_t pinnedChunks, bool writeBackAll)
 		cerr << "|###> Error: truncate failed" <<endl;
         exit(1); 
 	}
+
     /*Mapping the whole size*/
-    this -> phyMemStartAddress = mmap(NULL, PHY_MEM_LENGTH, PROT_NONE, MAP_PRIVATE, fd, 0);
-    if(this->phyMemStartAddress == MAP_FAILED)
-    {
-        cerr << "|###> Error: phy Mmap Failed" <<endl;
-        exit(1);
-    }
 	this -> virtualMemStartAddress = mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if(this->virtualMemStartAddress == MAP_FAILED)
     {
@@ -44,9 +38,40 @@ void VirtualMem::virtualMemSet(size_t pinnedChunks, bool writeBackAll)
 		_exit(1);
 	}
 
+	munmap(this->virtualMemStartAddress, PAGESIZE*(NUMBER_OF_PT+1));
+
 	//Page-Directory
-	mprotect(phyMemStartAddress, PAGESIZE, PROT_WRITE | PROT_READ);
-	//we need to do something here
+	char* addrPD = (char*) mmap(this->virtualMemStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_SHARED | MAP_FIXED, this -> fd, 0);
+    if(addrPD == MAP_FAILED)
+    {
+        cerr << "|###> Error: Mmap PD Failed" <<endl;
+        exit(1);
+    }
+
+	//first Page-Table 
+	char* addrFirstPT = (char*) mmap(((char*) this->virtualMemStartAddress) + PAGESIZE, PAGESIZE, PROT_WRITE | PROT_READ, MAP_SHARED | MAP_FIXED, this -> fd, PAGESIZE);
+    if(addrFirstPT == MAP_FAILED)
+    {
+        cerr << "|###> Error: Mmap first PT Failed" <<endl;
+        exit(1);
+    }
+	cout << "addrPD = " << (void*) addrPD << endl;
+	cout << "addrFirstPT = " << (void*) addrFirstPT << endl;
+
+	unsigned phyaddrFirstPT = addrFirstPT - addrPD;//4096
+	*(reinterpret_cast<unsigned*>(addrPD)) = phyaddrFirstPT;
+	cout << "phyaddrFirstPT = " << phyaddrFirstPT << endl;
+
+	unsigned phyaddrPD = addrPD - addrPD;//0
+	unsigned* firstPTentry = reinterpret_cast<unsigned*>(addrFirstPT);
+
+	cout << "firstPTentry = " << firstPTentry << endl;
+	cout << "phyaddrPD = " << phyaddrPD << endl;
+	*(firstPTentry) = phyaddrPD;
+	cout << "firstPTentry1 = " << *(firstPTentry) << endl;
+	firstPTentry++;
+	*(firstPTentry) = phyaddrFirstPT;
+	cout << "firstPTentry2 = " << *(firstPTentry) << endl;
 }
 
 void VirtualMem::fixPermissions(void *address)
@@ -80,7 +105,7 @@ void VirtualMem::fixPermissions(void *address)
 		case NONTOREAD_NOTFULL:
 			//if there is already data on the disk, we have to this data in
 			if(swapFlag == SWAPPED){
-				this->swapIn(chunkStartAddr);
+				this->pageIn(chunkStartAddr);
 			}
 			readChunkActivate(chunkStartAddr);
 			break;
@@ -91,19 +116,19 @@ void VirtualMem::fixPermissions(void *address)
 				kickedChunkAddr = this->readQueue.deQueue();
 				//if writeBackAll is activated, we have to write this chunk on the disk
 				if(writeBackAll){
-					this->swapOut(kickedChunkAddr);
+					this->pageOut(kickedChunkAddr);
 				}
 			}else{
 				//kickout a chunk in the writeQueue
 				kickedChunkAddr = this->writeQueue.deQueue();
-				this->swapOut(kickedChunkAddr);
+				this->pageOut(kickedChunkAddr);
 			}
 			//now just deactivate all the stuff
 			kickedChunkDeactivate(kickedChunkAddr);
 
 			//last but not least: activate the chunk just like in case 1
 			if(swapFlag == SWAPPED){
-				this->swapIn(chunkStartAddr);
+				this->pageIn(chunkStartAddr);
 			}
 			//
 			readChunkActivate(chunkStartAddr);
@@ -174,7 +199,7 @@ void VirtualMem::unpinChunk(void* chunkStartAddr) {
 	*/
 }
 
-void VirtualMem::swapOut(void* kickedChunkAddr)
+void VirtualMem::pageOut(void* kickedChunkAddr)
 {
 	off_t offset = reinterpret_cast<off_t>(kickedChunkAddr)-reinterpret_cast<off_t>(this->virtualMemStartAddress); 
 	this->swapFile.swapFileWrite(kickedChunkAddr, offset , PAGESIZE);
@@ -184,7 +209,7 @@ void VirtualMem::swapOut(void* kickedChunkAddr)
 
 	//cout << kickedChunkAddress << " chunck has been swappedOut" << endl;
 }
-void VirtualMem::swapIn(void* chunckStartAddr)
+void VirtualMem::pageIn(void* chunckStartAddr)
 {
 	off_t offset = reinterpret_cast<off_t>(chunckStartAddr)-reinterpret_cast<off_t>(this->virtualMemStartAddress); 
 	this->swapFile.swapFileRead(chunckStartAddr, offset , PAGESIZE);
@@ -193,12 +218,25 @@ void VirtualMem::swapIn(void* chunckStartAddr)
 	//cout << chunckStartAddress << " chunck has been swappedIn" << endl;
 }
 
-void VirtualMem::pageOut() {
-
+void VirtualMem::mapOut(void* pageStartAddress) {
+	//need to write in the dir where the page is
 }
 
-void VirtualMem::pageIn() {
-	
+void VirtualMem::mapIn(void* pageStartAddress) {
+	//unmap the virtualspace 
+	munmap(pageStartAddress, PAGESIZE);
+
+	//translate logical to physical address
+	//unsigned page = addr2page(pageStartAddress);
+	//unsigned phyAddr = page2frame(page);
+
+	//map in the physical space
+	//void* addr = mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_SHARED | MAP_FIXED, this -> fd, phyAddr * PAGESIZE);
+    // if(addr == MAP_FAILED)
+    // {
+    //     cerr << "|###> Error: phy Mmap Failed" <<endl;
+    //     exit(1);
+    // }
 }
 
 void* VirtualMem::findStartAddress(void * chunckStartAddress)
@@ -220,8 +258,7 @@ void* VirtualMem::findStartAddress(void * chunckStartAddress)
 
 void* VirtualMem::getStart()
 {
-
-    return this->virtualMemStartAddress;
+    return (void*) (((char*) this->virtualMemStartAddress) + ((NUMBER_OF_PT+1) * PAGESIZE));
 }
 
 size_t VirtualMem::getSize()

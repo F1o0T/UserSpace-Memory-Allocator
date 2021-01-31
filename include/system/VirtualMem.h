@@ -3,6 +3,8 @@
 
 #include "system/Memory.h"
 #include "misc/RandomAccessFile.h"
+#include "system/AddressMapping.h"
+
 #include <sys/mman.h>
 #include <unistd.h>
 #include <iostream>
@@ -302,10 +304,10 @@ public:
     void kickedChunkDeactivate(void* ptr);
     void readChunkActivate(void* ptr);
     void writeChunkActivate(void* ptr);
-    void swapOut(void* ptr); 
-    void swapIn(void* ptr);
-    void pageOut();
-    void pageIn();
+    void pageOut(void* ptr); 
+    void pageIn(void* ptr);
+    void mapOut(void* pageStartAddress);
+    void mapIn(void* pageStartAddress);
 	void printChunkStarts();
 	void displayChunks();
     void fillList(list<int>* list);
@@ -317,7 +319,8 @@ public:
 	/////////////////////////////////////////////////
 private:
 	void* virtualMemStartAddress = NULL;
-    void* phyMemStartAddress = NULL;
+    int fd = 0;
+    AddressMapping mappingUnit;
     size_t pinnedChunks = 0;
     size_t currentActChunks = 0;
     Queue readQueue;
