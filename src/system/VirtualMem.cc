@@ -55,23 +55,16 @@ void VirtualMem::virtualMemSet(size_t pinnedChunks, bool writeBackAll)
         cerr << "|###> Error: Mmap first PT Failed" <<endl;
         exit(1);
     }
-	cout << "addrPD = " << (void*) addrPD << endl;
-	cout << "addrFirstPT = " << (void*) addrFirstPT << endl;
 
 	unsigned phyaddrFirstPT = addrFirstPT - addrPD;//4096
 	*(reinterpret_cast<unsigned*>(addrPD)) = phyaddrFirstPT;
-	cout << "phyaddrFirstPT = " << phyaddrFirstPT << endl;
 
 	unsigned phyaddrPD = addrPD - addrPD;//0
 	unsigned* firstPTentry = reinterpret_cast<unsigned*>(addrFirstPT);
 
-	cout << "firstPTentry = " << firstPTentry << endl;
-	cout << "phyaddrPD = " << phyaddrPD << endl;
 	*(firstPTentry) = phyaddrPD;
-	cout << "firstPTentry1 = " << *(firstPTentry) << endl;
 	firstPTentry++;
 	*(firstPTentry) = phyaddrFirstPT;
-	cout << "firstPTentry2 = " << *(firstPTentry) << endl;
 }
 
 void VirtualMem::fixPermissions(void *address)
@@ -142,6 +135,23 @@ void VirtualMem::fixPermissions(void *address)
 	}
 }
 
+void VirtualMem::addAddresstoPD(void* pageStartAddress) {
+	unsigned* unVirtualMemStartAddress = reinterpret_cast<unsigned*> (virtualMemStartAddress);
+	unsigned distanceToPage = ((char*) pageStartAddress) - ((char*) virtualMemStartAddress);
+	unsigned pageNumber = distanceToPage/PAGESIZE;
+	unsigned indexofPT = (pageNumber/PAGETABLE_SIZE);
+	unsigned addrOfPT = PAGESIZE*(indexofPT+1);
+
+	//if the PT not existing then create it
+	if () {
+		*(unVirtualMemStartAddress + indexofPT) = addrOfPT;
+	}
+
+	unsigned phyAddrOfPage = (unsigned) mappingUnit.log2phys((caddr_t) pageStartAddress);
+
+	//add the page in PT
+	*(unVirtualMemStartAddress + addrOfPT) = phyAddrOfPage;
+}
 
 void VirtualMem::kickedChunkDeactivate(void* kickedChunkAddr)
 {
@@ -219,24 +229,37 @@ void VirtualMem::pageIn(void* chunckStartAddr)
 }
 
 void VirtualMem::mapOut(void* pageStartAddress) {
-	//need to write in the dir where the page is
+	//unmap the physical space
+	munmap(pageStartAddress, PAGESIZE);
+
+	//map back in the virtual space
+	mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
 }
 
 void VirtualMem::mapIn(void* pageStartAddress) {
-	//unmap the virtualspace 
+	size_t decPageStartAddress = reinterpret_cast<size_t> (pageStartAddress);
+	caddr_t caddPageStartAddress = reinterpret_cast<caddr_t> (pageStartAddress);
+
+	//unmap the virtual space
 	munmap(pageStartAddress, PAGESIZE);
 
 	//translate logical to physical address
-	//unsigned page = addr2page(pageStartAddress);
-	//unsigned phyAddr = page2frame(page);
+	unsigned page = mappingUnit.addr2page(caddPageStartAddress);
+	unsigned phyAddr = mappingUnit.page2frame(page);
 
 	//map in the physical space
-	//void* addr = mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_SHARED | MAP_FIXED, this -> fd, phyAddr * PAGESIZE);
-    // if(addr == MAP_FAILED)
-    // {
-    //     cerr << "|###> Error: phy Mmap Failed" <<endl;
-    //     exit(1);
-    // }
+	void* addr;
+	if (this->chunksInformation[decPageStartAddress].accessFlag == NON) {
+		addr = mmap(pageStartAddress, PAGESIZE, PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, phyAddr * PAGESIZE);
+
+	} else if (this->chunksInformation[decPageStartAddress].accessFlag == READ) {
+		addr = mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, phyAddr * PAGESIZE);
+	}
+
+    if(addr == MAP_FAILED) {
+    	cerr << "|###> Error: phy Mmap Failed" <<endl;
+    	exit(1);
+    }
 }
 
 void* VirtualMem::findStartAddress(void * chunckStartAddress)

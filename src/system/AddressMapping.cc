@@ -15,19 +15,16 @@ unsigned AddressMapping::addr2offset(caddr_t logaddr) {
 
 }
 
-//get the first 20 bits of an phy addr and return the phy addr
 //returns the physical frame of the given page 
 unsigned AddressMapping::page2frame(unsigned page) {
 
 }
 
-//get an phy addr and return the second 10 bits of an phy addr
 //returns the index for the pagetable 
 unsigned AddressMapping::page2pageTableIndex(unsigned page) {
 
 }
 
-//get an phy addr and return the first 10 bits of an phy addr
 //returns the index for the pagedirectory
 unsigned AddressMapping::page2pageDirectoryIndex(unsigned page) {
     

@@ -300,6 +300,7 @@ public:
 	/////////////////////////////////////////////////
 	// Advanced Methods
 	void fixPermissions(void*);
+    void addAddresstoPD(void* pageStartAddress);
 	void* findStartAddress(void* ptr);
     void kickedChunkDeactivate(void* ptr);
     void readChunkActivate(void* ptr);
