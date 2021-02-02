@@ -6,7 +6,7 @@
 class AddressMapping {
 public:
      //returns the corresponding physical address of a logical address
-     caddr_t log2phys(caddr_t logaddr);
+     unsigned log2phys(caddr_t logaddr);
 
      //returns pageidentifaction part of an address
      unsigned addr2page(caddr_t logaddr);

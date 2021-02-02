@@ -6,6 +6,7 @@ SRC_FILES = \
 	runtime/FirstFitHeap.cc \
 	system/BssMemory.cc \
 	system/MappedMemory.cc\
+	system/AddressMapping.cc\
 	system/VirtualMem.cc
 	
 

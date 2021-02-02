@@ -134,7 +134,7 @@ int main(int argc, char** argv)
      * read configuration.
      * 
      */
-    vMem.virtualMemSet(pinnedChunks, writeBackAll);
+    vMem.initializeVirtualMem(pinnedChunks, writeBackAll);
     
     // if (showGUI) {
     //     //window = new DrawingWindow(width, height, "GUI");
@@ -222,6 +222,5 @@ int main(int argc, char** argv)
     //     delete(window);
     //     delete(gui);
     // }
-    cout << "ok" << endl;
     return 0;
 }
