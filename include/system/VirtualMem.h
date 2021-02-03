@@ -20,7 +20,7 @@
 
 using namespace std;
 
-enum permission_change:int{
+enum permission_change: int{
     NONTOREAD_NOTFULL,
     NONTOREAD_FULL,
     READTOWRITE
@@ -290,7 +290,7 @@ public:
 	// Signal handeler, constructor and deconstructor.
 	// static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
 	// VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
-    void virtualMemSet(size_t pinnedChunks, bool writeBackAll);
+    void initializeVirtualMem(size_t pinnedChunks, bool writeBackAll);
 	~VirtualMem();
 	/////////////////////////////////////////////////
 	// Basic Methods
@@ -300,10 +300,13 @@ public:
 	/////////////////////////////////////////////////
 	// Advanced Methods
 	void fixPermissions(void*);
+    void initializePDandFirstPT();
+    void initializePT(void* startAdress);
+    void addPTEntry(void* pageStartAddress);
 	void* findStartAddress(void* ptr);
-    void kickedChunkDeactivate(void* ptr);
-    void readChunkActivate(void* ptr);
-    void writeChunkActivate(void* ptr);
+    void kickedPageDeactivate(void* ptr);
+    void readPageActivate(void* ptr);
+    void writePageActivate(void* ptr);
     void pageOut(void* ptr); 
     void pageIn(void* ptr);
     void mapOut(void* pageStartAddress);
@@ -313,21 +316,22 @@ public:
     void fillList(list<int>* list);
     void decreaseMaxActChunks(unsigned subtrahend);
     void resetQueues();
-    void unpinChunk(void* ptr);
+    void unpinPage(void* ptr);
     void markPinnedChunks(size_t numberOfChunksToPin);
-    void pinOneChunk(size_t chunkStartAddr);
+    void pinOnePage(size_t chunkStartAddr);
 	/////////////////////////////////////////////////
 private:
-	void* virtualMemStartAddress = NULL;
+	caddr_t virtualMemStartAddress = NULL;
+    size_t pointerToNextFreeFrame = 0;
     int fd = 0;
     AddressMapping mappingUnit;
-    size_t pinnedChunks = 0;
-    size_t currentActChunks = 0;
+    size_t pinnedPages = 0;
+    size_t currentActPages = 0;
     Queue readQueue;
     Queue writeQueue;
     //Queue pinnedQueue;
     SwapFile swapFile;
-    map<size_t, struct chunkInfo>chunksInformation;
+    map<size_t, struct chunkInfo>pageInformation;
     bool writeBackAll;
 };
 
