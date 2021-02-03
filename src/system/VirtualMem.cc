@@ -86,6 +86,7 @@ void VirtualMem::initializePDandFirstPT()
 
 	//book keeping for the activated page -> you have to do both steps because it is not wanted that
 	readPageActivate(this->virtualMemStartAddress);
+	this->readQueue.deQueue(this->virtualMemStartAddress);
 	writePageActivate(this->virtualMemStartAddress);
 
 	
@@ -104,7 +105,7 @@ void VirtualMem::initializePDandFirstPT()
 	that the PD is in the first phys. Address, 0 is not a valid address for
 	a PT
 	*/
-	for(int i = 1; i < PAGETABLE_SIZE; i++)
+	for(unsigned i = 1; i < PAGETABLE_SIZE; i++)
 	{
 		*(addrPD + i) = 0;
 	}
@@ -131,6 +132,7 @@ void VirtualMem::initializePT(void *pageStartAddress)
 
 	//book keeping for the activated page -> you have to do both steps because it is not wanted that
 	readPageActivate(pageStartAddress);
+	this->readQueue.deQueue(pageStartAddress);
 	writePageActivate(pageStartAddress);
 }
 
@@ -165,8 +167,10 @@ void VirtualMem::fixPermissions(void *address)
 	{
 		case NONTOREAD_NOTFULL:
 			//if there is already data on the disk, we have to this data in
-			if(swapFlag == SWAPPED){
+			if (swapFlag == SWAPPED) {
 				this->pageIn(chunkStartAddr);
+			} else {
+				addPhysAddresstoPD(chunkStartAddr);
 			}
 			readPageActivate(chunkStartAddr);
 			mapIn(chunkStartAddr);
@@ -174,7 +178,7 @@ void VirtualMem::fixPermissions(void *address)
 		case NONTOREAD_FULL:
 			//first we have to kick out one chunk, preferibly in the readQueue
 			void* kickedChunkAddr;
-			if(!this->readQueue.isEmpty()){
+			if (!this->readQueue.isEmpty()) {
 				kickedChunkAddr = this->readQueue.deQueue();
 				//if writeBackAll is activated, we have to write this chunk on the disk
 				if(writeBackAll){
@@ -192,6 +196,8 @@ void VirtualMem::fixPermissions(void *address)
 			//last but not least: activate the chunk just like in case 1
 			if(swapFlag == SWAPPED){
 				this->pageIn(chunkStartAddr);
+			} else {
+				addPhysAddresstoPD(chunkStartAddr);
 			}
 			//
 			readPageActivate(chunkStartAddr);
@@ -206,17 +212,17 @@ void VirtualMem::fixPermissions(void *address)
 	}
 }
 
-void VirtualMem::addPhysAddresstoPD(caddr_t PT_StartAddress) {
+void VirtualMem::addPhysAddresstoPD(void* PT_StartAddress) {
 	unsigned* unVirtualMemStartAddress = reinterpret_cast<unsigned*> (virtualMemStartAddress);
-	unsigned distanceToPage = (PT_StartAddress) - ((char*) virtualMemStartAddress);
+	unsigned distanceToPage = ((char*) PT_StartAddress) - ((char*) virtualMemStartAddress);
 	unsigned pageNumber = distanceToPage/PAGESIZE;
 	unsigned indexofPT = (pageNumber/PAGETABLE_SIZE);
 	unsigned addrOfPT = PAGESIZE*(indexofPT+1);
 
 	//if the PT not existing then create it
-	/*if () {
+	if (*(unVirtualMemStartAddress + indexofPT) == 0) {
 		*(unVirtualMemStartAddress + indexofPT) = addrOfPT;
-	}*/
+	}
 
 	unsigned phyAddrOfPage = (unsigned) mappingUnit.log2phys((caddr_t) PT_StartAddress);
 
