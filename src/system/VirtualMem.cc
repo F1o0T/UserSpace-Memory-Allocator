@@ -100,8 +100,8 @@ void VirtualMem::initializePT(void *pageStartAddress)
 	munmap(pageStartAddress, PAGESIZE);
 	
 	//map page frame for PT 
-	caddr_t addrFirstPT = (char*) mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, PAGESIZE);
-    if(addrFirstPT == MAP_FAILED)
+	caddr_t addrFirstPT = (caddr_t) mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, PAGESIZE);
+    if(addrFirstPT == (caddr_t) MAP_FAILED)
     {
         cerr << "|###> Error: Mmap PT Failed" <<endl;
         exit(1);
