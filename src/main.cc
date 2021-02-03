@@ -126,7 +126,7 @@ int main(int argc, char** argv)
      * read configuration.
      * 
      */
-    vMem.virtualMemSet(pinnedChunks, writeBackAll);
+    vMem.initializeVirtualMem(pinnedChunks, writeBackAll);
     
     if (showGUI) {
         window = new DrawingWindow(width, height, "GUI");
