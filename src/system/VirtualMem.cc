@@ -86,6 +86,7 @@ void VirtualMem::initializePDandFirstPT()
 
 	//book keeping for the activated page -> you have to do both steps because it is not wanted that
 	readPageActivate(this->virtualMemStartAddress);
+	this->readQueue.deQueue(this->virtualMemStartAddress);
 	writePageActivate(this->virtualMemStartAddress);
 
 	
@@ -129,8 +130,9 @@ void VirtualMem::initializePT(void *pageStartAddress)
         exit(1);
     }
 
-	//book keeping for the activated page -> you have to do both steps because it is not wanted that
+	//book keeping for the activated page -> you have to do both steps
 	readPageActivate(pageStartAddress);
+	this->readQueue.deQueue(pageStartAddress);
 	writePageActivate(pageStartAddress);
 }
 
