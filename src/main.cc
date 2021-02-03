@@ -22,7 +22,7 @@ std::ofstream myfile;
 DrawingWindow* window;
 MemoryGUI* gui;
 
-bool showGUI = false;
+bool showGUI = true;
 
 // a simple version of bubble sort
 void bubbleSort(unsigned** array, unsigned nrElements)
@@ -53,14 +53,6 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
         // cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
         vMem.fixPermissions(info->si_addr);
         // cout << "|>>> Permissions were fixed!" << endl;
-        /*
-        if (showGUI) {
-				gui -> drawMemory();	
-				sleep(1);			
-				//cout << "|>>> Write a char: "; char ch; 
-				//cin >> ch; 
-		}
-        */
     }
     else if(info->si_code == SEGV_MAPERR)
     {
@@ -115,7 +107,7 @@ int main(int argc, char** argv)
     //po::notify(vm);
     // uint64_t totalChunks = vm["total-chunks"].as<uint64_t>();
     // uint64_t maxChunksAvailable = vm["max-chunks"].as<uint64_t>();
-    //uint64_t pinnedChunks = vm["pinned-chunks"].as<uint64_t>();
+    // uint64_t pinnedChunks = vm["pinned-chunks"].as<uint64_t>();
     // uint64_t blockSize = vm["blocksize"].as<uint64_t>();
     // uint64_t runs = vm["-r"].as<uint64_t>();
     // string outputFileName = vm["-o"].as<string>();
@@ -136,10 +128,11 @@ int main(int argc, char** argv)
      */
     vMem.initializeVirtualMem(pinnedChunks, writeBackAll);
     
-    // if (showGUI) {
-    //     //window = new DrawingWindow(width, height, "GUI");
-    //     //gui = new MemoryGUI(&vMem, window, MO_CHUNK);
-    // }
+    if (showGUI) {
+        window = new DrawingWindow(width, height, "GUI");
+        gui = new MemoryGUI(&vMem, window, MO_PAGE);
+    }
+    gui -> drawMemory();
     // ///////////////////////////////////////////
     // struct sigaction SigAction;
     // SigAction.sa_sigaction = signalHandeler;
@@ -216,11 +209,13 @@ int main(int argc, char** argv)
     // myfile.close();
     // std::cout << std::endl;
 
-    // if (showGUI) {
-    //     cout << "|>>> Write a char to close: "; char ch; 
-	// 	cin >> ch;
-    //     delete(window);
-    //     delete(gui);
-    // }
+    if (showGUI) {
+        cout << "|>>> Write a char to close: "; char ch; 
+		cin >> ch;
+        delete(window);
+        delete(gui);
+    }
+
+    cout << "ok end of code" << endl;
     return 0;
 }

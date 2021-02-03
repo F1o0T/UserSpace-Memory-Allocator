@@ -365,21 +365,39 @@ void VirtualMem::displayChunks()
 }
 
 void VirtualMem::fillList(list<int>* list) {
-    char* ptr1 = virtualMemStartAddress;
-    unsigned size = PAGESIZE * NUMBER_OF_PAGES;
-    unsigned i = 0;
+	list->push_back(2);
+	list->push_back(2);
+	list->push_back(1);
+	list->push_back(1);
+	list->push_back(0);
+	list->push_back(1);
+	list->push_back(1);
+	list->push_back(0);
+	list->push_back(2);
+	list->push_back(1);
+	list->push_back(0);
+	list->push_back(1);
+	list->push_back(2);
+	list->push_back(0);
+	list->push_back(0);
+	list->push_back(1);
+
+    /*char* ptr1 = (char*) virtualMemStartAddress;
+    size_t size = PAGESIZE * NUMBER_OF_PAGES;
+    size_t i = 0;
+	size_t chunkStartAddress;
 
     while (size > i) {
         //fill list
 
         // 0 or 1 or 2 = none or read or write
-        size_t chunkStartAddress = reinterpret_cast<size_t>(ptr1);
-        list->push_back(this->pageInformation[chunkStartAddress].accessFlag);
+        chunkStartAddress = reinterpret_cast<size_t>(ptr1);
+        list->push_back(this->chunksInformation[chunkStartAddress].accessFlag);
 
         //move on ptr
         ptr1 += PAGESIZE;
         i += PAGESIZE;
-    }
+    }*/
 }
 
 void* VirtualMem::expand(size_t size)
