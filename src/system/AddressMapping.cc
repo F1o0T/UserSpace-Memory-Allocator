@@ -56,3 +56,55 @@ unsigned AddressMapping::page2pageTableIndex(unsigned page) {
 unsigned AddressMapping::page2pageDirectoryIndex(unsigned page) {
     unsigned pageDirectoryIndex = page >> 10;
 }
+
+/**
+ * create and return an Offset build from parameters
+ *
+ * @param presentBit 0 = not present, 1 = present
+ * @param read_writeBit 0 = read, 1 = write
+ * @param pinnedBit 0 = not pinned, 1 = pinned
+ * @param accessBit 0 = not accessed, 1 = accessed
+ * @param dirtyBit 0 = means swapfile = ram, 1 = means ram has changed data
+ * @param pageSizeBit 0 = refering to a PT, 1 = refering to pageframe
+ * @return complett Offset (you can add it to the address)
+ */
+unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool pinnedBit, bool accessBit, bool dirtyBit, bool pageSizeBit) {
+    unsigned offset = 0;
+
+    if (presentBit) {
+        offset = offset | 0b1;
+    }
+
+    if (read_writeBit) {
+        offset = offset | 0b10;
+    }
+
+    if (pinnedBit) {
+        offset = offset | 0b1000;
+    }
+
+    if (accessBit) {
+        offset = offset | 0b100000;
+    }
+
+    if (dirtyBit) {
+        offset = offset | 0b1000000;
+    }
+
+    if (pageSizeBit) {
+        offset = offset | 0b10000000;
+    }
+
+    return offset;
+}
+
+/**
+ * @return 0 = not present, 1 = present
+ */
+unsigned AddressMapping::getPresentBit(unsigned phyAddr) {
+    return phyAddr & 0b1;
+}
+
+unsigned AddressMapping::setPresentBit(unsigned phyAddr) {
+    return phyAddr;
+}

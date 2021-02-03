@@ -290,7 +290,7 @@ public:
 	// Signal handeler, constructor and deconstructor.
 	// static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
 	// VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
-    void initializeVirtualMem(size_t pinnedChunks, bool writeBackAll);
+    void initializeVirtualMem(bool writeBackAll);
 	~VirtualMem();
 	/////////////////////////////////////////////////
 	// Basic Methods
@@ -316,13 +316,11 @@ public:
     void fillList(list<int>* list);
     void decreaseMaxActChunks(unsigned subtrahend);
     void resetQueues();
-    void unpinPage(void* ptr);
-    void markPinnedChunks(size_t numberOfChunksToPin);
     void pinOnePage(size_t chunkStartAddr);
 	/////////////////////////////////////////////////
 private:
 	caddr_t virtualMemStartAddress = NULL;
-    size_t pointerToNextFreeFrame = 0;
+    unsigned pointerToNextFreeFrame = 0;
     int fd = 0;
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;

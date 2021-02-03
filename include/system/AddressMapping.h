@@ -24,6 +24,12 @@ public:
   
      //returns the index for the pagedirectory
      unsigned page2pageDirectoryIndex(unsigned page);
+
+     unsigned createOffset(bool presentBit, bool read_writeBit, bool pinnedBit, bool accessBit, bool dirtyBit, bool pageSizeBit);
+
+     unsigned getPresentBit(unsigned phyAddr);
+
+     unsigned setPresentBit(unsigned phyAddr);
 };
 
 #endif

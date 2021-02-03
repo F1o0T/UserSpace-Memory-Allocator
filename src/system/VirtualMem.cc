@@ -9,7 +9,7 @@
 #define NUMBER_OF_PAGEFRAMES 10
 #define PHY_MEM_LENGTH PAGESIZE*NUMBER_OF_PAGEFRAMES
 
-void VirtualMem::initializeVirtualMem(size_t pinnedChunks, bool writeBackAll)
+void VirtualMem::initializeVirtualMem(bool writeBackAll)
 {
 	//open the shared memory file (physical memory)
 	this -> fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -23,49 +23,24 @@ void VirtualMem::initializeVirtualMem(size_t pinnedChunks, bool writeBackAll)
 	}
 
     /*map the whole logical memory size*/
-	void* ptr = mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if(ptr == MAP_FAILED)
+	this -> virtualMemStartAddress = (caddr_t) mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if(this -> virtualMemStartAddress == (caddr_t) MAP_FAILED)
     {
         cerr << "|###> Error: virtual Mmap Failed" <<endl;
         exit(1);
     }
 
-	this -> virtualMemStartAddress = (caddr_t) ptr;
-
-	if(NUMBER_OF_PAGES >= NUMBER_OF_PAGEFRAMES && NUMBER_OF_PAGEFRAMES > pinnedChunks)
-	{
-		markPinnedChunks(pinnedChunks);
-		//NUMBER_OF_PAGEFRAMES -= pinnedChunks;
-	}else{
-		cerr << "NUMBER_OF_PAGES can't be smaller than max + pin" << endl;
-		_exit(1);
-	}
-
-	cout << "virtualMemStartAddr: " << reinterpret_cast<size_t>(virtualMemStartAddress) <<endl;
-
 	initializePDandFirstPT();
-
-	unsigned* start = (unsigned*) virtualMemStartAddress;
 
 	pointerToNextFreeFrame = 2;
 
-	cout << "start: " << reinterpret_cast<size_t> (start)<<endl;
+
+	//Debug
+	unsigned* start = (unsigned*) virtualMemStartAddress;
+	cout << "start: " << reinterpret_cast<size_t> (start) << endl;
 	cout << "start content" << (*(start)) << endl;
 	cout << "content first entry at first PT: " << (this->virtualMemStartAddress) + (*(start)) << endl;
 	cout << "content first entry at first PT: " << (this->virtualMemStartAddress) + (*(start) + 1) << endl;
-
-
-	/*
-	unsigned phyaddrFirstPT = addrFirstPT - addrPD;//4096
-	*(reinterpret_cast<unsigned*>(addrPD)) = phyaddrFirstPT;
-
-	unsigned phyaddrPD = addrPD - addrPD;//0
-	unsigned* firstPTentry = reinterpret_cast<unsigned*>(addrFirstPT);
-
-	*(firstPTentry) = phyaddrPD;
-	firstPTentry++;
-	*(firstPTentry) = phyaddrFirstPT;
-	*/
 }
 
 
@@ -81,8 +56,8 @@ void VirtualMem::initializePDandFirstPT()
 	munmap(this->virtualMemStartAddress, PAGESIZE);
 
 	//map page frame for PD
-	unsigned* addrPD = (unsigned*) mmap(this->virtualMemStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_SHARED | MAP_FIXED, this -> fd, 0);
-    if(addrPD == MAP_FAILED)
+	unsigned* addrPD = (unsigned*) mmap(this->virtualMemStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, 0);
+    if(addrPD == (unsigned*) MAP_FAILED)
     {
         cerr << "|###> Error: Mmap PD Failed" <<endl;
         exit(1);
@@ -90,27 +65,26 @@ void VirtualMem::initializePDandFirstPT()
 
 	//book keeping for the activated page -> you have to do both steps because it is not wanted that
 	writePageActivate(this->virtualMemStartAddress);
-	this->currentActPages++;
+	this->currentActPages++;//unnötig pointerToNextFreeFrame macht das
 
 	
 	//initialize first PT with the two phys adresses of the PD and the PT itself
 	initializePT((this->virtualMemStartAddress) + PAGESIZE);
-	*((this->virtualMemStartAddress) + PAGESIZE) = 0;
-	*((this->virtualMemStartAddress) + PAGESIZE + 1) = 4096;
+	*((this->virtualMemStartAddress) + PAGESIZE) = (0 << 12) | mappingUnit.createOffset(1,1,1,1,0,0);
+	*((this->virtualMemStartAddress) + PAGESIZE + 4) = (1 << 12) | mappingUnit.createOffset(1,1,1,1,0,0);
 
 
 
 	//add the physical address of the PT in the PD -> here the logical and physical value is equal to one another
-	*(addrPD) = PAGESIZE;
+	*(addrPD) = (1 << 12) | mappingUnit.createOffset(1,1,1,1,0,0);
 
 
-	/*0 the entries for the currently not mapped in PT's, because we know
-	that the PD is in the first phys. Address, 0 is not a valid address for
-	a PT
-	*/
+	//create all PT but the presentBits are not set -> they are not mapped in
+	unsigned offset = mappingUnit.createOffset(0,1,1,1,0,0);
 	for(unsigned i = 1; i < PAGETABLE_SIZE; i++)
 	{
-		*(addrPD + i) = 0;
+		//(i+1) because at 0 is PD and at 1 is first PT, so start the others PT starts at 2
+		*(addrPD + i) = ((i+1) << 12) | offset;
 	}
 }
 
@@ -126,7 +100,7 @@ void VirtualMem::initializePT(void *pageStartAddress)
 	munmap(pageStartAddress, PAGESIZE);
 	
 	//map page frame for PT 
-	caddr_t addrFirstPT = (char*) mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_SHARED | MAP_FIXED, this -> fd, PAGESIZE);
+	caddr_t addrFirstPT = (char*) mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, PAGESIZE);
     if(addrFirstPT == MAP_FAILED)
     {
         cerr << "|###> Error: Mmap PT Failed" <<endl;
@@ -215,29 +189,31 @@ void VirtualMem::fixPermissions(void *address)
 	}
 }
 
-void VirtualMem::addPTEntry(void* startAddrPT) {
-	unsigned distanceToPage = ((char*) startAddrPT) - virtualMemStartAddress;
+void VirtualMem::addPTEntry(void* startAddrPage) {
+	unsigned distanceToPage = ((char*) startAddrPage) - virtualMemStartAddress;
 	unsigned first20Bits = mappingUnit.addr2page((caddr_t) distanceToPage);
 	unsigned first10Bits = mappingUnit.page2pageDirectoryIndex(first20Bits);
 	unsigned second10Bits = mappingUnit.page2pageTableIndex(first20Bits);
 	unsigned addrToPT = *(virtualMemStartAddress + first10Bits);
 
-	//calculate the right PT
+	//calculate the right PT 
 	unsigned pageNumber = distanceToPage/PAGESIZE;
 	unsigned indexofPT = (pageNumber/PAGETABLE_SIZE);
 	unsigned addrOfPT = PAGESIZE*(indexofPT+1);
 
+
 	//Just to Debug
 	unsigned addrToPage = addrToPT + second10Bits;
-	cout << addrOfPT << " == " << addrToPage << endl;
+	cout << "new PTEntry " << addrOfPT << " == " << addrToPage << endl;
 
-	//if the PT not existing then create it
-	if (addrToPT == 0) {
-		*(virtualMemStartAddress + first10Bits) = addrOfPT;
+
+	//if the PT not existing then create it by setting the presentBit
+	if (mappingUnit.getPresentBit(addrToPT) == 0) {
+		*(virtualMemStartAddress + first10Bits) = addrOfPT + mappingUnit.setPresentBit(addrToPT);
 	}
 
 	//add the page in PT
-	*(virtualMemStartAddress + addrToPT + second10Bits) = pointerToNextFreeFrame * PAGESIZE;
+	*(virtualMemStartAddress + addrOfPT + second10Bits) = (pointerToNextFreeFrame << 12) | mappingUnit.createOffset(1,0,0,1,0,1);
 	pointerToNextFreeFrame++;
 }
 
@@ -268,18 +244,6 @@ void VirtualMem::writePageActivate(void* pageStartAddr)
 	this->pageInformation[pageStartAddress].accessFlag = WRITTEN;
 	this->pageInformation[pageStartAddress].swapFlag = NON_SWAPPED;
 }
-
-void VirtualMem::markPinnedChunks(size_t numberOfChunksToPin)
-{
-	size_t chunckStartAddress = reinterpret_cast<size_t> (this->virtualMemStartAddress);
-	for(size_t i = 0; i < numberOfChunksToPin; i++)
-	{
-		pinOnePage(chunckStartAddress);
-		chunckStartAddress += PAGESIZE;
-	}
-}
-
-
 
 void VirtualMem::pinOnePage(size_t chunkStartAddr) {
 	this->pageInformation[chunkStartAddr].pinnedFlag = PINNED;
@@ -346,7 +310,7 @@ void VirtualMem::mapIn(void* pageStartAddress) {
 	}
 
     if(addr == MAP_FAILED) {
-    	cerr << "|###> Error: phy Mmap Failed" <<endl;
+    	cerr << "|###> Error: phy Mmap Failed from " << pageStartAddress << " to " << phyAddr << endl;
     	exit(1);
     }
 }
