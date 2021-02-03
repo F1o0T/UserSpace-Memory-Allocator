@@ -20,7 +20,7 @@
 
 using namespace std;
 
-enum permission_change:int{
+enum permission_change: int{
     NONTOREAD_NOTFULL,
     NONTOREAD_FULL,
     READTOWRITE
@@ -302,7 +302,7 @@ public:
 	void fixPermissions(void*);
     void initializePDandFirstPT();
     void initializePT(void* startAdress);
-    void addPhysAddresstoPD(caddr_t pageStartAddress);
+    void addPhysAddresstoPD(void* pageStartAddress);
 	void* findStartAddress(void* ptr);
     void kickedPageDeactivate(void* ptr);
     void readPageActivate(void* ptr);
