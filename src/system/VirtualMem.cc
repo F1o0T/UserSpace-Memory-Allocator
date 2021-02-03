@@ -85,9 +85,8 @@ void VirtualMem::initializePDandFirstPT()
     }
 
 	//book keeping for the activated page -> you have to do both steps because it is not wanted that
-	readPageActivate(this->virtualMemStartAddress);
-	this->readQueue.deQueue(this->virtualMemStartAddress);
 	writePageActivate(this->virtualMemStartAddress);
+	this->currentActPages++;
 
 	
 	//initialize first PT with the two phys adresses of the PD and the PT itself
@@ -131,9 +130,9 @@ void VirtualMem::initializePT(void *pageStartAddress)
     }
 
 	//book keeping for the activated page -> you have to do both steps
-	readPageActivate(pageStartAddress);
-	this->readQueue.deQueue(pageStartAddress);
+	
 	writePageActivate(pageStartAddress);
+	this->currentActPages++;
 }
 
 
@@ -150,7 +149,7 @@ void VirtualMem::fixPermissions(void *address)
 	if(accessFlag == NON)
 	{
 		//this is the case when we change the permission from non to read
-		if(this->currentActChunks < NUMBER_OF_PAGEFRAMES)
+		if(this->currentActPages < NUMBER_OF_PAGEFRAMES)
 		{
 			permissionChange = NONTOREAD_NOTFULL;
 		}else
@@ -235,14 +234,14 @@ void VirtualMem::kickedPageDeactivate(void* kickedChunkAddr)
 	mprotect(kickedChunkAddr, PAGESIZE, PROT_NONE);
 	size_t kickedChunkAddress = reinterpret_cast<size_t> (kickedChunkAddr);
     this->pageInformation[kickedChunkAddress].accessFlag = NON;
-	this->currentActChunks--;
+	this->currentActPages--;
 }
 
 void VirtualMem::readPageActivate(void* chunkStartAddr)
 {
 	mprotect(chunkStartAddr, PAGESIZE, PROT_READ);
 	this->readQueue.enQueue(chunkStartAddr);
-	this -> currentActChunks++;
+	this -> currentActPages++;
 
 	size_t chunkStartAddress = reinterpret_cast<size_t> (chunkStartAddr);
 	this->pageInformation[chunkStartAddress].accessFlag = READ;
