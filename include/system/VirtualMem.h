@@ -302,7 +302,7 @@ public:
 	void fixPermissions(void*);
     void initializePDandFirstPT();
     void initializePT(void* startAdress);
-    void addPhysAddresstoPD(void* pageStartAddress);
+    void addPTEntry(void* pageStartAddress);
 	void* findStartAddress(void* ptr);
     void kickedPageDeactivate(void* ptr);
     void readPageActivate(void* ptr);
@@ -322,6 +322,7 @@ public:
 	/////////////////////////////////////////////////
 private:
 	void* virtualMemStartAddress = NULL;
+    size_t pointerToNextFreeFrame = 0;
     int fd = 0;
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
