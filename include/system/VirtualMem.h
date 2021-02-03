@@ -321,12 +321,12 @@ public:
     void pinOnePage(size_t chunkStartAddr);
 	/////////////////////////////////////////////////
 private:
-	void* virtualMemStartAddress = NULL;
+	caddr_t virtualMemStartAddress = NULL;
     size_t pointerToNextFreeFrame = 0;
     int fd = 0;
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
-    size_t currentActChunks = 0;
+    size_t currentActPages = 0;
     Queue readQueue;
     Queue writeQueue;
     //Queue pinnedQueue;

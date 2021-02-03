@@ -23,12 +23,14 @@ void VirtualMem::initializeVirtualMem(size_t pinnedChunks, bool writeBackAll)
 	}
 
     /*map the whole logical memory size*/
-	this -> virtualMemStartAddress = mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if(this->virtualMemStartAddress == MAP_FAILED)
+	void* ptr = mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if(ptr == MAP_FAILED)
     {
         cerr << "|###> Error: virtual Mmap Failed" <<endl;
         exit(1);
     }
+
+	this -> virtualMemStartAddress = (caddr_t) ptr;
 
 	if(NUMBER_OF_PAGES >= NUMBER_OF_PAGEFRAMES && NUMBER_OF_PAGEFRAMES > pinnedChunks)
 	{
@@ -49,8 +51,8 @@ void VirtualMem::initializeVirtualMem(size_t pinnedChunks, bool writeBackAll)
 
 	cout << "start: " << reinterpret_cast<size_t> (start)<<endl;
 	cout << "start content" << (*(start)) << endl;
-	cout << "content first entry at first PT: " << ((char*) (this->virtualMemStartAddress)) + (*(start)) << endl;
-	cout << "content first entry at first PT: " << ((char*) (this->virtualMemStartAddress)) + (*(start) + 1) << endl;
+	cout << "content first entry at first PT: " << (this->virtualMemStartAddress) + (*(start)) << endl;
+	cout << "content first entry at first PT: " << (this->virtualMemStartAddress) + (*(start) + 1) << endl;
 
 
 	/*
@@ -92,9 +94,9 @@ void VirtualMem::initializePDandFirstPT()
 
 	
 	//initialize first PT with the two phys adresses of the PD and the PT itself
-	initializePT(((char*) this->virtualMemStartAddress) + PAGESIZE);
-	*(((char*) this->virtualMemStartAddress) + PAGESIZE) = 0;
-	*(((char*) this->virtualMemStartAddress) + PAGESIZE + 1) = 4096;
+	initializePT((this->virtualMemStartAddress) + PAGESIZE);
+	*((this->virtualMemStartAddress) + PAGESIZE) = 0;
+	*((this->virtualMemStartAddress) + PAGESIZE + 1) = 4096;
 
 
 
@@ -214,11 +216,11 @@ void VirtualMem::fixPermissions(void *address)
 }
 
 void VirtualMem::addPTEntry(void* startAddrPT) {
-	unsigned distanceToPage = ((char*) startAddrPT) - ((char*) virtualMemStartAddress);
+	unsigned distanceToPage = ((char*) startAddrPT) - virtualMemStartAddress;
 	unsigned first20Bits = mappingUnit.addr2page((caddr_t) distanceToPage);
 	unsigned first10Bits = mappingUnit.page2pageDirectoryIndex(first20Bits);
 	unsigned second10Bits = mappingUnit.page2pageTableIndex(first20Bits);
-	unsigned addrToPT = *((char*) virtualMemStartAddress + first10Bits);
+	unsigned addrToPT = *(virtualMemStartAddress + first10Bits);
 
 	//calculate the right PT
 	unsigned pageNumber = distanceToPage/PAGESIZE;
@@ -231,11 +233,11 @@ void VirtualMem::addPTEntry(void* startAddrPT) {
 
 	//if the PT not existing then create it
 	if (addrToPT == 0) {
-		*((char*) virtualMemStartAddress + first10Bits) = addrOfPT;
+		*(virtualMemStartAddress + first10Bits) = addrOfPT;
 	}
 
 	//add the page in PT
-	*((char*) virtualMemStartAddress + addrToPT + second10Bits) = pointerToNextFreeFrame * PAGESIZE;
+	*(virtualMemStartAddress + addrToPT + second10Bits) = pointerToNextFreeFrame * PAGESIZE;
 	pointerToNextFreeFrame++;
 }
 
@@ -297,12 +299,12 @@ void VirtualMem::pageOut(void* kickedChunkAddr)
 
 	
 	// PT handling
-	caddr_t caddPageStartAddress = (caddr_t) ((char*) kickedChunkAddr - (char*) virtualMemStartAddress);
+	caddr_t caddPageStartAddress = (caddr_t) ((char*) kickedChunkAddr - virtualMemStartAddress);
 	unsigned first20Bits = mappingUnit.addr2page(caddPageStartAddress);
 	unsigned first10Bits = mappingUnit.page2pageDirectoryIndex(first20Bits);
 	unsigned second10Bits = mappingUnit.page2pageTableIndex(first20Bits);
 
-	unsigned addrToPT = *((char*) virtualMemStartAddress + first10Bits);
+	unsigned addrToPT = *(virtualMemStartAddress + first10Bits);
 
 }
 
@@ -331,7 +333,7 @@ void VirtualMem::mapIn(void* pageStartAddress) {
 	munmap(pageStartAddress, PAGESIZE);
 	
 	//translate logical to physical address
-	unsigned phyAddr = mappingUnit.log2phys(caddPageStartAddress);
+	unsigned phyAddr = mappingUnit.log2phys((unsigned*) virtualMemStartAddress, caddPageStartAddress);
 	cout << "mapin phyAddr of Page: " << phyAddr << endl;
 
 	//map in the physical space
@@ -368,7 +370,7 @@ void* VirtualMem::findStartAddress(void * chunckStartAddress)
 
 void* VirtualMem::getStart()
 {
-    return (void*) (((char*) this->virtualMemStartAddress) + ((NUMBER_OF_PT+1) * PAGESIZE));
+    return (void*) (this->virtualMemStartAddress + ((NUMBER_OF_PT+1) * PAGESIZE));
 }
 
 size_t VirtualMem::getSize()
@@ -399,7 +401,7 @@ void VirtualMem::displayChunks()
 }
 
 void VirtualMem::fillList(list<int>* list) {
-    char* ptr1 = (char*) virtualMemStartAddress;
+    char* ptr1 = virtualMemStartAddress;
     unsigned size = PAGESIZE * NUMBER_OF_PAGES;
     unsigned i = 0;
 
