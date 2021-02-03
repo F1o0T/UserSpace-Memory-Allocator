@@ -277,15 +277,6 @@ void VirtualMem::pinOnePage(size_t chunkStartAddr) {
 	this->pinnedPages++;
 }
 
-void VirtualMem::unpinPage(void* chunkStartAddr) {
-	
-	/*
-	pinnedQueue.deQueue(chunkStartAddr);
-	this -> currentActChunks--;
-	kickedChunkDeactivate(chunkStartAddr);
-	*/
-}
-
 
 void VirtualMem::pageOut(void* kickedChunkAddr)
 {
@@ -295,8 +286,17 @@ void VirtualMem::pageOut(void* kickedChunkAddr)
 	size_t kickedChunkAddress = reinterpret_cast<size_t> (kickedChunkAddr);
 	this->pageInformation[kickedChunkAddress].swapFlag = SWAPPED;
 
-	//cout << kickedChunkAddress << " chunck has been swappedOut" << endl;
+	
+	// PT handling
+	caddr_t caddPageStartAddress = (caddr_t) ((char*) kickedChunkAddr - (char*) virtualMemStartAddress);
+	unsigned first20Bits = mappingUnit.addr2page(caddPageStartAddress);
+	unsigned first10Bits = mappingUnit.page2pageDirectoryIndex(first20Bits);
+	unsigned second10Bits = mappingUnit.page2pageTableIndex(first20Bits);
+
+	unsigned addrToPT = *((char*) virtualMemStartAddress + first10Bits);
+	
 }
+
 void VirtualMem::pageIn(void* chunckStartAddr)
 {
 	off_t offset = reinterpret_cast<off_t>(chunckStartAddr)-reinterpret_cast<off_t>(this->virtualMemStartAddress); 
@@ -321,6 +321,8 @@ void VirtualMem::mapIn(void* pageStartAddress) {
 	//unmap the virtual space
 	munmap(pageStartAddress, PAGESIZE);
 
+
+	//TODO from here richtige Übersetzung + finden eines Frames
 	//translate logical to physical address
 	unsigned page = mappingUnit.addr2page(caddPageStartAddress);
 	unsigned phyAddr = mappingUnit.page2frame(page);
