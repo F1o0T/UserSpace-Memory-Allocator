@@ -313,7 +313,7 @@ public:
     void mapIn(void* pageStartAddress);
 	void printChunkStarts();
 	void displayChunks();
-    void fillList(list<int>* list);
+    void fillList(list<int>* virtualMem, list<unsigned>* physicalMem);
     void decreaseMaxActChunks(unsigned subtrahend);
     void resetQueues();
     void pinOnePage(size_t chunkStartAddr);

@@ -8,13 +8,13 @@
 class AddressMapping {
 public:
      //returns the corresponding physical address of a logical address
-     unsigned log2phys(unsigned *virtualMemStart, caddr_t logaddr);
+     unsigned log2phys(unsigned *virtualMemStart, unsigned logaddr);
 
      //returns pageidentifaction part of an address
-     unsigned addr2page(caddr_t logaddr);
+     unsigned addr2page(unsigned logaddr);
   
      //returns the offset part of an address
-     unsigned addr2offset(caddr_t logaddr);
+     unsigned addr2offset(unsigned logaddr);
   
      //returns the physical frame of the given page
      unsigned page2frame(unsigned *virtualMemStart, unsigned page);
@@ -30,6 +30,8 @@ public:
      unsigned getPresentBit(unsigned phyAddr);
 
      unsigned setPresentBit(unsigned phyAddr);
+
+     unsigned getReadAndWriteBit(unsigned phyAddr);
 };
 
 #endif

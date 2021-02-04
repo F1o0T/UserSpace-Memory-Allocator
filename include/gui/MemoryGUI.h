@@ -16,15 +16,16 @@ using namespace GUI;
 #define MO_BSSM 1
 #define MO_FIXM 2
 #define MO_CHUNK 3
+#define MO_PAGE 4
 
-#define width 800
-#define height 600
+#define width 1200
+#define height 800
 
 class MemoryGUI {
 public:
     MemoryGUI();
 	MemoryGUI(Heap* heap, DrawingWindow* window, int mode);
-    MemoryGUI(VirtualMem* chunk, DrawingWindow* window, int mode);
+    MemoryGUI(VirtualMem* page, DrawingWindow* window, int mode);
 
     void drawMemory();
 	
@@ -33,12 +34,14 @@ private:
 
     void drawFixedHeapMemory();
 
+    void drawMappedChunk();
+    
     void drawVirtualMem();
 
     void clearWindow();
 
     Heap* heap;
-    VirtualMem* chunk;
+    VirtualMem* page;
     DrawingWindow* window;
     int mode;
     bool first = true;
