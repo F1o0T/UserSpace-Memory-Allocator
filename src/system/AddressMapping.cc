@@ -17,15 +17,11 @@ unsigned AddressMapping::addr2page(unsigned *logaddr) {
     //turn into number so we can do our math with it
     size_t addressAsNr = reinterpret_cast<size_t> (logaddr);
     //shift until page part of the number is right
-    addressAsNr = addressAsNr >> 12;
-    //make all but the last 10 Bits zero
-    addressAsNr = addressAsNr & 0xFFFFF; //
+    logaddr = logaddr >> 12;
     //shift the number back to the left
-    addressAsNr = addressAsNr  << 12;
-    //cast that should be not a problem because the first 32 Bits should be zero
-    unsigned page = (unsigned) addressAsNr;
+    logaddr = logaddr << 12;
 
-	return page; 
+	return logaddr; 
 }
 
 //returns the offset part of an address
@@ -33,10 +29,7 @@ unsigned AddressMapping::addr2offset(unsigned *logaddr) {
     //turn into number so we can do out math on it
     size_t addressAsNr = reinterpret_cast<size_t> (logaddr);
     //make all but the last 12 Bits zero
-    addressAsNr = addressAsNr & 0xFFF;
-    //cast that should be not a problem
-    unsigned offset = (unsigned) addressAsNr;
-	return offset;
+	return logaddr & 0xFFF;
 }
 
 //returns the physical frame of the given page 
@@ -119,4 +112,8 @@ unsigned AddressMapping::setPresentBit(unsigned phyAddr, unsigned presentBit) {
     }else{
         return phyAddr & 0xFFFFFFFE;
     }
+}
+
+unsigned AddressMapping::getReadAndWriteBit(unsigned phyAddr) {
+    return phyAddr & 0b10;
 }

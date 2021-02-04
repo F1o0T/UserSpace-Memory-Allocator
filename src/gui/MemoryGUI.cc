@@ -1,8 +1,8 @@
 #include "gui/MemoryGUI.h"
 
-MemoryGUI::MemoryGUI() : heap(0), chunk(0), mode(MO_CHUNK) {}
-MemoryGUI::MemoryGUI(Heap* heap, DrawingWindow* window, int mode) : heap(heap), chunk(0), window(window), mode(mode) {}
-MemoryGUI::MemoryGUI(VirtualMem* chunk, DrawingWindow* window, int mode) : heap(0), chunk(chunk), window(window), mode(mode) {}
+MemoryGUI::MemoryGUI() : heap(0), page(0), mode(MO_PAGE) {}
+MemoryGUI::MemoryGUI(Heap* heap, DrawingWindow* window, int mode) : heap(heap), page(0), window(window), mode(mode) {}
+MemoryGUI::MemoryGUI(VirtualMem* page, DrawingWindow* window, int mode) : heap(0), page(page), window(window), mode(mode) {}
 
 void MemoryGUI::drawMemory(){
 	if(mode == MO_BSSM){
@@ -12,8 +12,11 @@ void MemoryGUI::drawMemory(){
 		drawFixedHeapMemory();
 
 	} else if (mode == MO_CHUNK) {
+		drawMappedChunk();
+
+	} else if (mode == MO_PAGE) {
 		drawVirtualMem();
-	}
+	} 
 }
 
 void MemoryGUI::drawBSSMemory(){
@@ -33,8 +36,8 @@ void MemoryGUI::drawBSSMemory(){
 
 	for (int i : ptr) {
 	
-		if (x > 800) {
-			x -= 800;
+		if (x > width) {
+			x -= width;
 			y += 15;
 		}
 
@@ -94,8 +97,8 @@ void MemoryGUI::drawFixedHeapMemory(){
 			window->setForegroundColor(RGBColor(0,255,0));
 		}
 	
-		if (x > 800) {
-			x -= 800;
+		if (x > width) {
+			x -= width;
 			y += 15;
 		}
 	
@@ -104,12 +107,12 @@ void MemoryGUI::drawFixedHeapMemory(){
 	}
 }
 
-void MemoryGUI::drawVirtualMem() {
+void MemoryGUI::drawMappedChunk() {
 	int x = 5;
 	int y = 15;
 	
 	std::list<int> ptr;
-	chunk -> fillList(&ptr);
+	//page -> fillList(&ptr);
 
 	if (first == true) {
 		window->drawText(x, y, "NONE");
@@ -136,11 +139,11 @@ void MemoryGUI::drawVirtualMem() {
 		window->setForegroundColor(RGBColor(255,255,255));
 
 		for (size_t i = 0; i < ptr.size(); i++) {
-			window->drawText(x, y, "chunk " + to_string(i));
+			window->drawText(x, y, "page " + to_string(i));
 			x += 60;	
 
-			if (x > 780) {
-				x -= 780;
+			if (x > (width - 20)) {
+				x -= (width - 20);
 				y += 40;
 			}
 		}
@@ -160,13 +163,71 @@ void MemoryGUI::drawVirtualMem() {
 			window->setForegroundColor(RGBColor(0,255,0));
 		}
 	
-		if (x > 780) {
-			x -= 780;
+		if (x > (width - 20)) {
+			x -= (width - 20);
 			y += 40;
 		}
 	
 		window->drawFilledRectangle(x,y,40,10);
 		x += 60;
+	}
+}
+
+void MemoryGUI::drawVirtualMem() {
+	int xp = 590;
+	int x1 = 2;
+	int y1 = 15;
+	int x2 = 600;
+	int y2 = 15;
+	unsigned v = 0;
+	
+	std::list<int> virtualMem;
+	std::list<unsigned> physicalMem;
+	page -> fillList(&virtualMem, &physicalMem);
+
+	for (unsigned i : physicalMem) {
+		cout << "lol " << i << endl;
+	}
+
+	//Überschrift mit links page (virtMem) und rechts frame (phyMem)
+	window->drawText(0, 10, "pages in Virtual space");
+	window->drawText(x2, 10, "pageframes in physical space");
+
+	//Trennstrich für beide 
+	window->setForegroundColor(RGBColor(255,255,255));
+	for (int i = 0; i < height; i++) {
+		window->drawPoint(xp, i);
+	}
+
+	//für beide Blöcke einzeichen
+	for (int i : virtualMem) {
+		if (i != 0) {
+			if (i == 1) {
+				window->setForegroundColor(RGBColor(255,165,0));
+			} else if (i == 2) {
+				window->setForegroundColor(RGBColor(0,255,0));
+			}
+
+			if (x1 > (width - 20 - 600)) {
+				x1 -= (width - 20 - 600);
+				y1 += 40;
+			}
+
+			if (x2 > (width - 20)) {
+				x2 -= 600;
+				y2 += 40;
+			}
+
+			window->drawFilledRectangle(x1,y1,30,10);
+			window->drawFilledRectangle(x2,y2,70,10);
+			window->setForegroundColor(RGBColor(0,0,0));
+			window->drawText(x1+1, y1+10, "p " + to_string(v));
+			window->drawText(x2+1, y2+10, "p"+ to_string(v) + " -> pf" + to_string(*(physicalMem.begin())));
+			x1 += 40;
+			x2 += 80;
+			physicalMem.pop_front();
+		}
+		v++;
 	}
 }
 
