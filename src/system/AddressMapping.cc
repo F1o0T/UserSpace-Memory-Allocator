@@ -1,10 +1,10 @@
 #include "system/AddressMapping.h"
 
-//IMPORTANT: the adresses have to be the differnce between the logical address and the beginning if the mapping
+//IMPORTANT: the adresses have to be the differnce between the logical address and the beginning if the mapping!!!
 
 
 //returns the corresponding physical address of a logical address which is reprensented by an 32 Bit Unsigned
-unsigned AddressMapping::log2phys(unsigned *virtualMemStart,caddr_t logaddr) {
+unsigned AddressMapping::log2phys(unsigned *virtualMemStart, unsigned* logaddr) {
 	unsigned offset = addr2offset(logaddr);
 	unsigned page = addr2page(logaddr); 
 	unsigned pageFrame = page2frame(virtualMemStart, page);
@@ -12,8 +12,8 @@ unsigned AddressMapping::log2phys(unsigned *virtualMemStart,caddr_t logaddr) {
 	return physicalAddress;
 }
 
-//returns page identifaction part of an address, e.g.: 0000000000 1010101010 1010101010
-unsigned AddressMapping::addr2page(caddr_t logaddr) {
+//returns page identifaction part of an address, e.g.: 1010101010 1010101010 0000000000
+unsigned AddressMapping::addr2page(unsigned *logaddr) {
     //turn into number so we can do our math with it
     size_t addressAsNr = reinterpret_cast<size_t> (logaddr);
     //shift until page part of the number is right
@@ -29,7 +29,7 @@ unsigned AddressMapping::addr2page(caddr_t logaddr) {
 }
 
 //returns the offset part of an address
-unsigned AddressMapping::addr2offset(caddr_t logaddr) {
+unsigned AddressMapping::addr2offset(unsigned *logaddr) {
     //turn into number so we can do out math on it
     size_t addressAsNr = reinterpret_cast<size_t> (logaddr);
     //make all but the last 12 Bits zero
@@ -46,15 +46,17 @@ unsigned AddressMapping::page2frame(unsigned *virtualMemStart ,unsigned page) {
     return pageFrame;
 }
 
-//returns the index for the pagetable, e.g.: 12*0 1100000011 0000110000 -> 22*0 1100000011
+//returns the index for the pagetable, e.g.: 1100000011 0000110000 12*0 -> 22*0 1100000011
 unsigned AddressMapping::page2pageTableIndex(unsigned page) {
-    unsigned pageTableIndex = page & 0x3FF;//to make sure the other 22 Bits are 0
+    unsigned pageTableIndex = page >> 12;
+    pageTableIndex = page & 0x3FF;//to make sure the other 22 Bits are 0
 	return pageTableIndex;
 }
 
 //returns the index for the pagedirectory e.g.: 
 unsigned AddressMapping::page2pageDirectoryIndex(unsigned page) {
-    unsigned pageDirectoryIndex = page >> 10;
+    unsigned pageDirectoryIndex = page >> 22;
+    return pageDirectoryIndex;
 }
 
 /**
@@ -105,6 +107,16 @@ unsigned AddressMapping::getPresentBit(unsigned phyAddr) {
     return phyAddr & 0b1;
 }
 
-unsigned AddressMapping::setPresentBit(unsigned phyAddr) {
-    return phyAddr;
+unsigned AddressMapping::setPresentBit(unsigned phyAddr, unsigned presentBit) {
+
+    if(presentBit > 1)
+    {
+        std::cerr << "presentBit must be 0 or 1, can't be set to " << presentBit << std::endl;
+        exit(1);
+    }
+    if(presentBit == 1){
+        return phyAddr | 0b1;
+    }else{
+        return phyAddr & 0xFFFFFFFE;
+    }
 }

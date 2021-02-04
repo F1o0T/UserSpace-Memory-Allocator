@@ -190,8 +190,9 @@ void VirtualMem::fixPermissions(void *address)
 }
 
 void VirtualMem::addPTEntry(void* startAddrPage) {
+
 	unsigned distanceToPage = ((char*) startAddrPage) - virtualMemStartAddress;
-	unsigned first20Bits = mappingUnit.addr2page((caddr_t) distanceToPage);
+	unsigned first20Bits = mappingUnit.addr2page((unsigned*) distanceToPage);
 	unsigned first10Bits = mappingUnit.page2pageDirectoryIndex(first20Bits);
 	unsigned second10Bits = mappingUnit.page2pageTableIndex(first20Bits);
 	unsigned addrToPT = *(virtualMemStartAddress + first10Bits);
@@ -209,7 +210,7 @@ void VirtualMem::addPTEntry(void* startAddrPage) {
 
 	//if the PT not existing then create it by setting the presentBit
 	if (mappingUnit.getPresentBit(addrToPT) == 0) {
-		*(virtualMemStartAddress + first10Bits) = addrOfPT + mappingUnit.setPresentBit(addrToPT);
+		*(virtualMemStartAddress + first10Bits) = addrOfPT + mappingUnit.setPresentBit(addrToPT, 1);
 	}
 
 	//add the page in PT
@@ -255,20 +256,35 @@ void VirtualMem::pinOnePage(size_t chunkStartAddr) {
 
 void VirtualMem::pageOut(void* kickedChunkAddr)
 {
-	off_t offset = reinterpret_cast<off_t>(kickedChunkAddr)-reinterpret_cast<off_t>(this->virtualMemStartAddress); 
-	this->swapFile.swapFileWrite(kickedChunkAddr, offset , PAGESIZE);
+	//first we have to find where in the PT the meta data is stored
+	unsigned page = mappingUnit.addr2page((unsigned*) kickedChunkAddr);
+	unsigned PD_index = mappingUnit.page2pageDirectoryIndex(page);
+	unsigned contentPD = *(((unsigned*) (this->virtualMemStartAddress)) + PD_index);
+	if(contentPD == 0){
+		cerr << "error: try to page out page, which PT is marked as 0 in PD" << endl;
 
-	size_t kickedChunkAddress = reinterpret_cast<size_t> (kickedChunkAddr);
-	this->pageInformation[kickedChunkAddress].swapFlag = SWAPPED;
+	}
+	unsigned* logAddressPT = (unsigned*) (this->virtualMemStartAddress + contentPD);
+	unsigned* logAddrPTcontent = logAddressPT + mappingUnit.page2pageTableIndex(page);
+
+	unsigned physAddr = *(logAddrPTcontent);
+	physAddr = mappingUnit.setPresentBit(physAddr, 0);//sets bit to zwero
+	*(logAddrPTcontent) = physAddr;//set the new 
+
+
+	//this->pageInformation[kickedChunkAddress].swapFlag = SWAPPED;
 
 	
+	
 	// PT handling
-	caddr_t caddPageStartAddress = (caddr_t) ((char*) kickedChunkAddr - virtualMemStartAddress);
+	unsigned* caddPageStartAddress = (unsigned*) ((char*) kickedChunkAddr - virtualMemStartAddress);
 	unsigned first20Bits = mappingUnit.addr2page(caddPageStartAddress);
 	unsigned first10Bits = mappingUnit.page2pageDirectoryIndex(first20Bits);
 	unsigned second10Bits = mappingUnit.page2pageTableIndex(first20Bits);
 
 	unsigned addrToPT = *(virtualMemStartAddress + first10Bits);
+
+	
 
 }
 
@@ -291,7 +307,7 @@ void VirtualMem::mapOut(void* pageStartAddress) {
 
 void VirtualMem::mapIn(void* pageStartAddress) {
 	size_t decPageStartAddress = reinterpret_cast<size_t> (pageStartAddress);
-	caddr_t caddPageStartAddress = reinterpret_cast<caddr_t> (pageStartAddress);
+	unsigned* caddPageStartAddress = reinterpret_cast<unsigned*> (pageStartAddress);
 
 	//unmap the virtual space
 	munmap(pageStartAddress, PAGESIZE);
