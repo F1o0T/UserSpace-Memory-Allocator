@@ -116,7 +116,6 @@ int main(int argc, char** argv)
     //     showGUI = true;
     // }
     bool writeBackAll = false;
-    uint64_t pinnedChunks = 0;
     // if (vm.count("wball")) {
     //     writeBackAll = true;
     // }
@@ -126,7 +125,7 @@ int main(int argc, char** argv)
      * read configuration.
      * 
      */
-    vMem.initializeVirtualMem(pinnedChunks, writeBackAll);
+    vMem.initializeVirtualMem(writeBackAll);
     
     if (showGUI) {
         window = new DrawingWindow(width, height, "GUI");
