@@ -185,10 +185,6 @@ void MemoryGUI::drawVirtualMem() {
 	std::list<unsigned> physicalMem;
 	page -> fillList(&virtualMem, &physicalMem);
 
-	for (unsigned i : physicalMem) {
-		cout << "lol " << i << endl;
-	}
-
 	//Überschrift mit links page (virtMem) und rechts frame (phyMem)
 	window->drawText(0, 10, "pages in Virtual space");
 	window->drawText(x2, 10, "pageframes in physical space");

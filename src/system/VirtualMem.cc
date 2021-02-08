@@ -6,7 +6,7 @@
 #define PAGETABLE_SIZE 1024
 #define NUMBER_OF_PAGES FOUR_GB/PAGESIZE
 #define NUMBER_OF_PT NUMBER_OF_PAGES/PAGETABLE_SIZE
-#define NUMBER_OF_PAGEFRAMES 10
+#define NUMBER_OF_PAGEFRAMES 20
 #define PHY_MEM_LENGTH PAGESIZE*NUMBER_OF_PAGEFRAMES
 
 void VirtualMem::initializeVirtualMem(bool writeBackAll)
@@ -23,8 +23,8 @@ void VirtualMem::initializeVirtualMem(bool writeBackAll)
 	}
 
     /*map the whole logical memory size*/
-	this -> virtualMemStartAddress = (caddr_t) mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if(this -> virtualMemStartAddress == (caddr_t) MAP_FAILED)
+	this -> virtualMemStartAddress = (unsigned*) mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if(this -> virtualMemStartAddress == (unsigned*) MAP_FAILED)
     {
         cerr << "|###> Error: virtual Mmap Failed" <<endl;
         exit(1);
@@ -34,12 +34,11 @@ void VirtualMem::initializeVirtualMem(bool writeBackAll)
 
 
 	//Debug
-	unsigned* start = (unsigned*) virtualMemStartAddress;
-	cout << "start1: " << start << endl;
-	cout << "start2: " << reinterpret_cast<size_t> (start) << endl;
-	cout << "start content" << (*(start)) << endl;
-	cout << "content first entry at first PT: " << *((unsigned*)((this->virtualMemStartAddress) + PAGESIZE)) << endl;
-	cout << "content first entry at first PT: " << *((unsigned*)((this->virtualMemStartAddress) + PAGESIZE + 4)) << endl;
+	/*cout << "start1: " << virtualMemStartAddress << endl;
+	cout << "start2: " << reinterpret_cast<size_t> (virtualMemStartAddress) << endl;
+	cout << "start content" << (*(virtualMemStartAddress)) << endl;
+	cout << "content first entry at first PT: " << *((this->virtualMemStartAddress) + PAGETABLE_SIZE) << endl;
+	cout << "content first entry at first PT: " << *((this->virtualMemStartAddress) + PAGETABLE_SIZE + 1) << endl;*/
 }
 
 
@@ -64,27 +63,25 @@ void VirtualMem::initializePDandFirstPT()
 	pointerToNextFreeFrame++;
 
 	//book keeping for the activated page -> you have to do both steps because it is not wanted that
-	writePageActivate(this->virtualMemStartAddress);
-	this->currentActPages++;//unnötig pointerToNextFreeFrame macht das
+	writePageActivate(virtualMemStartAddress);
 
 	
 	//initialize first PT with the two phys adresses of the PD and the PT itself
-	initializePT((this->virtualMemStartAddress) + PAGESIZE);
-	*((unsigned*)((this->virtualMemStartAddress) + PAGESIZE)) = (0 << 12) | mappingUnit.createOffset(1,1,1,1,0,0);
-	*((unsigned*)((this->virtualMemStartAddress) + PAGESIZE + 4)) = (1 << 12) | mappingUnit.createOffset(1,1,1,1,0,0);
-
+	initializePT(virtualMemStartAddress + PAGETABLE_SIZE);
+	*(virtualMemStartAddress + PAGETABLE_SIZE) = ((0 << 12) | mappingUnit.createOffset(1,1,0,1));
+	*(virtualMemStartAddress + PAGETABLE_SIZE + 1) = ((1 << 12) | mappingUnit.createOffset(1,1,0,1));
 
 
 	//add the physical address of the PT in the PD -> here the logical and physical value is equal to one another
-	*(addrPD) = (1 << 12) | mappingUnit.createOffset(1,1,1,1,0,0);
+	*(virtualMemStartAddress) = (1 << 12) | mappingUnit.createOffset(1,1,1,1);
 
 
 	//create all PT but the presentBits are not set -> they are not mapped in
-	unsigned offset = mappingUnit.createOffset(0,1,1,1,0,0);
+	unsigned offset = mappingUnit.createOffset(0,1,1,1);
 	for(unsigned i = 1; i < PAGETABLE_SIZE; i++)
 	{
 		//(i+1) because at 0 is PD and at 1 is first PT, so start the others PT starts at 2
-		*(addrPD + i) = ((i+1) << 12) | offset;
+		*(virtualMemStartAddress + i) = (((i+1) << 12) | offset);
 	}
 }
 
@@ -94,11 +91,12 @@ void VirtualMem::initializePDandFirstPT()
 	is not in the phys. memory yet
 	@param startAddr logical start address of the PT
 */
-void VirtualMem::initializePT(void *pageStartAddress)
+void VirtualMem::initializePT(void *pageStartAddress) //TODO eins rauswerfen wenn rein muss
 {
+	cout << "where 6 0 6 0" << endl;
 	//unmap page of logical memory
 	munmap(pageStartAddress, PAGESIZE);
-	
+	cout << "where 6 0 6 1" << endl;
 	//map page frame for PT 
 	caddr_t addrFirstPT = (caddr_t) mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, pointerToNextFreeFrame*PAGESIZE);
     if(addrFirstPT == (caddr_t) MAP_FAILED)
@@ -107,28 +105,28 @@ void VirtualMem::initializePT(void *pageStartAddress)
         exit(1);
     }
 	pointerToNextFreeFrame++;
-
+	cout << "where 6 0 6 2" << endl;
 	//book keeping for the activated page -> you have to do both steps
 	
 	writePageActivate(pageStartAddress);
-	this->currentActPages++;
+	cout << "where 6 0 6 3" << endl;
 }
 
 
-void VirtualMem::fixPermissions(void *address)
+void VirtualMem::fixPermissions(void* address)
 {
-	void* chunkStartAddr = this->findStartAddress(address);
-    size_t chunkStartAddress = reinterpret_cast<size_t> (chunkStartAddr);
-    int accessFlag = pageInformation[chunkStartAddress].accessFlag;
-    bool swapFlag = this->pageInformation[chunkStartAddress].swapFlag;
+	void* pageStartAddr = findStartAddress(address);
+	cout << "get " << address << " find " << pageStartAddr << " where 1" << endl;
+    unsigned pageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned*) address);
+	cout << "where 3 " << pageFrameAddr << endl;
 
 	permission_change permissionChange;
 
 	//determine which permission change is the right one
-	if(accessFlag == NON)
+	if(mappingUnit.getPresentBit(pageFrameAddr) == NOT_PRESENT)
 	{
 		//this is the case when we change the permission from non to read
-		if(this->currentActPages < NUMBER_OF_PAGEFRAMES)
+		if(this->pointerToNextFreeFrame < NUMBER_OF_PAGEFRAMES || pageoutPointer != 0)
 		{
 			permissionChange = NONTOREAD_NOTFULL;
 		}else
@@ -139,21 +137,27 @@ void VirtualMem::fixPermissions(void *address)
 		//this is the case when we change the permission from read to write
 			permissionChange = READTOWRITE;
 	}
+	cout << "where 4 " << permissionChange << endl;
 
 
 	switch(permissionChange)
 	{
 		case NONTOREAD_NOTFULL:
+			cout << "where 5" << endl;
 			//if there is already data on the disk, we have to this data in
-			if (swapFlag == SWAPPED) {
-				this->pageIn(chunkStartAddr);
-			} else {
-				addPTEntry(chunkStartAddr);
+			if (mappingUnit.getPresentBit(pageFrameAddr) == PRESENT && mappingUnit.getDirtyBit(pageFrameAddr) == DIRTY) {
+				this->pageIn(pageStartAddr);
+				pageoutPointer = 0;
 			}
-			readPageActivate(chunkStartAddr);
-			mapIn(chunkStartAddr);
+			cout << "where 6" << endl;
+			mapIn(pageStartAddr);
+			cout << "where 7" << endl;
+			readPageActivate(pageStartAddr);
+			cout << "where 8" << endl;
 			break;
+
 		case NONTOREAD_FULL:
+			cout << "where 9" << endl;
 			//first we have to kick out one chunk, preferibly in the readQueue
 			void* kickedChunkAddr;
 			if (!this->readQueue.isEmpty()) {
@@ -167,136 +171,71 @@ void VirtualMem::fixPermissions(void *address)
 				kickedChunkAddr = this->writeQueue.deQueue();
 				this->pageOut(kickedChunkAddr);
 			}
+			cout << "where 10" << endl;
 			//now just deactivate all the stuff
-			kickedPageDeactivate(kickedChunkAddr);
 			mapOut(kickedChunkAddr);
 
 			//last but not least: activate the chunk just like in case 1
-			if(swapFlag == SWAPPED){
-				this->pageIn(chunkStartAddr);
-			} else {
-				addPTEntry(chunkStartAddr);
+			if(mappingUnit.getDirtyBit(pageFrameAddr) == DIRTY){
+				this->pageIn(pageStartAddr);
 			}
-			//
-			readPageActivate(chunkStartAddr);
-			mapIn(chunkStartAddr);
+			
+			mapIn(pageStartAddr);
+			cout << "where 11" << endl;
+			readPageActivate(pageStartAddr);
+			cout << "where 12" << endl;
 			break;
+
+
 		case READTOWRITE:
+			cout << "where 13" << endl;
 			//first we have to delete the chunk in the read queue
-			this->readQueue.deQueue(chunkStartAddr);
+			this->readQueue.deQueue(pageStartAddr);
 			//last we set all the flags right
-			writePageActivate(chunkStartAddr);
+			writePageActivate(pageStartAddr);
 			break;
 	}
 }
 
-void VirtualMem::addPTEntry(void* startAddrPage) {
-
-	unsigned distanceToPage = ((char*) startAddrPage) - virtualMemStartAddress;
-	unsigned first20Bits = mappingUnit.addr2page((unsigned*) distanceToPage);
-	unsigned first10Bits = mappingUnit.page2pageDirectoryIndex(first20Bits);
-	unsigned second10Bits = mappingUnit.page2pageTableIndex(first20Bits);
-	unsigned addrToPT = *(virtualMemStartAddress + first10Bits);
-
-	//calculate the right PT 
-	unsigned pageNumber = distanceToPage/PAGESIZE;
-	unsigned indexofPT = (pageNumber/PAGETABLE_SIZE);
-	unsigned addrOfPT = PAGESIZE*(indexofPT+1);
-
-
-	//Just to Debug
-	unsigned addrToPage = addrToPT + second10Bits;
-	cout << "new PTEntry " << addrOfPT << " == " << addrToPage << endl;
-
-
-	//if the PT not existing then create it by setting the presentBit
-	if (mappingUnit.getPresentBit(addrToPT) == 0) {
-		initializePT(virtualMemStartAddress + addrOfPT);
-		*(virtualMemStartAddress + first10Bits) = (addrOfPT << 12) | mappingUnit.setPresentBit(addrToPT);
-	}
-
-	//add the page in PT
-	*(virtualMemStartAddress + addrOfPT + second10Bits) = (pointerToNextFreeFrame << 12) | mappingUnit.createOffset(1,0,0,1,0,1);
-	pointerToNextFreeFrame++;
-}
-
-void VirtualMem::kickedPageDeactivate(void* kickedChunkAddr)
+void VirtualMem::readPageActivate(void* pageStartAddr)
 {
-	mprotect(kickedChunkAddr, PAGESIZE, PROT_NONE);
-	size_t kickedChunkAddress = reinterpret_cast<size_t> (kickedChunkAddr);
-    this->pageInformation[kickedChunkAddress].accessFlag = NON;
-	this->currentActPages--;
-}
-
-void VirtualMem::readPageActivate(void* chunkStartAddr)
-{
-	mprotect(chunkStartAddr, PAGESIZE, PROT_READ);
-	this->readQueue.enQueue(chunkStartAddr);
-	this -> currentActPages++;
-
-	size_t chunkStartAddress = reinterpret_cast<size_t> (chunkStartAddr);
-	this->pageInformation[chunkStartAddress].accessFlag = READ;
+	unsigned* pageTableEntry = mappingUnit.logAddr2PTEntry(virtualMemStartAddress, (unsigned*) pageStartAddr);
+    unsigned pageFrameAddr = *(pageTableEntry);
+	
+	*(pageTableEntry) = mappingUnit.setReadAndWriteBit(pageFrameAddr, READ);
+	mprotect(pageStartAddr, PAGESIZE, PROT_READ);
+	this->readQueue.enQueue(pageStartAddr);
 }
 
 void VirtualMem::writePageActivate(void* pageStartAddr)
 {
+	unsigned* pageTableEntry = mappingUnit.logAddr2PTEntry(virtualMemStartAddress, (unsigned*) pageStartAddr);
+    unsigned pageFrameAddr = *(pageTableEntry);
+	
+	*(pageTableEntry) = mappingUnit.setReadAndWriteBit(pageFrameAddr, WRITE);
+	*(pageTableEntry) = mappingUnit.setDirtyBit(pageFrameAddr, NOT_DIRTY);
 	mprotect(pageStartAddr, PAGESIZE, PROT_WRITE);
 	this->writeQueue.enQueue(pageStartAddr);
-
-	size_t pageStartAddress = reinterpret_cast<size_t> (pageStartAddr);
-	this->pageInformation[pageStartAddress].accessFlag = WRITTEN;
-	this->pageInformation[pageStartAddress].swapFlag = NON_SWAPPED;
 }
-
-void VirtualMem::pinOnePage(size_t chunkStartAddr) {
-	this->pageInformation[chunkStartAddr].pinnedFlag = PINNED;
-	this->pageInformation[chunkStartAddr].accessFlag = WRITTEN;
-	mprotect(reinterpret_cast<void*>(chunkStartAddr), PAGESIZE, PROT_READ | PROT_WRITE);
-	this->pinnedPages++;
-}
-
 
 void VirtualMem::pageOut(void* kickedChunkAddr)
 {
-	//first we have to find where in the PT the meta data is stored
-	unsigned page = mappingUnit.addr2page((unsigned*) kickedChunkAddr);
-	unsigned PD_index = mappingUnit.page2pageDirectoryIndex(page);
-	unsigned contentPD = *(((unsigned*) (this->virtualMemStartAddress)) + PD_index);
-	if(contentPD == 0){
-		cerr << "error: try to page out page, which PT is marked as 0 in PD" << endl;
+	off_t offset = reinterpret_cast<off_t>(kickedChunkAddr)-reinterpret_cast<off_t>(this->virtualMemStartAddress); 
+	this->swapFile.swapFileWrite(kickedChunkAddr, offset , PAGESIZE);
 
-	}
-	unsigned* logAddressPT = (unsigned*) (this->virtualMemStartAddress + contentPD);
-	unsigned* logAddrPTcontent = logAddressPT + mappingUnit.page2pageTableIndex(page);
-
-	unsigned physAddr = *(logAddrPTcontent);
-	physAddr = mappingUnit.setPresentBit(physAddr, 0);//sets bit to zwero
-	*(logAddrPTcontent) = physAddr;//set the new 
-
-
-	//this->pageInformation[kickedChunkAddress].swapFlag = SWAPPED;
-
+	unsigned* pageTableEntry = mappingUnit.logAddr2PTEntry(virtualMemStartAddress, (unsigned*) kickedChunkAddr);
+    unsigned pageFrameAddr = *(pageTableEntry);
 	
-	
-	// PT handling
-	unsigned* caddPageStartAddress = (unsigned*) ((char*) kickedChunkAddr - virtualMemStartAddress);
-	unsigned first20Bits = mappingUnit.addr2page(caddPageStartAddress);
-	unsigned first10Bits = mappingUnit.page2pageDirectoryIndex(first20Bits);
-	unsigned second10Bits = mappingUnit.page2pageTableIndex(first20Bits);
+	*(pageTableEntry) = mappingUnit.setDirtyBit(pageFrameAddr, NOT_DIRTY);
 
-	unsigned addrToPT = *(virtualMemStartAddress + first10Bits);
-
-	
-
+	pageoutPointer = pageFrameAddr;
 }
+
 
 void VirtualMem::pageIn(void* chunckStartAddr)
 {
 	off_t offset = reinterpret_cast<off_t>(chunckStartAddr)-reinterpret_cast<off_t>(this->virtualMemStartAddress); 
 	this->swapFile.swapFileRead(chunckStartAddr, offset , PAGESIZE);
-
-	//size_t chunckStartAddress = reinterpret_cast<size_t> (chunckStartAddr);
-	//cout << chunckStartAddress << " chunck has been swappedIn" << endl;
 }
 
 void VirtualMem::mapOut(void* pageStartAddress) {
@@ -305,37 +244,72 @@ void VirtualMem::mapOut(void* pageStartAddress) {
 
 	//map in MAP_Anonymous (simulation for no physical nemory behind it)
 	mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+
+	unsigned* pageTableEntry = mappingUnit.logAddr2PTEntry(virtualMemStartAddress, (unsigned*) pageStartAddress);
+    unsigned pageFrameAddr = *(pageTableEntry);
+	
+	*(pageTableEntry) = mappingUnit.setPresentBit(pageFrameAddr, NOT_PRESENT);
 }
 
 void VirtualMem::mapIn(void* pageStartAddress) {
-	size_t decPageStartAddress = reinterpret_cast<size_t> (pageStartAddress);
-	unsigned caddPageStartAddress = ((char*) pageStartAddress) - virtualMemStartAddress;
+	cout << "where 6 0" << endl;
+	addPTEntry((unsigned*) pageStartAddress);
+	cout << "where 6 1" << endl;
 
 	//unmap the virtual space
 	munmap(pageStartAddress, PAGESIZE);
+	cout << "where 6 2" << endl;
 	
 	//translate logical to physical address
-	unsigned phyAddr = mappingUnit.log2phys((unsigned*) virtualMemStartAddress, caddPageStartAddress);
-	cout << "mapin phyAddr of Page: " << phyAddr << endl;
+	unsigned pageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned*) pageStartAddress);
+	cout << "where 6 3" << endl;
+	unsigned pageFrame = mappingUnit.phyAddr2page(pageFrameAddr);//without Offset
+	cout << "where 6 4" << endl;
 
 	//map in the physical space
-	void* addr;
-	if (this->pageInformation[decPageStartAddress].accessFlag == NON) {
-		addr = mmap(pageStartAddress, PAGESIZE, PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, phyAddr);
-
-	} else if (this->pageInformation[decPageStartAddress].accessFlag == READ) {
-		addr = mmap(pageStartAddress, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this -> fd, phyAddr);
-	}
-
+	void* addr = mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_FIXED, this -> fd, pageFrame);
     if(addr == MAP_FAILED) {
-    	cerr << "|###> Error: phy Mmap Failed from " << pageStartAddress << " to " << phyAddr << endl;
+    	cerr << "|###> Error: phy Mmap Failed from " << pageStartAddress << " to " << pageFrame << endl;
     	exit(1);
     }
+	//cout << addr << " mmap the same as " << pageStartAddress << endl;
+	//exit(1);
 }
 
-void* VirtualMem::findStartAddress(void * chunckStartAddress)
+void VirtualMem::addPTEntry(unsigned* startAddrPage) {
+	cout << "where 6 0 1" << endl;
+	unsigned phyAddr = ((char*) startAddrPage) - ((char*) virtualMemStartAddress);
+	//cout << "where 6 0 0" << endl;
+	//unsigned first20Bits = mappingUnit.phyAddr2page(phyAddr);
+	cout << "where 6 0 2 " << phyAddr << endl;
+	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(phyAddr);
+	cout << "where 6 0 3 " << first10Bits << endl;
+	unsigned second10Bits = mappingUnit.phyAddr2PTIndex(phyAddr);
+	cout << "where 6 0 4 " << second10Bits << endl;
+	unsigned pageTableAddr = *(virtualMemStartAddress + first10Bits);
+	cout << pageTableAddr << " where 6 0 5 present? " << mappingUnit.getPresentBit(pageTableAddr) << endl;
+
+	//if the PT not existing then create it by setting the presentBit
+	if (mappingUnit.getPresentBit(pageTableAddr) == NOT_PRESENT) {
+		cout << "where 6 0 6" << endl;
+		initializePT(virtualMemStartAddress + mappingUnit.phyAddr2page(pageTableAddr));
+		cout << "where 6 0 7" << endl;
+		*(virtualMemStartAddress + first10Bits) = mappingUnit.setPresentBit(pageTableAddr, PRESENT);
+		cout << "where 6 0 8" << endl;
+	}
+	cout << "where 6 0 9 " << mappingUnit.cutOfOffset(pageTableAddr) << endl;
+	//add the page in PT
+	*(virtualMemStartAddress + (mappingUnit.cutOfOffset(pageTableAddr)*PAGETABLE_SIZE) + second10Bits) = (pointerToNextFreeFrame << 12) | mappingUnit.createOffset(1,0,0,0);
+	cout << "where 6 0 10" << endl;
+	pointerToNextFreeFrame++;
+}
+
+void* VirtualMem::findStartAddress(void* address)
 {
-   size_t address        =  reinterpret_cast<size_t>(chunckStartAddress); 
+	unsigned pageStart = mappingUnit.phyAddr2page(((char*) address) - ((char*) virtualMemStartAddress));
+	return (void*) (((char*) virtualMemStartAddress) + pageStart);
+   
+   /*size_t address        =  reinterpret_cast<size_t>(chunckStartAddress); 
    size_t startAddress   =  reinterpret_cast<size_t>(this->virtualMemStartAddress); 
    size_t lastAddress    =  startAddress + PAGESIZE * NUMBER_OF_PAGES; 
    for(unsigned long chunkStartAddress = startAddress; chunkStartAddress < lastAddress; chunkStartAddress += PAGESIZE)
@@ -343,16 +317,13 @@ void* VirtualMem::findStartAddress(void * chunckStartAddress)
         if(address >= chunkStartAddress && address < chunkStartAddress + PAGESIZE) 
             return (void*) chunkStartAddress; 
    }
-   /*
-    It will never reach here
-   */
-   return NULL; 
+   return NULL; */
 }
 
 
 void* VirtualMem::getStart()
 {
-    return (void*) (this->virtualMemStartAddress + ((NUMBER_OF_PT+1) * PAGESIZE));
+    return (void*) (this->virtualMemStartAddress + ((NUMBER_OF_PT+1) * PAGETABLE_SIZE));
 }
 
 size_t VirtualMem::getSize()
@@ -369,19 +340,6 @@ void VirtualMem::printChunkStarts()
     }
 }
 
-void VirtualMem::displayChunks()
-{
-	size_t startAddress   =  reinterpret_cast<size_t>(this->virtualMemStartAddress); 
-	size_t lastAddress    =  startAddress + PAGESIZE * NUMBER_OF_PAGES; 
-	int count = 0; 
-	for(unsigned long chunkStartAddress = startAddress; chunkStartAddress < lastAddress; chunkStartAddress += PAGESIZE)
-	{
-	    cout << count << "   " << chunkStartAddress << "\t" << this->pageInformation[chunkStartAddress].accessFlag << "\t" << this->pageInformation[chunkStartAddress].swapFlag << endl;
-		count++;
-		cout << endl;
-	}	
-}
-
 void VirtualMem::fillList(list<int>* virtualMem, list<unsigned>* physicalMem) {
 	//virtualspace 
     unsigned* ptr1 = (unsigned*) virtualMemStartAddress;
@@ -393,23 +351,18 @@ void VirtualMem::fillList(list<int>* virtualMem, list<unsigned>* physicalMem) {
 		//searching in PD for present PT
 		if (mappingUnit.getPresentBit(*(ptr1)) == 1) {
 			//found one at ...
-			cout << "hier? 1 " << mappingUnit.addr2page(*(ptr1)) << endl;
 
 			//searching in PT for present Pages
-			unsigned* ptrToPT = (unsigned*) (virtualMemStartAddress + mappingUnit.addr2page(*(ptr1)));
+			unsigned* ptrToPT = (virtualMemStartAddress + (mappingUnit.cutOfOffset(*(ptr1))*PAGETABLE_SIZE));
 			for (int j = 0; j < PAGETABLE_SIZE; j++) {
 				if (mappingUnit.getPresentBit(*(ptrToPT)) == 1) {
-					cout << "hier? 2 " << mappingUnit.addr2page(*(ptrToPT)) << endl;
-					cout << "hier? 3 " << *(ptrToPT) << endl;
 					//found one
 					if (mappingUnit.getReadAndWriteBit(*(ptrToPT)) == 0) {
 						virtualMem -> push_back(1);
-						physicalMem -> push_back( (mappingUnit.addr2page(*(ptrToPT))) >> 12 );
-						cout << "hier? 4" << endl;
+						physicalMem -> push_back( mappingUnit.phyAddr2page(*(ptrToPT)) >> 12 );
 					} else {
 						virtualMem -> push_back(2);
-						physicalMem -> push_back( (mappingUnit.addr2page(*(ptrToPT))) >> 12) ;
-						cout << "hier? 5" << endl;
+						physicalMem -> push_back( mappingUnit.phyAddr2page(*(ptrToPT)) >> 12 ) ;
 					}
 						
 				} else {
@@ -445,13 +398,14 @@ void* VirtualMem::expand(size_t size)
 
 VirtualMem::~VirtualMem()
 {
-
     munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
 	shm_unlink("phy-Mem");
 }
 
 void VirtualMem::resetQueues() {
-	int k = writeQueue.size();
+	//need to be changed
+
+	/*int k = writeQueue.size();
 	int l = readQueue.size();
 	for (int i = 0; i < k; i++) {
 		void* kickedWriteChunkAddr = this->writeQueue.deQueue();
@@ -463,5 +417,5 @@ void VirtualMem::resetQueues() {
 		kickedPageDeactivate(kickedReadChunkAddr);
 	}
 
-	this -> pinnedPages = 0;
+	this -> pinnedPages = 0;*/
 }

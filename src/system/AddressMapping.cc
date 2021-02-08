@@ -1,6 +1,6 @@
 #include "system/AddressMapping.h"
 
-//IMPORTANT: the adresses have to be the differnce between the logical address and the beginning if the mapping!!!
+/*//IMPORTANT: the adresses have to be the differnce between the logical address and the beginning if the mapping!!!
 
 
 //returns the corresponding physical address of a logical address which is reprensented by an 32 Bit Unsigned
@@ -21,7 +21,7 @@ unsigned AddressMapping::addr2page(unsigned *logaddr) {
     //shift the number back to the left
     logaddr = logaddr << 12;
 
-	return logaddr; 
+	return logaddr;
 }
 
 //returns the offset part of an address
@@ -50,6 +50,44 @@ unsigned AddressMapping::page2pageTableIndex(unsigned page) {
 unsigned AddressMapping::page2pageDirectoryIndex(unsigned page) {
     unsigned pageDirectoryIndex = page >> 22;
     return pageDirectoryIndex;
+}*/
+
+/////////////////////////////////////////////////////////////////////////
+
+unsigned AddressMapping::logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr) {
+    unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
+    unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
+    unsigned addrOfPF = *(virtualMemStart + cutOfOffset(addrOfPT) + phyAddr2PTIndex(phyAddr));
+    return addrOfPF; 
+}
+
+unsigned* AddressMapping::logAddr2PTEntry(unsigned* virtualMemStart, unsigned* logAddr) {
+    unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
+    cout << "log2PT 1 " << phyAddr << endl;
+    unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
+    cout << "log2PT 2 " << addrOfPT << endl;
+    unsigned* pageTableEntry = virtualMemStart + cutOfOffset(addrOfPT) + phyAddr2PTIndex(phyAddr);
+    cout << "log2PT 3 " << pageTableEntry << " mit " << cutOfOffset(addrOfPT) << " und " << phyAddr2PTIndex(phyAddr) << endl;
+    return pageTableEntry;
+}
+
+// 1111111111 1111111111 000000000000
+unsigned AddressMapping::phyAddr2page(unsigned logaddr) {
+    logaddr = logaddr >> 12;
+	return logaddr << 12;
+}
+
+unsigned AddressMapping::phyAddr2PDIndex(unsigned page) {
+	return page >> 22;
+}
+
+unsigned AddressMapping::phyAddr2PTIndex(unsigned page) {
+    page = page << 10;
+    return page >> 22;
+}
+
+unsigned AddressMapping::cutOfOffset(unsigned logaddr) {
+	return logaddr >> 12;
 }
 
 /**
@@ -58,12 +96,10 @@ unsigned AddressMapping::page2pageDirectoryIndex(unsigned page) {
  * @param presentBit 0 = not present, 1 = present
  * @param read_writeBit 0 = read, 1 = write
  * @param pinnedBit 0 = not pinned, 1 = pinned
- * @param accessBit 0 = not accessed, 1 = accessed
  * @param dirtyBit 0 = means swapfile = ram, 1 = means ram has changed data
- * @param pageSizeBit 0 = refering to a PT, 1 = refering to pageframe
  * @return complett Offset (you can add it to the address)
  */
-unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool pinnedBit, bool accessBit, bool dirtyBit, bool pageSizeBit) {
+unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool pinnedBit, bool dirtyBit) {
     unsigned offset = 0;
 
     if (presentBit) {
@@ -78,16 +114,8 @@ unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool 
         offset = offset | 0b1000;
     }
 
-    if (accessBit) {
-        offset = offset | 0b100000;
-    }
-
     if (dirtyBit) {
         offset = offset | 0b1000000;
-    }
-
-    if (pageSizeBit) {
-        offset = offset | 0b10000000;
     }
 
     return offset;
@@ -100,20 +128,46 @@ unsigned AddressMapping::getPresentBit(unsigned phyAddr) {
     return phyAddr & 0b1;
 }
 
-unsigned AddressMapping::setPresentBit(unsigned phyAddr, unsigned presentBit) {
-
-    if(presentBit > 1)
-    {
-        std::cerr << "presentBit must be 0 or 1, can't be set to " << presentBit << std::endl;
-        exit(1);
-    }
-    if(presentBit == 1){
+unsigned AddressMapping::setPresentBit(unsigned phyAddr, bool presentBit) {
+    if(presentBit == 1) {
         return phyAddr | 0b1;
-    }else{
+    } else {
         return phyAddr & 0xFFFFFFFE;
     }
 }
 
 unsigned AddressMapping::getReadAndWriteBit(unsigned phyAddr) {
     return phyAddr & 0b10;
+}
+
+unsigned AddressMapping::setReadAndWriteBit(unsigned phyAddr, bool read_writeBit) {
+    if(read_writeBit == 1) {
+        return phyAddr | 0b10;
+    } else {
+        return phyAddr & 0xFFFFFFFE;
+    }
+}
+
+unsigned AddressMapping::getPinnedBit(unsigned phyAddr) {
+    return phyAddr & 0b10;
+}
+
+unsigned AddressMapping::setPinnedBit(unsigned phyAddr, bool pinnedBit) {
+    if(pinnedBit == 1) {
+        return phyAddr | 0b1000;
+    } else {
+        return phyAddr & 0xFFFFFFFE;
+    }
+}
+
+unsigned AddressMapping::getDirtyBit(unsigned phyAddr) {
+    return phyAddr & 0b10;
+}
+
+unsigned AddressMapping::setDirtyBit(unsigned phyAddr, bool dirtyBit) {
+    if(dirtyBit == 1) {
+        return phyAddr | 0b1000000;
+    } else {
+        return phyAddr & 0xFFFFFFFE;
+    }
 }

@@ -26,39 +26,13 @@ enum permission_change: int{
     READTOWRITE
 };
 
-enum access_flag: int{
-    NON = 0,
-    READ,
-    WRITTEN
-};
-enum swapped_flag: bool
-{
-    SWAPPED = 1, 
-    NON_SWAPPED = 0
-};
-
-enum pinned_flag: bool
-{
-    PINNED = 1,
-    NOT_PINNED = 0
-};
-
-struct chunkInfo
-{
-    access_flag accessFlag;
-    swapped_flag swapFlag;
-    pinned_flag pinnedFlag;
-};
-
 struct QNode { 
     void* address;
-    access_flag acc_flag;
     QNode* next;
 
     QNode(void* add) 
     { 
         address = add;
-        acc_flag = NON;
         next = NULL;
     } 
 }; 
@@ -302,9 +276,8 @@ public:
 	void fixPermissions(void*);
     void initializePDandFirstPT();
     void initializePT(void* startAdress);
-    void addPTEntry(void* pageStartAddress);
+    void addPTEntry(unsigned* pageStartAddress);
 	void* findStartAddress(void* ptr);
-    void kickedPageDeactivate(void* ptr);
     void readPageActivate(void* ptr);
     void writePageActivate(void* ptr);
     void pageOut(void* ptr); 
@@ -312,24 +285,19 @@ public:
     void mapOut(void* pageStartAddress);
     void mapIn(void* pageStartAddress);
 	void printChunkStarts();
-	void displayChunks();
     void fillList(list<int>* virtualMem, list<unsigned>* physicalMem);
-    void decreaseMaxActChunks(unsigned subtrahend);
     void resetQueues();
-    void pinOnePage(size_t chunkStartAddr);
 	/////////////////////////////////////////////////
 private:
-	caddr_t virtualMemStartAddress = NULL;
+	unsigned* virtualMemStartAddress = NULL;
     unsigned pointerToNextFreeFrame = 0;
+    unsigned pageoutPointer = 0;
     int fd = 0;
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
-    size_t currentActPages = 0;
     Queue readQueue;
     Queue writeQueue;
-    //Queue pinnedQueue;
     SwapFile swapFile;
-    map<size_t, struct chunkInfo>pageInformation;
     bool writeBackAll;
 };
 

@@ -3,12 +3,20 @@
 
 #include <sys/types.h>
 #include <iostream>
+#include <sys/mman.h>
 
+#define READ 0
+#define WRITE 1
+#define NOT_PRESENT 0
+#define PRESENT 1
+#define NOT_DIRTY 0
+#define DIRTY 1
 
+using namespace std;
 
 class AddressMapping {
 public:
-     //returns the corresponding physical address of a logical address
+     /*//returns the corresponding physical address of a logical address
      unsigned log2phys(unsigned *virtualMemStart, unsigned* logaddr);
 
      //returns pageidentifaction part of an address
@@ -24,13 +32,39 @@ public:
      unsigned page2pageTableIndex(unsigned page);
   
      //returns the index for the pagedirectory
-     unsigned page2pageDirectoryIndex(unsigned page);
+     unsigned page2pageDirectoryIndex(unsigned page);*/
 
-     unsigned createOffset(bool presentBit, bool read_writeBit, bool pinnedBit, bool accessBit, bool dirtyBit, bool pageSizeBit);
+     ///////////////////////////////////////////////////777
+
+     unsigned logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr);
+
+     unsigned* logAddr2PTEntry(unsigned* virtualMemStart, unsigned* logAddr);
+
+     unsigned phyAddr2page(unsigned logaddr);
+
+     unsigned phyAddr2PDIndex(unsigned page);
+
+     unsigned phyAddr2PTIndex(unsigned page);
+
+     unsigned cutOfOffset(unsigned logaddr);
+
+     unsigned createOffset(bool presentBit, bool read_writeBit, bool pinnedBit, bool dirtyBit);
 
      unsigned getPresentBit(unsigned phyAddr);
 
-     unsigned setPresentBit(unsigned physAddress, unsigned presentBit);
+     unsigned setPresentBit(unsigned physAddress, bool presentBit);
+
+     unsigned getReadAndWriteBit(unsigned phyAddr);
+
+     unsigned setReadAndWriteBit(unsigned phyAddr, bool read_writeBit);
+
+     unsigned getPinnedBit(unsigned phyAddr);
+
+     unsigned setPinnedBit(unsigned phyAddr, bool pinnedBit);
+
+     unsigned getDirtyBit(unsigned phyAddr);
+
+     unsigned setDirtyBit(unsigned phyAddr, bool dirtyBit);
 };
 
 #endif
