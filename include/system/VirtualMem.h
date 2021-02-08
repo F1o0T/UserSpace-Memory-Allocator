@@ -264,7 +264,7 @@ public:
 	// Signal handeler, constructor and deconstructor.
 	// static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
 	// VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
-    void initializeVirtualMem(bool writeBackAll);
+    void initializeVirtualMem();
 	~VirtualMem();
 	/////////////////////////////////////////////////
 	// Basic Methods
@@ -299,7 +299,6 @@ private:
     Queue readQueue;
     Queue writeQueue;
     SwapFile swapFile;
-    bool writeBackAll;
 };
 
 #endif

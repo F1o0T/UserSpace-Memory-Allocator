@@ -100,10 +100,9 @@ unsigned AddressMapping::cutOfOffset(unsigned logaddr) {
  * @param read_writeBit 0 = read, 1 = write
  * @param accessed 0 = not accessed yet, 1 = accessed it first time
  * @param pinnedBit 0 = not pinned, 1 = pinned
- * @param dirtyBit 0 = means swapfile = ram, 1 = means ram has changed data
  * @return complett Offset (you can add it to the address)
  */
-unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit, bool dirtyBit) {
+unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit) {
     unsigned offset = 0;
 
     if (presentBit) {
@@ -120,10 +119,6 @@ unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool 
 
     if (pinnedBit) {
         offset = offset | 0b1000;
-    }
-
-    if (dirtyBit) {
-        offset = offset | 0b1000000;
     }
 
     return offset;
@@ -177,20 +172,5 @@ void AddressMapping::setPinnedBit(unsigned* tableEntry, bool pinnedBit) {
         *(tableEntry) = *(tableEntry) | 0b1000;
     } else {
         *(tableEntry) = *(tableEntry) & 0xFFFFFFF7;
-    }
-}
-
-/** 
- * @return dirtyBit 0 = means swapfile = ram, 1 = means ram has changed data
- */
-unsigned AddressMapping::getDirtyBit(unsigned phyAddr) {
-    return phyAddr & 0b1000000;
-}
-
-void AddressMapping::setDirtyBit(unsigned* tableEntry, bool dirtyBit) {
-    if(dirtyBit == 1) {
-        *(tableEntry) = *(tableEntry) | 0b1000000;
-    } else {
-        *(tableEntry) = *(tableEntry) & 0xFFFFFFBF;
     }
 }

@@ -9,7 +9,7 @@
 #define NUMBER_OF_PAGEFRAMES 20
 #define PHY_MEM_LENGTH PAGESIZE*NUMBER_OF_PAGEFRAMES
 
-void VirtualMem::initializeVirtualMem(bool writeBackAll)
+void VirtualMem::initializeVirtualMem()
 {
 	//open the shared memory file (physical memory)
 	this -> fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -30,15 +30,16 @@ void VirtualMem::initializeVirtualMem(bool writeBackAll)
         exit(1);
     }
 
+	cout << "initMem 1" << endl;
 	initializePDandFirstPT();
 
 
 	//Debug
-	/*cout << "start1: " << virtualMemStartAddress << endl;
+	cout << "start1: " << virtualMemStartAddress << endl;
 	cout << "start2: " << reinterpret_cast<size_t> (virtualMemStartAddress) << endl;
 	cout << "start content" << (*(virtualMemStartAddress)) << endl;
 	cout << "content first entry at first PT: " << *((this->virtualMemStartAddress) + PAGETABLE_SIZE) << endl;
-	cout << "content first entry at first PT: " << *((this->virtualMemStartAddress) + PAGETABLE_SIZE + 1) << endl;*/
+	cout << "content first entry at first PT: " << *((this->virtualMemStartAddress) + PAGETABLE_SIZE + 1) << endl;
 }
 
 
@@ -63,21 +64,21 @@ void VirtualMem::initializePDandFirstPT()
 	nextFreeFrameIndex++;
 
 	//book keeping for the activated page -> you have to do both steps because it is not wanted that
-	writePageActivate(virtualMemStartAddress);
+	this->writeQueue.enQueue(virtualMemStartAddress);
 
-	
+	cout << "initPDandPT" << endl;
 	//initialize first PT with the two phys adresses of the PD and the PT itself
 	initializePT(virtualMemStartAddress + PAGETABLE_SIZE);
-	*(virtualMemStartAddress + PAGETABLE_SIZE) = ((0 << 12) | mappingUnit.createOffset(1,1,1,0,1));
-	*(virtualMemStartAddress + PAGETABLE_SIZE + 1) = ((1 << 12) | mappingUnit.createOffset(1,1,1,0,1));
+	*(virtualMemStartAddress + PAGETABLE_SIZE) = ((0 << 12) | mappingUnit.createOffset(1,1,1,0));
+	*(virtualMemStartAddress + PAGETABLE_SIZE + 1) = ((1 << 12) | mappingUnit.createOffset(1,1,1,0));
 
 
 	//add the physical address of the PT in the PD -> here the logical and physical value is equal to one another
-	*(virtualMemStartAddress) = (1 << 12) | mappingUnit.createOffset(1,1,1,1,1);
+	*(virtualMemStartAddress) = (1 << 12) | mappingUnit.createOffset(1,1,1,1);
 
 
 	//create all PT but the presentBits are not set -> they are not mapped in
-	unsigned offset = mappingUnit.createOffset(0,1,0,1,1);
+	unsigned offset = mappingUnit.createOffset(0,1,0,1);
 	for(unsigned i = 1; i < PAGETABLE_SIZE; i++)
 	{
 		//(i+1) because at 0 is PD and at 1 is first PT, so start the others PT starts at 2
@@ -93,8 +94,9 @@ void VirtualMem::initializePDandFirstPT()
 */
 void VirtualMem::initializePT(void *pageStartAddress) //TODO eins rauswerfen wenn rein muss
 {
+	cout << this->nextFreeFrameIndex << " is smaller than " << NUMBER_OF_PAGEFRAMES << endl;
 	//if the RAM is full we need to throw something out
-	if (this->nextFreeFrameIndex < NUMBER_OF_PAGEFRAMES) {
+	if (this->nextFreeFrameIndex >= NUMBER_OF_PAGEFRAMES) {
 		void* kickedChunkAddr;
 		if (!this->readQueue.isEmpty()) {
 			kickedChunkAddr = this->readQueue.deQueue();
@@ -127,7 +129,7 @@ void VirtualMem::initializePT(void *pageStartAddress) //TODO eins rauswerfen wen
 	cout << "where 6 0 6 2" << endl;
 	//book keeping for the activated page -> you have to do both steps
 	
-	writePageActivate(pageStartAddress);
+	this->writeQueue.enQueue(pageStartAddress);
 	cout << "where 6 0 6 3" << endl;
 }
 
@@ -325,7 +327,7 @@ void VirtualMem::addPageEntry2PT(unsigned* startAddrPage) {
 	}
 	cout << "where 6 0 9 " << mappingUnit.cutOfOffset(pageTableAddr) << endl;
 	//add the page in PT
-	*(virtualMemStartAddress + (mappingUnit.cutOfOffset(pageTableAddr)*PAGETABLE_SIZE) + second10Bits) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1,0,1,0,0);
+	*(virtualMemStartAddress + (mappingUnit.cutOfOffset(pageTableAddr)*PAGETABLE_SIZE) + second10Bits) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1,0,1,0);
 	cout << "where 6 0 10" << endl;
 	nextFreeFrameIndex++;
 }

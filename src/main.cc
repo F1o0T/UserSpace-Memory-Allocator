@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <chrono>
 #include <boost/program_options.hpp>
-#include "timer/CycleTimer.h"
 #include <string>
 
 #include "gui/MemoryGUI.h"
@@ -61,9 +60,8 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
 
 int main(int argc, char** argv)
 {
-    bool writeBackAll = false;
     cout << "main 1" << endl;
-    vMem.initializeVirtualMem(writeBackAll);
+    vMem.initializeVirtualMem();
     
     if (showGUI) {
         window = new DrawingWindow(width, height, "GUI");
@@ -98,6 +96,10 @@ int main(int argc, char** argv)
     for (unsigned i = 0; i < nrElements; i++) {
         cout << "MEM start at = " << vMem.getStart() << endl;
         cout << "address to access " << blocks[i] << endl;
+        cout << "the i of the for loop = " << i << endl;
+        if (i == 16) {
+            cout << "loooooooooooooooonnnnng" << endl;
+        }
         *blocks[i] = refNumbers[i]; //pseudo-random values
     }
     cout << "lol ok" << endl;
