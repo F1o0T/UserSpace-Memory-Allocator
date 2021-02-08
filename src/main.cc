@@ -62,12 +62,14 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
 int main(int argc, char** argv)
 {
     bool writeBackAll = false;
+    cout << "main 1" << endl;
     vMem.initializeVirtualMem(writeBackAll);
     
     if (showGUI) {
         window = new DrawingWindow(width, height, "GUI");
         gui = new MemoryGUI(&vMem, window, MO_PAGE);
     }
+    cout << "main 2" << endl;
     gui -> drawMemory();
     ///////////////////////////////////////////
     struct sigaction SigAction;
@@ -75,6 +77,7 @@ int main(int argc, char** argv)
     SigAction.sa_flags = SA_SIGINFO;
     sigaction(SIGSEGV, &SigAction, NULL);
     ///////////////////////////////////////////
+    cout << "main 3" << endl;
 
     //each element has a size of blockSize
     //how many can we store in the memory?

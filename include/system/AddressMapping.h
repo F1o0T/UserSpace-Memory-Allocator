@@ -9,8 +9,10 @@
 #define WRITE 1
 #define NOT_PRESENT 0
 #define PRESENT 1
-#define NOT_DIRTY 0
-#define DIRTY 1
+#define NOT_PINNED 0
+#define PINNED 1
+#define NOT_ACCESSED 0
+#define ACCESSED 1
 
 using namespace std;
 
@@ -38,7 +40,7 @@ public:
 
      unsigned logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr);
 
-     unsigned* logAddr2PTEntry(unsigned* virtualMemStart, unsigned* logAddr);
+     unsigned* logAddr2PTEntryAddr(unsigned* virtualMemStart, unsigned* logAddr);
 
      unsigned phyAddr2page(unsigned logaddr);
 
@@ -48,23 +50,27 @@ public:
 
      unsigned cutOfOffset(unsigned logaddr);
 
-     unsigned createOffset(bool presentBit, bool read_writeBit, bool pinnedBit, bool dirtyBit);
+     unsigned createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit, bool dirtyBit);
 
      unsigned getPresentBit(unsigned phyAddr);
 
-     unsigned setPresentBit(unsigned physAddress, bool presentBit);
+     void setPresentBit(unsigned* tableEntry, bool presentBit);
 
      unsigned getReadAndWriteBit(unsigned phyAddr);
 
-     unsigned setReadAndWriteBit(unsigned phyAddr, bool read_writeBit);
+     void setReadAndWriteBit(unsigned* tableEntry, bool read_writeBit);
+
+     unsigned getAccessed(unsigned phyAddr);
+
+     void setAccessed(unsigned* tableEntry, bool accessed);
 
      unsigned getPinnedBit(unsigned phyAddr);
 
-     unsigned setPinnedBit(unsigned phyAddr, bool pinnedBit);
+     void setPinnedBit(unsigned* tableEntry, bool pinnedBit);
 
      unsigned getDirtyBit(unsigned phyAddr);
 
-     unsigned setDirtyBit(unsigned phyAddr, bool dirtyBit);
+     void setDirtyBit(unsigned* tableEntry, bool dirtyBit);
 };
 
 #endif

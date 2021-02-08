@@ -58,14 +58,17 @@ unsigned AddressMapping::logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr
     unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
     unsigned addrOfPF = *(virtualMemStart + cutOfOffset(addrOfPT) + phyAddr2PTIndex(phyAddr));
-    return addrOfPF; 
+    return addrOfPF;
 }
 
-unsigned* AddressMapping::logAddr2PTEntry(unsigned* virtualMemStart, unsigned* logAddr) {
+unsigned* AddressMapping::logAddr2PTEntryAddr(unsigned* virtualMemStart, unsigned* logAddr) {
     unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
     cout << "log2PT 1 " << phyAddr << endl;
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
     cout << "log2PT 2 " << addrOfPT << endl;
+    if (getPresentBit(addrOfPT) == NOT_PRESENT) {
+        return 0;
+    }
     unsigned* pageTableEntry = virtualMemStart + cutOfOffset(addrOfPT) + phyAddr2PTIndex(phyAddr);
     cout << "log2PT 3 " << pageTableEntry << " mit " << cutOfOffset(addrOfPT) << " und " << phyAddr2PTIndex(phyAddr) << endl;
     return pageTableEntry;
@@ -95,11 +98,12 @@ unsigned AddressMapping::cutOfOffset(unsigned logaddr) {
  *
  * @param presentBit 0 = not present, 1 = present
  * @param read_writeBit 0 = read, 1 = write
+ * @param accessed 0 = not accessed yet, 1 = accessed it first time
  * @param pinnedBit 0 = not pinned, 1 = pinned
  * @param dirtyBit 0 = means swapfile = ram, 1 = means ram has changed data
  * @return complett Offset (you can add it to the address)
  */
-unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool pinnedBit, bool dirtyBit) {
+unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit, bool dirtyBit) {
     unsigned offset = 0;
 
     if (presentBit) {
@@ -108,6 +112,10 @@ unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool 
 
     if (read_writeBit) {
         offset = offset | 0b10;
+    }
+
+    if (accessed) {
+        offset = offset | 0b100;
     }
 
     if (pinnedBit) {
@@ -128,11 +136,11 @@ unsigned AddressMapping::getPresentBit(unsigned phyAddr) {
     return phyAddr & 0b1;
 }
 
-unsigned AddressMapping::setPresentBit(unsigned phyAddr, bool presentBit) {
-    if(presentBit == 1) {
-        return phyAddr | 0b1;
+void AddressMapping::setPresentBit(unsigned* tableEntry, bool presentBit) {
+    if (presentBit == 1) {
+        *(tableEntry) = *(tableEntry) | 0b1;
     } else {
-        return phyAddr & 0xFFFFFFFE;
+        *(tableEntry) = *(tableEntry) & 0xFFFFFFFE;
     }
 }
 
@@ -140,11 +148,23 @@ unsigned AddressMapping::getReadAndWriteBit(unsigned phyAddr) {
     return phyAddr & 0b10;
 }
 
-unsigned AddressMapping::setReadAndWriteBit(unsigned phyAddr, bool read_writeBit) {
-    if(read_writeBit == 1) {
-        return phyAddr | 0b10;
+void AddressMapping::setReadAndWriteBit(unsigned* tableEntry, bool read_writeBit) {
+    if (read_writeBit == 1) {
+        *(tableEntry) = *(tableEntry) | 0b10;
     } else {
-        return phyAddr & 0xFFFFFFFE;
+        *(tableEntry) = *(tableEntry) & 0xFFFFFFFD;
+    }
+}
+
+unsigned AddressMapping::getAccessed(unsigned phyAddr) {
+    return phyAddr & 0b100;
+}
+
+void AddressMapping::setAccessed(unsigned* tableEntry, bool accessed) {
+    if (accessed == 1) {
+        *(tableEntry) = *(tableEntry) | 0b100;
+    } else {
+        *(tableEntry) = *(tableEntry) & 0xFFFFFFFB;
     }
 }
 
@@ -152,22 +172,25 @@ unsigned AddressMapping::getPinnedBit(unsigned phyAddr) {
     return phyAddr & 0b10;
 }
 
-unsigned AddressMapping::setPinnedBit(unsigned phyAddr, bool pinnedBit) {
+void AddressMapping::setPinnedBit(unsigned* tableEntry, bool pinnedBit) {
     if(pinnedBit == 1) {
-        return phyAddr | 0b1000;
+        *(tableEntry) = *(tableEntry) | 0b1000;
     } else {
-        return phyAddr & 0xFFFFFFFE;
+        *(tableEntry) = *(tableEntry) & 0xFFFFFFF7;
     }
 }
 
+/** 
+ * @return dirtyBit 0 = means swapfile = ram, 1 = means ram has changed data
+ */
 unsigned AddressMapping::getDirtyBit(unsigned phyAddr) {
-    return phyAddr & 0b10;
+    return phyAddr & 0b1000000;
 }
 
-unsigned AddressMapping::setDirtyBit(unsigned phyAddr, bool dirtyBit) {
+void AddressMapping::setDirtyBit(unsigned* tableEntry, bool dirtyBit) {
     if(dirtyBit == 1) {
-        return phyAddr | 0b1000000;
+        *(tableEntry) = *(tableEntry) | 0b1000000;
     } else {
-        return phyAddr & 0xFFFFFFFE;
+        *(tableEntry) = *(tableEntry) & 0xFFFFFFBF;
     }
 }
