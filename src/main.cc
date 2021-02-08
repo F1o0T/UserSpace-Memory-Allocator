@@ -18,7 +18,7 @@ VirtualMem vMem;
 DrawingWindow* window;
 MemoryGUI* gui;
 
-bool showGUI = true;
+bool showGUI = false;
 
 //a simple version of bubble sort
 void bubbleSort(unsigned** array, unsigned nrElements)
@@ -30,13 +30,16 @@ void bubbleSort(unsigned** array, unsigned nrElements)
                 *(array[i]) = *(array[j]);
                 *(array[j]) = temp;
             }
+            cout << i << " = i and " << j << " = j" << endl;
             if (showGUI) {
 				gui -> drawMemory();
 				sleep(1);
-				//cout << "|>>> Write a char: "; char ch; 
+				////cout << "|>>> Write a char: "; char ch; 
 				//cin >> ch; 
 		    }
         }
+		////cout << "|>>> Write a char: "; char ch; 
+		//cin >> ch; 
     }
 }
 
@@ -52,7 +55,7 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
     }
     else if(info->si_code == SEGV_MAPERR)
     {
-        cout << "|### Error: Access denied, unmapped address!" << endl; 
+        //cout << "|### Error: Access denied, unmapped address!" << endl; 
         exit(1);
     }
 
@@ -60,22 +63,22 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
 
 int main(int argc, char** argv)
 {
-    cout << "main 1" << endl;
+    //cout << "main 1" << endl;
     vMem.initializeVirtualMem();
     
     if (showGUI) {
         window = new DrawingWindow(width, height, "GUI");
         gui = new MemoryGUI(&vMem, window, MO_PAGE);
+        gui -> drawMemory();
     }
-    cout << "main 2" << endl;
-    gui -> drawMemory();
+    //cout << "main 2" << endl;
     ///////////////////////////////////////////
     struct sigaction SigAction;
     SigAction.sa_sigaction = signalHandeler;
     SigAction.sa_flags = SA_SIGINFO;
     sigaction(SIGSEGV, &SigAction, NULL);
     ///////////////////////////////////////////
-    cout << "main 3" << endl;
+    //cout << "main 3" << endl;
 
     //each element has a size of blockSize
     //how many can we store in the memory?
@@ -88,21 +91,22 @@ int main(int argc, char** argv)
     }
 
     //store the start address of each block in the array
-    unsigned* memStart = static_cast<unsigned*>(vMem.getStart());
+    char* memStart = static_cast<char*>(vMem.getStart());
     for (unsigned i = 0; i < nrElements; i++) {
-        blocks[i] = memStart + (i * 1024);
+        blocks[i] = (unsigned*) (memStart + (i * 4096));
     }
     //initialize the field
     for (unsigned i = 0; i < nrElements; i++) {
-        cout << "MEM start at = " << vMem.getStart() << endl;
-        cout << "address to access " << blocks[i] << endl;
-        cout << "the i of the for loop = " << i << endl;
+        //cout << "MEM start at = " << vMem.getStart() << endl;
+        //cout << "address to access " << blocks[i] << endl;
         if (i == 16) {
-            cout << "loooooooooooooooonnnnng" << endl;
+            //cout << "loooooooooooooooonnnnng" << endl;
         }
+        cout << "the i of the for loop = " << i << endl;
         *blocks[i] = refNumbers[i]; //pseudo-random values
+        ////////////////
     }
-    cout << "lol ok" << endl;
+    //cout << "lol ok" << endl;
     bubbleSort(blocks, nrElements);
 
     if (showGUI) {
@@ -112,6 +116,6 @@ int main(int argc, char** argv)
         delete(gui);
     }
 
-    cout << "ok end of code" << endl;
+    //cout << "ok end of code" << endl;
     return 0;
 }

@@ -6,7 +6,7 @@
 #define PAGETABLE_SIZE 1024
 #define NUMBER_OF_PAGES FOUR_GB/PAGESIZE
 #define NUMBER_OF_PT NUMBER_OF_PAGES/PAGETABLE_SIZE
-#define NUMBER_OF_PAGEFRAMES 20
+#define NUMBER_OF_PAGEFRAMES 5
 #define PHY_MEM_LENGTH PAGESIZE*NUMBER_OF_PAGEFRAMES
 
 void VirtualMem::initializeVirtualMem()
@@ -96,7 +96,8 @@ void VirtualMem::initializePT(void *pageStartAddress) //TODO eins rauswerfen wen
 {
 	cout << this->nextFreeFrameIndex << " is smaller than " << NUMBER_OF_PAGEFRAMES << endl;
 	//if the RAM is full we need to throw something out
-	if (this->nextFreeFrameIndex >= NUMBER_OF_PAGEFRAMES) {
+	if ((this->nextFreeFrameIndex+1) >= NUMBER_OF_PAGEFRAMES) {
+		cout << "here omg" << endl;
 		void* kickedChunkAddr;
 		if (!this->readQueue.isEmpty()) {
 			kickedChunkAddr = this->readQueue.deQueue();
@@ -156,7 +157,7 @@ void VirtualMem::fixPermissions(void* address)
 	if(mappingUnit.getPresentBit(pageFrameAddr) == NOT_PRESENT)
 	{
 		//this is the case when we change the permission from non to read
-		if(this->nextFreeFrameIndex < NUMBER_OF_PAGEFRAMES)
+		if((this->nextFreeFrameIndex+1) < NUMBER_OF_PAGEFRAMES)
 		{
 			permissionChange = NONTOREAD_NOTFULL;
 		}else
@@ -204,7 +205,7 @@ void VirtualMem::fixPermissions(void* address)
 				}
 				this->pageOut(kickedChunkAddr);
 			}
-			cout << "where 10" << endl;
+			cout << "where 10 kicked page = " << kickedChunkAddr << endl;
 			//now just deactivate all the stuff
 			mapOut(kickedChunkAddr);
 
@@ -251,13 +252,17 @@ void VirtualMem::writePageActivate(void* pageStartAddr)
 
 void VirtualMem::pageOut(void* kickedChunkAddr)
 {
+	cout << "page out first try" << endl;
 	off_t offset = reinterpret_cast<off_t>(kickedChunkAddr)-reinterpret_cast<off_t>(this->virtualMemStartAddress); 
+	cout << "page out 1 = " << offset << endl;
 	this->swapFile.swapFileWrite(kickedChunkAddr, offset , PAGESIZE);
-
+	cout << "page out 2 = " << kickedChunkAddr << endl;
 	unsigned* pageTableEntry = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned*) kickedChunkAddr);
+	cout << "page out 3 = " << pageTableEntry << endl;
     unsigned pageFrameAddr = *(pageTableEntry);
-
-	pageoutPointer = pageFrameAddr;
+	cout << "page out 4 = " << pageFrameAddr  << endl;
+	this->pageoutPointer = pageFrameAddr;
+	cout << "page out 5 = " << pageoutPointer << endl;
 }
 
 
@@ -269,14 +274,16 @@ void VirtualMem::pageIn(void* chunckStartAddr)
 
 void VirtualMem::mapOut(void* pageStartAddress) {
 	//map out shared memory file
+	cout << "map out 1 = " << pageStartAddress << endl;
 	munmap(pageStartAddress, PAGESIZE);
-
+	cout << "map out 2 = " << pageStartAddress << endl;
 	//map in MAP_Anonymous (simulation for no physical nemory behind it)
 	mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-
+	cout << "map out 3 = " << pageStartAddress << endl;
 	unsigned* pageTableEntry = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned*) pageStartAddress);
-	
+	cout << "map out 4 = " << pageTableEntry << endl;
 	mappingUnit.setPresentBit(pageTableEntry, NOT_PRESENT);
+	cout << "map out 5 = " << pageTableEntry << endl;
 }
 
 void VirtualMem::mapIn(void* pageStartAddress) {
