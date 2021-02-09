@@ -56,22 +56,25 @@ unsigned AddressMapping::page2pageDirectoryIndex(unsigned page) {
 
 unsigned AddressMapping::logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr) {
     unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
+    //cout << "log2PF 1 " << phyAddr << endl;
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
-    unsigned addrOfPF = *(virtualMemStart + cutOfOffset(addrOfPT) + phyAddr2PTIndex(phyAddr));
+    //cout << "log2PF 2 " << addrOfPT << endl;
+    unsigned addrOfPF = *(((char*) virtualMemStart) + phyAddr2page(addrOfPT) + (phyAddr2PTIndex(phyAddr)*4));
+    //cout << "log2PF 3 " << addrOfPF << " mit " << phyAddr2page(addrOfPT) << " und " << phyAddr2PTIndex(phyAddr) << " and " << phyAddr2PDIndex(phyAddr) << endl;
     return addrOfPF;
 }
 
 unsigned* AddressMapping::logAddr2PTEntryAddr(unsigned* virtualMemStart, unsigned* logAddr) {
     unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
-    cout << "log2PT 1 " << phyAddr << endl;
+    //cout << "log2PT 1 " << phyAddr << " == " << virtualMemStart + phyAddr2PDIndex(phyAddr) << endl;
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
-    cout << "log2PT 2 " << addrOfPT << endl;
+    //cout << "log2PT 2 " << addrOfPT << endl;
     if (getPresentBit(addrOfPT) == NOT_PRESENT) {
         return 0;
     }
-    unsigned* pageTableEntry = virtualMemStart + cutOfOffset(addrOfPT) + phyAddr2PTIndex(phyAddr);
-    cout << "log2PT 3 " << pageTableEntry << " mit " << cutOfOffset(addrOfPT) << " und " << phyAddr2PTIndex(phyAddr) << endl;
-    return pageTableEntry;
+    char* pageTableEntry = ((char*) virtualMemStart) + phyAddr2page(addrOfPT) + (phyAddr2PTIndex(phyAddr)*4);
+    //cout << "log2PT 3 " << (unsigned*) pageTableEntry << " mit " << phyAddr2page(addrOfPT) << " und " << phyAddr2PTIndex(phyAddr) << " and " << phyAddr2PDIndex(phyAddr) << endl;
+    return (unsigned*) pageTableEntry;
 }
 
 // 1111111111 1111111111 000000000000
@@ -140,7 +143,7 @@ void AddressMapping::setPresentBit(unsigned* tableEntry, bool presentBit) {
 }
 
 unsigned AddressMapping::getReadAndWriteBit(unsigned phyAddr) {
-    return phyAddr & 0b10;
+    return (phyAddr & 0b10) >> 1;
 }
 
 void AddressMapping::setReadAndWriteBit(unsigned* tableEntry, bool read_writeBit) {
@@ -152,7 +155,7 @@ void AddressMapping::setReadAndWriteBit(unsigned* tableEntry, bool read_writeBit
 }
 
 unsigned AddressMapping::getAccessed(unsigned phyAddr) {
-    return phyAddr & 0b100;
+    return (phyAddr & 0b100) >> 2;
 }
 
 void AddressMapping::setAccessed(unsigned* tableEntry, bool accessed) {
@@ -164,7 +167,7 @@ void AddressMapping::setAccessed(unsigned* tableEntry, bool accessed) {
 }
 
 unsigned AddressMapping::getPinnedBit(unsigned phyAddr) {
-    return phyAddr & 0b10;
+    return (phyAddr & 0b1000) >> 3;
 }
 
 void AddressMapping::setPinnedBit(unsigned* tableEntry, bool pinnedBit) {

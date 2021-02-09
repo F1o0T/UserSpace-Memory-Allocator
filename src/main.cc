@@ -2,8 +2,6 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
-#include <chrono>
-#include <boost/program_options.hpp>
 #include <string>
 
 #include "gui/MemoryGUI.h"
@@ -30,16 +28,14 @@ void bubbleSort(unsigned** array, unsigned nrElements)
                 *(array[i]) = *(array[j]);
                 *(array[j]) = temp;
             }
-            cout << i << " = i and " << j << " = j" << endl;
+            //cout << i << " = i and " << j << " = j" << endl;
             if (showGUI) {
 				gui -> drawMemory();
-				sleep(1);
+				//sleep(1);
 				////cout << "|>>> Write a char: "; char ch; 
 				//cin >> ch; 
 		    }
         }
-		////cout << "|>>> Write a char: "; char ch; 
-		//cin >> ch; 
     }
 }
 
@@ -49,9 +45,9 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
     if(info->si_code == SEGV_ACCERR)
     {   
-        cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
+        //cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
         vMem.fixPermissions(info->si_addr);
-        cout << "|>>> Permissions were fixed!" << endl;
+        //cout << "|>>> Permissions were fixed!" << endl;
     }
     else if(info->si_code == SEGV_MAPERR)
     {
@@ -99,14 +95,20 @@ int main(int argc, char** argv)
     for (unsigned i = 0; i < nrElements; i++) {
         //cout << "MEM start at = " << vMem.getStart() << endl;
         //cout << "address to access " << blocks[i] << endl;
-        if (i == 16) {
-            //cout << "loooooooooooooooonnnnng" << endl;
+        if (showGUI) {
+            gui -> drawMemory();		
+            //cout << "|>>> Write a char: "; char ch; 
+		    //cin >> ch; 
         }
-        cout << "the i of the for loop = " << i << endl;
+        //cout << "the i of the for loop = " << i << endl;
         *blocks[i] = refNumbers[i]; //pseudo-random values
+        cout << "right? " << refNumbers[i] << " == " << *blocks[i] << endl;
         ////////////////
     }
-    //cout << "lol ok" << endl;
+    for (unsigned i = 0; i < nrElements; i++) {
+        cout << "liste Element " << i << " = " << *blocks[i] << endl;
+    }
+    cout << "lol ok" << endl;
     bubbleSort(blocks, nrElements);
 
     if (showGUI) {
@@ -116,6 +118,10 @@ int main(int argc, char** argv)
         delete(gui);
     }
 
-    //cout << "ok end of code" << endl;
+    for (unsigned i = 0; i < nrElements; i++) {
+        cout << "liste Element " << i << " = " << *blocks[i] << endl;
+    }
+
+    cout << "ok end of code" << endl;
     return 0;
 }

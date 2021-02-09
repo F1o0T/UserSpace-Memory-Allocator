@@ -197,30 +197,32 @@ void MemoryGUI::drawVirtualMem() {
 
 	//für beide Blöcke einzeichen
 	for (int i : virtualMem) {
-		if (i != 0) {
+		if (i != 0/* || v < 3 || (v > 1025 && v < 1055)*/) {
 			if (i == 1) {
 				window->setForegroundColor(RGBColor(255,165,0));
 			} else if (i == 2) {
 				window->setForegroundColor(RGBColor(0,255,0));
+			} else if (i == 0) {
+				window->setForegroundColor(RGBColor(255,0,0));
 			}
 
 			if (x1 > (width - 20 - 600)) {
 				x1 -= (width - 20 - 600);
-				y1 += 40;
+				y1 += 20;
 			}
 
-			if (x2 > (width - 20)) {
+			if (x2 > (width - 80)) {
 				x2 -= 600;
-				y2 += 40;
+				y2 += 20;
 			}
 
-			window->drawFilledRectangle(x1,y1,30,10);
-			window->drawFilledRectangle(x2,y2,70,10);
+			window->drawFilledRectangle(x1,y1,40,10);
+			window->drawFilledRectangle(x2,y2,80,10);
 			window->setForegroundColor(RGBColor(0,0,0));
 			window->drawText(x1+1, y1+10, "p " + to_string(v));
 			window->drawText(x2+1, y2+10, "p"+ to_string(v) + " -> pf" + to_string(*(physicalMem.begin())));
-			x1 += 40;
-			x2 += 80;
+			x1 += 50;
+			x2 += 85;
 			physicalMem.pop_front();
 		}
 		v++;

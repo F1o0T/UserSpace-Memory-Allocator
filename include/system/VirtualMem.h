@@ -275,7 +275,6 @@ public:
 	// Advanced Methods
 	void fixPermissions(void*);
     void initializePDandFirstPT();
-    void initializePT(void* startAdress);
     void addPageEntry2PT(unsigned* pageStartAddress);
     void addPTEntry2PD(unsigned* startAddrPage);
 	void* findStartAddress(void* ptr);
@@ -292,6 +291,7 @@ public:
 private:
 	unsigned* virtualMemStartAddress = NULL;
     unsigned nextFreeFrameIndex = 0;
+    unsigned pagesinRAM = 0;
     unsigned pageoutPointer = 0;
     int fd = 0;
     AddressMapping mappingUnit;
