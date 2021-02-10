@@ -90,6 +90,19 @@ void VirtualMem::initializePDandFirstPT()
 
 void VirtualMem::fixPermissions(void* address)
 {
+	/*
+		One part of fixPermissions is to translate the logical address, it is getting as the argument,
+		to the physical address the processor wants to read/write. To do this, we take the left most 10 bits of the logical address for looking in the
+		PD to find the beginning of the PT. Once we found it, we use the next 10 bits of the logical address to
+		find the right entry in the PT. This entry is leading us to the beginning of the pageframe in phys. memory.
+		To find the right address in this page frame, we would have to take the last 12 bits of the log. address (=offset), and add them to the start
+		address of the pageframe. A real MMU would return to the processor this phys. address, so it knows where to read/write in phys. memory.
+		In our simulation this point wasn't needed, because the simulated phys. memory is directly mapped in the logical memory space. So
+		if you want to use this code as a blueprint for address translation in the real world, you will have to add the last 12 bits
+		to the entry of PT (of course without the status bits that are inside of it) and return the address to the processor. Otehrwise
+		the translation will not be completed and your program will crash.
+	*/
+
 	void* pageStartAddr = findStartAddress(address);
 	unsigned* pagePTEntryAddr = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned*) pageStartAddr);
 
