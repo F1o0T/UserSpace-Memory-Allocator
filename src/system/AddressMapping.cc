@@ -59,9 +59,10 @@ unsigned AddressMapping::logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr
     //cout << "log2PF 1 " << phyAddr << endl;
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
     //cout << "log2PF 2 " << addrOfPT << endl;
-    unsigned addrOfPF = *(((char*) virtualMemStart) + phyAddr2page(addrOfPT) + (phyAddr2PTIndex(phyAddr)*4));
+    //unsigned addrOfPF = *((unsigned*) ((char*) virtualMemStart) + phyAddr2page(addrOfPT) + (phyAddr2PTIndex(phyAddr)*4));
+    char* pageTableEntry = ((char*) virtualMemStart) + phyAddr2page(addrOfPT) + (phyAddr2PTIndex(phyAddr)*4);
     //cout << "log2PF 3 " << addrOfPF << " mit " << phyAddr2page(addrOfPT) << " und " << phyAddr2PTIndex(phyAddr) << " and " << phyAddr2PDIndex(phyAddr) << endl;
-    return addrOfPF;
+    return *((unsigned*) pageTableEntry);
 }
 
 unsigned* AddressMapping::logAddr2PTEntryAddr(unsigned* virtualMemStart, unsigned* logAddr) {

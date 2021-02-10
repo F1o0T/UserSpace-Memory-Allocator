@@ -6,7 +6,7 @@
 #define PAGETABLE_SIZE 1024
 #define NUMBER_OF_PAGES FOUR_GB/PAGESIZE
 #define NUMBER_OF_PT NUMBER_OF_PAGES/PAGETABLE_SIZE
-#define NUMBER_OF_PAGEFRAMES 10
+#define NUMBER_OF_PAGEFRAMES 6
 #define PHY_MEM_LENGTH PAGESIZE*NUMBER_OF_PAGEFRAMES
 
 void VirtualMem::initializeVirtualMem()
@@ -76,7 +76,7 @@ void VirtualMem::initializePDandFirstPT()
 
 
 	//add the physical address of the PT in the PD -> here the logical and physical value is equal to one another
-	*(virtualMemStartAddress) = (1 << 12) | mappingUnit.createOffset(1,1,1,0);
+	*(virtualMemStartAddress) = (1 << 12) | mappingUnit.createOffset(1,1,1,1);
 
 
 	//create all PT but the presentBits are not set -> they are not mapped in
@@ -126,6 +126,7 @@ void VirtualMem::fixPermissions(void* address)
 			permissionChange = READTOWRITE;
 	}
 
+	//cout << "inhalt = " << mappingUnit.cutOfOffset(pageFrameAddr) << endl;
 
 	switch(permissionChange)
 	{
@@ -133,9 +134,9 @@ void VirtualMem::fixPermissions(void* address)
 			//cout << "where 5" << endl;
 			//if there is already data on the disk, we have to this data in
 			if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED) {
+				//cout << "where 6" << endl;
 				this->pageIn(pageStartAddr);
 			}
-			//cout << "where 6" << endl;
 			mapIn(pageStartAddr);
 			//cout << "where 7" << endl;
 			readPageActivate(pageStartAddr);
@@ -143,14 +144,14 @@ void VirtualMem::fixPermissions(void* address)
 			break;
 
 		case NONTOREAD_FULL:
-			//cout << "where 9" << endl;
+			cout << "where 9" << endl;
 			//first we have to kick out one chunk, preferibly in the readQueue
 			void* kickedChunkAddr;
+			cout << "kick 2 " << writeQueue.size() << " " << readQueue.size() << " " << pagesinRAM << endl;
 			if (!this->readQueue.isEmpty()) {
 				//cout << "kick 1 " << endl;
 				kickedChunkAddr = this->readQueue.deQueue();
 			}else{
-				//cout << "kick 2 " << writeQueue.size() << " " << readQueue.size() << " " << pagesinRAM << endl;
 				//kickout a chunk in the writeQueue
 				kickedChunkAddr = this->writeQueue.deQueue();
     			unsigned kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned*) kickedChunkAddr);
@@ -172,17 +173,16 @@ void VirtualMem::fixPermissions(void* address)
 			//now just deactivate all the stuff
 			mapOut(kickedChunkAddr);
 			
-			mapIn(pageStartAddr);
-			//cout << "where 11" << endl;
-			readPageActivate(pageStartAddr);
-			//cout << "where 12" << endl;
 
+			mapIn(pageStartAddr);
 			//last but not least: activate the chunk just like in case 1
-			if (mappingUnit.getPresentBit(pageFrameAddr) == NOT_PRESENT && mappingUnit.getPresentBit(pageFrameAddr) == ACCESSED) {
+			if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED) {
+				//cout << "here we go again" << endl;
+				mprotect(pageStartAddr, PAGESIZE, PROT_WRITE);
 				this->pageIn(pageStartAddr);
 			}
+			readPageActivate(pageStartAddr);
 			break;
-
 
 		case READTOWRITE:
 			//cout << "where 13" << endl;
@@ -192,6 +192,10 @@ void VirtualMem::fixPermissions(void* address)
 			writePageActivate(pageStartAddr);
 			break;
 	}
+
+	pageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned*) pageStartAddr);
+	//cout << "inhalt = " << pageFrameAddr << " == pf " << mappingUnit.cutOfOffset(pageFrameAddr) << endl;
+	//cout << endl;
 }
 
 void VirtualMem::readPageActivate(void* pageStartAddr)
@@ -267,15 +271,15 @@ void VirtualMem::mapOut(void* pageStartAddress) {
 void VirtualMem::mapIn(void* pageStartAddress) {
 	//unmap the virtual space
 	munmap(pageStartAddress, PAGESIZE);
-	//cout << "where 6 2 = " << pageoutPointer << endl;
 
 	//map in the physical space
 	void* addr;
 	if (pageoutPointer == 0) {
 		addr = mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_FIXED, this -> fd, nextFreeFrameIndex*PAGESIZE);
+		//cout << "mapin case pageoutpointer = 0" << endl;
 	} else {
 		addr = mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_FIXED, this -> fd, pageoutPointer*PAGESIZE);
-		pageoutPointer = 0;
+		//cout << "mapin case pageoutpointer = 1 " << pageoutPointer << endl;
 	}
     if(addr == MAP_FAILED) {
     	cerr << "|###> Error: phy Mmap Failed from " << pageStartAddress << endl;
@@ -295,8 +299,6 @@ void VirtualMem::addPageEntry2PT(unsigned* startAddrPage) {
 	unsigned phyAddr = ((char*) startAddrPage) - ((char*) virtualMemStartAddress);
 	//cout << "where 6 0 2 " << phyAddr << endl;
 	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(phyAddr);
-	//cout << "where 6 0 3 " << first10Bits << endl;
-	unsigned second10Bits = mappingUnit.phyAddr2PTIndex(phyAddr);
 	//cout << "where 6 0 4 " << second10Bits << endl;
 	unsigned pageTableAddr = *(virtualMemStartAddress + first10Bits);
 	//cout << pageTableAddr << " where 6 0 5 present? " << mappingUnit.getPresentBit(pageTableAddr) << endl;
@@ -316,22 +318,24 @@ void VirtualMem::addPageEntry2PT(unsigned* startAddrPage) {
 	if (dis < (PAGESIZE*2)+4) {
 		//add the page in PT
 		if (pageoutPointer == 0) {
-			*(virtualMemStartAddress + (mappingUnit.cutOfOffset(pageTableAddr)*PAGETABLE_SIZE) + second10Bits) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1,0,1,1);
+			cout << "add case pageoutpointer = 1" << endl;
+			*(pageTableEntry) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1,0,1,1);
 		} else {
-			*(virtualMemStartAddress + (mappingUnit.cutOfOffset(pageTableAddr)*PAGETABLE_SIZE) + second10Bits) = (pageoutPointer << 12) | mappingUnit.createOffset(1,0,1,1);
+			cout << "add case pageoutpointer = 2" << endl;
+			*(pageTableEntry) = (pageoutPointer << 12) | mappingUnit.createOffset(1,0,1,1);
 			pageoutPointer = 0;
 		}
 	} else {
 		//add the page in PT
 		if (pageoutPointer == 0) {
-			*(virtualMemStartAddress + (mappingUnit.cutOfOffset(pageTableAddr)*PAGETABLE_SIZE) + second10Bits) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1,0,1,0);
+			*(pageTableEntry) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1,0,1,0);
+			//cout << "add case pageoutpointer = 3 " << *(pageTableEntry) << " in " << pageTableEntry << endl;
 		} else {
-			*(virtualMemStartAddress + (mappingUnit.cutOfOffset(pageTableAddr)*PAGETABLE_SIZE) + second10Bits) = (pageoutPointer << 12) | mappingUnit.createOffset(1,0,1,0);
+			//cout << "add case pageoutpointer = 4" << endl;
+			*(pageTableEntry) = (pageoutPointer << 12) | mappingUnit.createOffset(1,0,1,0);
 			pageoutPointer = 0;
 		}
 	}
-
-	//cout << "where 6 0 10" << endl;
 }
 
 void VirtualMem::addPTEntry2PD(unsigned* pdEntryOfPT) {
@@ -402,41 +406,40 @@ void VirtualMem::printChunkStarts()
 void VirtualMem::fillList(list<int>* virtualMem, list<unsigned>* physicalMem) {
 	//virtualspace 
     unsigned* ptr1 = (unsigned*) virtualMemStartAddress;
-    size_t i = 0;
 
-    while (i < PAGETABLE_SIZE) {
+    for (unsigned i = 0; i < PAGETABLE_SIZE; i++) {
         // 0 or 1 or 2 = none or read or write
 
 		//searching in PD for present PT
-		if (mappingUnit.getPresentBit(*(ptr1)) == 1) {
+		if (mappingUnit.getPresentBit(*(ptr1)) == PRESENT) {
 			//found one at ...
 
 			//searching in PT for present Pages
 			unsigned* ptrToPT = (virtualMemStartAddress + (mappingUnit.cutOfOffset(*(ptr1))*PAGETABLE_SIZE));
 			for (int j = 0; j < PAGETABLE_SIZE; j++) {
-				if (mappingUnit.getPresentBit(*(ptrToPT)) == 1) {
-					//found one
-					if (mappingUnit.getReadAndWriteBit(*(ptrToPT)) == 0) {
+				unsigned page = *(ptrToPT);
+				if (mappingUnit.getPresentBit(page) == PRESENT) {
+					//found one Page
+					if (mappingUnit.getReadAndWriteBit(page) == READ) {
 						virtualMem -> push_back(1);
-						physicalMem -> push_back( mappingUnit.cutOfOffset(*(ptrToPT)));
+						physicalMem -> push_back( mappingUnit.cutOfOffset(page)+1);
 					} else {
 						virtualMem -> push_back(2);
-						physicalMem -> push_back( mappingUnit.cutOfOffset(*(ptrToPT)));
+						physicalMem -> push_back( mappingUnit.cutOfOffset(page)+1);
 					}
 						
 				} else {
 					virtualMem -> push_back(0);
+					physicalMem -> push_back( mappingUnit.cutOfOffset(page));
 				}
+
 				ptrToPT++;
 			}
-		} else {
-			for (int j = 0; j < PAGETABLE_SIZE; j++) {
-				virtualMem -> push_back(0);
-			}
+
 		}
 
+		//one step more in PD
         ptr1++;
-        i++;
     }
 }
 

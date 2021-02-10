@@ -174,20 +174,21 @@ void MemoryGUI::drawMappedChunk() {
 }
 
 void MemoryGUI::drawVirtualMem() {
-	int xp = 590;
+	int xp = 1000;
 	int x1 = 2;
-	int y1 = 15;
-	int x2 = 600;
-	int y2 = 15;
+	int y1 = 20;
+	//int x2 = 600;
+	//int y2 = 20;
 	unsigned v = 0;
 	
 	std::list<int> virtualMem;
 	std::list<unsigned> physicalMem;
 	page -> fillList(&virtualMem, &physicalMem);
 
+	window->setForegroundColor(RGBColor(255,255,255));
 	//Überschrift mit links page (virtMem) und rechts frame (phyMem)
 	window->drawText(0, 10, "pages in Virtual space");
-	window->drawText(x2, 10, "pageframes in physical space");
+	//window->drawText(x2, 10, "pageframes in physical space");
 
 	//Trennstrich für beide 
 	window->setForegroundColor(RGBColor(255,255,255));
@@ -197,34 +198,37 @@ void MemoryGUI::drawVirtualMem() {
 
 	//für beide Blöcke einzeichen
 	for (int i : virtualMem) {
-		if (i != 0/* || v < 3 || (v > 1025 && v < 1055)*/) {
-			if (i == 1) {
-				window->setForegroundColor(RGBColor(255,165,0));
-			} else if (i == 2) {
-				window->setForegroundColor(RGBColor(0,255,0));
-			} else if (i == 0) {
-				window->setForegroundColor(RGBColor(255,0,0));
-			}
-
-			if (x1 > (width - 20 - 600)) {
-				x1 -= (width - 20 - 600);
-				y1 += 20;
-			}
-
-			if (x2 > (width - 80)) {
-				x2 -= 600;
-				y2 += 20;
-			}
-
-			window->drawFilledRectangle(x1,y1,40,10);
-			window->drawFilledRectangle(x2,y2,80,10);
-			window->setForegroundColor(RGBColor(0,0,0));
-			window->drawText(x1+1, y1+10, "p " + to_string(v));
-			window->drawText(x2+1, y2+10, "p"+ to_string(v) + " -> pf" + to_string(*(physicalMem.begin())));
-			x1 += 50;
-			x2 += 85;
-			physicalMem.pop_front();
+		if (i == 1) {
+			window->setForegroundColor(RGBColor(255,165,0));
+		} else if (i == 2) {
+			window->setForegroundColor(RGBColor(0,255,0));
+		} else if (i == 0) {
+			window->setForegroundColor(RGBColor(255,0,0));
 		}
+
+		if (x1 > (width - 200)) {
+			x1 -= (width - 200);
+			y1 += 20;
+		}
+
+		/*if (x2 > (width - 80)) {
+			x2 -= 600;
+			y2 += 20;
+		}*/
+
+		if (( v >= 0 && v < 5) || (v >= 1025 && v < 1040)) {
+			window->drawFilledRectangle(x1,y1,25,10);
+			//window->drawFilledRectangle(x2,y2,80,10);
+			window->setForegroundColor(RGBColor(0,0,0));
+
+			window->drawText(x1+1, y1+10, to_string(v));
+			//window->drawText(x2+1, y2+10, "p"+ to_string(v) + " -> pf" + to_string(*(physicalMem.begin())));
+
+			x1 += 30;
+			//x2 += 85;
+			//physicalMem.pop_front();
+		}
+
 		v++;
 	}
 }

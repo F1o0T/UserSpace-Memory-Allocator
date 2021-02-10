@@ -16,7 +16,7 @@ VirtualMem vMem;
 DrawingWindow* window;
 MemoryGUI* gui;
 
-bool showGUI = false;
+bool showGUI = true;
 
 //a simple version of bubble sort
 void bubbleSort(unsigned** array, unsigned nrElements)
@@ -31,7 +31,7 @@ void bubbleSort(unsigned** array, unsigned nrElements)
             //cout << i << " = i and " << j << " = j" << endl;
             if (showGUI) {
 				gui -> drawMemory();
-				//sleep(1);
+				sleep(1);
 				////cout << "|>>> Write a char: "; char ch; 
 				//cin >> ch; 
 		    }
@@ -51,7 +51,7 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
     }
     else if(info->si_code == SEGV_MAPERR)
     {
-        //cout << "|### Error: Access denied, unmapped address!" << endl; 
+        cout << "|### Error: Access denied, unmapped address!" << endl; 
         exit(1);
     }
 
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 
     //each element has a size of blockSize
     //how many can we store in the memory?
-    unsigned nrElements = 20;
+    unsigned nrElements = 10;
     //this array stores pointers to the blocks
     unsigned* blocks[nrElements];
     unsigned refNumbers[nrElements];
