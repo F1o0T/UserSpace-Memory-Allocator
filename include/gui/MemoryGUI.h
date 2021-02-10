@@ -25,7 +25,7 @@ class MemoryGUI {
 public:
     MemoryGUI();
 	MemoryGUI(Heap* heap, DrawingWindow* window, int mode);
-    MemoryGUI(VirtualMem* page, DrawingWindow* window, int mode);
+    MemoryGUI(VirtualMem* page, DrawingWindow* window, int mode, unsigned numberOfElements);
 
     void drawMemory();
 	
@@ -45,6 +45,7 @@ private:
     DrawingWindow* window;
     int mode;
     bool first = true;
+    unsigned numberOfElements = 0;
 };
 
 

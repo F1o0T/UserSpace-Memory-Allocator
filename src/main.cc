@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <boost/program_options.hpp>
 
 #include "gui/MemoryGUI.h"
 #include "system/VirtualMem.h"
@@ -28,7 +29,7 @@ void bubbleSort(unsigned** array, unsigned nrElements)
                 *(array[i]) = *(array[j]);
                 *(array[j]) = temp;
             }
-            //cout << i << " = i and " << j << " = j" << endl;
+
             if (showGUI) {
 				gui -> drawMemory();
 				sleep(1);
@@ -59,26 +60,41 @@ void signalHandeler(int sigNUmber, siginfo_t *info, void *ucontext)
 
 int main(int argc, char** argv)
 {
-    //cout << "main 1" << endl;
-    vMem.initializeVirtualMem();
+    namespace po = boost::program_options;
+    //define available arguments
+    po::options_description desc("Options");
+    desc.add_options()
+        ("help,h", "Print help message")
+        ("numbers,n", po::value<unsigned>()->required(), "How many numbers you want for the bubblesort list")
+        ("pagesframes,p", po::value<unsigned>()->required(), "Number of pageframes available");
+
+    //read arguments
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    //did someone say 'help'?
+    if (vm.count("help")) {
+        std::cerr << desc << std::endl;
+        return 0;
+    }
+    //read arguments into variables
+    po::notify(vm);
+    unsigned nrElements = vm["numbers"].as<unsigned>();
+    unsigned numberOfPF = vm["pagesframes"].as<unsigned>();
+
+    vMem.initializeVirtualMem(numberOfPF);
     
     if (showGUI) {
         window = new DrawingWindow(width, height, "GUI");
-        gui = new MemoryGUI(&vMem, window, MO_PAGE);
+        gui = new MemoryGUI(&vMem, window, MO_PAGE, nrElements);
         gui -> drawMemory();
     }
-    //cout << "main 2" << endl;
     ///////////////////////////////////////////
     struct sigaction SigAction;
     SigAction.sa_sigaction = signalHandeler;
     SigAction.sa_flags = SA_SIGINFO;
     sigaction(SIGSEGV, &SigAction, NULL);
     ///////////////////////////////////////////
-    //cout << "main 3" << endl;
 
-    //each element has a size of blockSize
-    //how many can we store in the memory?
-    unsigned nrElements = 10;
     //this array stores pointers to the blocks
     unsigned* blocks[nrElements];
     unsigned refNumbers[nrElements];
@@ -93,22 +109,14 @@ int main(int argc, char** argv)
     }
     //initialize the field
     for (unsigned i = 0; i < nrElements; i++) {
-        //cout << "MEM start at = " << vMem.getStart() << endl;
-        //cout << "address to access " << blocks[i] << endl;
         if (showGUI) {
-            gui -> drawMemory();		
-            //cout << "|>>> Write a char: "; char ch; 
-		    //cin >> ch; 
+            gui -> drawMemory();
+            sleep(1);
         }
-        //cout << "the i of the for loop = " << i << endl;
-        *blocks[i] = refNumbers[i]; //pseudo-random values
-        cout << "right? " << refNumbers[i] << " == " << *blocks[i] << endl;
+        *blocks[i] = refNumbers[i]; 
         ////////////////
     }
-    for (unsigned i = 0; i < nrElements; i++) {
-        cout << "liste Element " << i << " = " << *blocks[i] << endl;
-    }
-    cout << "lol ok" << endl;
+
     bubbleSort(blocks, nrElements);
 
     if (showGUI) {
@@ -116,10 +124,6 @@ int main(int argc, char** argv)
 		cin >> ch;
         delete(window);
         delete(gui);
-    }
-
-    for (unsigned i = 0; i < nrElements; i++) {
-        cout << "liste Element " << i << " = " << *blocks[i] << endl;
     }
 
     cout << "ok end of code" << endl;

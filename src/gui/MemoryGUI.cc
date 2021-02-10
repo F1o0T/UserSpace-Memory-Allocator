@@ -2,7 +2,7 @@
 
 MemoryGUI::MemoryGUI() : heap(0), page(0), mode(MO_PAGE) {}
 MemoryGUI::MemoryGUI(Heap* heap, DrawingWindow* window, int mode) : heap(heap), page(0), window(window), mode(mode) {}
-MemoryGUI::MemoryGUI(VirtualMem* page, DrawingWindow* window, int mode) : heap(0), page(page), window(window), mode(mode) {}
+MemoryGUI::MemoryGUI(VirtualMem* page, DrawingWindow* window, int mode, unsigned numberOfElements) : heap(0), page(page), window(window), mode(mode), numberOfElements(numberOfElements) {}
 
 void MemoryGUI::drawMemory(){
 	if(mode == MO_BSSM){
@@ -174,12 +174,13 @@ void MemoryGUI::drawMappedChunk() {
 }
 
 void MemoryGUI::drawVirtualMem() {
-	int xp = 1000;
+	int xp = 590;
 	int x1 = 2;
 	int y1 = 20;
-	//int x2 = 600;
-	//int y2 = 20;
+	int x2 = 600;
+	int y2 = 20;
 	unsigned v = 0;
+	int j = 0;
 	
 	std::list<int> virtualMem;
 	std::list<unsigned> physicalMem;
@@ -188,7 +189,7 @@ void MemoryGUI::drawVirtualMem() {
 	window->setForegroundColor(RGBColor(255,255,255));
 	//Überschrift mit links page (virtMem) und rechts frame (phyMem)
 	window->drawText(0, 10, "pages in Virtual space");
-	//window->drawText(x2, 10, "pageframes in physical space");
+	window->drawText(x2, 10, "pageframes in physical space");
 
 	//Trennstrich für beide 
 	window->setForegroundColor(RGBColor(255,255,255));
@@ -206,31 +207,39 @@ void MemoryGUI::drawVirtualMem() {
 			window->setForegroundColor(RGBColor(255,0,0));
 		}
 
-		if (x1 > (width - 200)) {
-			x1 -= (width - 200);
+		if (x1 > (xp - 25)) {
+			x1 = 2;
 			y1 += 20;
 		}
-
-		/*if (x2 > (width - 80)) {
-			x2 -= 600;
+		if (x2 > (width - 80)) {
+			x2 = 600;
 			y2 += 20;
-		}*/
+		}
 
-		if (( v >= 0 && v < 5) || (v >= 1025 && v < 1040)) {
+		if (( v >= 0 && v < 5) || (v >= 1025 && v < (1030 + numberOfElements))) {
 			window->drawFilledRectangle(x1,y1,25,10);
-			//window->drawFilledRectangle(x2,y2,80,10);
-			window->setForegroundColor(RGBColor(0,0,0));
 
+			if (*(physicalMem.begin()) != 0) {
+				window->drawFilledRectangle(x2,y2,80,10);
+			}
+			window->setForegroundColor(RGBColor(0,0,0));
 			window->drawText(x1+1, y1+10, to_string(v));
-			//window->drawText(x2+1, y2+10, "p"+ to_string(v) + " -> pf" + to_string(*(physicalMem.begin())));
+			
+			if (*(physicalMem.begin()) != 0) {
+				window->drawText(x2+1, y2+10, "p"+ to_string(v) + " -> pf" + to_string(j));
+				j++;
+				x2 += 85;
+			}
+			
 
 			x1 += 30;
-			//x2 += 85;
-			//physicalMem.pop_front();
 		}
+
+		physicalMem.pop_front();
 
 		v++;
 	}
+
 }
 
 void MemoryGUI::clearWindow(){
