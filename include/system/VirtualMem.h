@@ -176,30 +176,35 @@ public:
         // Decrements count of elements by 1
         stackSize--;
     }
-    int deletePage(void *page)
+    int deletePageIfExists(void *page)
     {
+        // b ../src/system/VirtualMem.cc:76
         // If deque is empty then
         // 'Underflow' condition
         if (isEmpty())
             return -1; 
-
-        if (bottom->pageAddress == page)
+        if (top->pageAddress == page)
+        {
+            deletePageAtTop();
+        }  
+        else if (bottom->pageAddress == page)
         {
             deletePageAtBottom();
         }
-        else if (top->pageAddress == page)
-        {
-            deletePageAtTop();
-        }
         else
         {
-            stackPageNode *current = bottom; 
-            while(current->pageAddress != page)
-                current = current->next; 
-
-            current->prev->next = current->next; 
-            delete current; 
-            stackSize--;
+            stackPageNode *current = top; 
+            while(current != NULL)
+            {
+                if(current->pageAddress == page)
+                {
+                    current->prev->next = current->next; 
+                    delete current; 
+                    stackSize--;
+                    break; 
+                }
+                current = current->next;
+            }
         } 
     }
     void* getPageAtbottom()
