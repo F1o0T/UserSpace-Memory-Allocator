@@ -14,204 +14,198 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <iterator> 
-#include <map> 
-
+#include <iterator>
+#include <map>
 
 using namespace std;
 
-enum permission_change: int{
+enum permission_change : int
+{
     NONTOREAD_NOTFULL,
     NONTOREAD_FULL,
     READTOWRITE
 };
 
-struct QNode { 
-    void* address;
-    QNode* next;
+struct Node
+{
+    void *pageAddress;
+    Node *prev, *next;
+};
 
-    QNode(void* add) 
-    { 
-        address = add;
-        next = NULL;
-    } 
-}; 
-  
-class Queue 
-{ 
-	QNode *front, *rear, *previousRear; 
-    unsigned currentQueueSize = 0;
-    void * lastEnqueuedAddress; 
+// A structure to represent a deque
+class Deque
+{
+    Node *front;
+    Node *rear;
+    int Size;
 
 public:
-    Queue() 
-    { 
-        front = rear = NULL; 
-    } 
-  
-    void enQueue(void* x) 
-    { 
-        lastEnqueuedAddress = x;
-        // Create a new LL node 
-        QNode* temp = new QNode(x); 
-  
-        // If queue is empty, then 
-        // new node is front and rear both 
-        if (rear == NULL) { 
-            front = rear = temp;
-            currentQueueSize++; 
-            return; 
+    Deque()
+    {
+        front = rear = NULL;
+        Size = 0;
+    }
+    // Operations on Deque
+    void insertPageAtFront(void *pageAddr)
+    {
+        Node *newNode = new Node; 
+        newNode->pageAddress = pageAddr; 
+        newNode->prev = newNode->next = NULL;
+
+        if (front == NULL)
+            rear = front = newNode;
+        else
+        {
+            newNode->next = front;
+            front->prev = newNode;
+            front = newNode;
+        }
+        Size++; 
+    }
+    void insertPageAtRear(void *pageAddr)
+    {
+        Node *newNode = new Node; 
+        newNode->pageAddress = pageAddr; 
+        newNode->prev = newNode->next = NULL;
+
+        if (rear == NULL)
+            front = rear = newNode;
+        else
+        {
+            newNode->prev = rear;
+            rear->next = newNode;
+            rear = newNode;
+        }
+        Size++;
+    }
+    void deletePageAtFront()
+    {
+        Node *temp = front;
+        front = front->next;
+
+        // If only one element was present
+        if (front == NULL)
+            rear = NULL;
+        else
+            front->prev = NULL;
+        free(temp);
+
+        // Decrements count of elements by 1
+        Size--;
+    }
+    void deletePageAtRear()
+    {
+        Node *temp = rear;
+        rear = rear->prev;
+
+        // If only one element was present
+        if (rear == NULL)
+            front = NULL;
+        else
+            rear->next = NULL;
+        free(temp);
+
+        // Decrements count of elements by 1
+        Size--;
+    }
+    int deletePage(void *page)
+    {
+        // If deque is empty then
+        // 'Underflow' condition
+        if (isEmpty())
+            return -1; 
+
+        if (front->pageAddress == page)
+        {
+            deletePageAtFront();
+        }
+        else if (rear->pageAddress == page)
+        {
+            deletePageAtRear();
+        }
+        else
+        {
+            Node *current = front; 
+            while(current->pageAddress != page)
+                current = current->next; 
+
+            current->prev->next = current->next; 
+            delete current; 
+            Size--;
         } 
- 
-        // Add the new node at 
-        // the end of queue and change rear 
-        previousRear = rear;
-        rear->next = temp; 
-        rear = temp; 
-        currentQueueSize++;
-    } 
-  
-    void* deQueue() 
-    { 
-        // If queue is empty, return NULL. 
-        if (front == NULL) 
-            return NULL; 
-  
-        // Store previous front and 
-        // move front one node ahead 
-        QNode* temp = front;
-        front = front->next; 
-  
-        // If front becomes NULL, then 
-        // change rear also as NULL 
-        if (front == NULL) 
-            rear = NULL; 
-        void * ptr = temp-> address;
-        delete (temp); 
-        currentQueueSize--;
-        return ptr;
-    } 
-
-    void* deQueue(void* addr)
-    {   
-
-        QNode* predTemp = NULL;
-        QNode* temp = this->front;
-        QNode* succTemp = temp->next;
-
-
-
-        while(temp->address != addr && temp->address != NULL)
-        {
-            predTemp = temp;
-            temp = temp->next;
-            succTemp = temp->next;
-        }
-
-        if(this->front == temp){
-            this->front = temp->next;
-        }
-
-        if(this->previousRear == temp)
-        {
-            this->previousRear = predTemp;
-        }
-
-
-        if(this->rear == temp){
-            this->rear = predTemp;
-        }
-
-
-        if(predTemp != NULL){
-            predTemp->next = succTemp;
-        }
-
-        currentQueueSize--;
-
-        return temp->address;
     }
-
-    bool isFull(unsigned MaxSize)
+    void* getPageAtFront()
     {
-    	if(currentQueueSize >= MaxSize)
-    		return true; 
-    	else 
-    		return false;
+        // If deque is empty, then returns
+        // garbage value
+        if (isEmpty())
+            return (void*)-1;
+        return front->pageAddress;
     }
-
-    bool isEmpty()
+    void* getPageAtRear()
     {
-    	if(rear == NULL)
-    		return true; 
-    	else 
-    		return false; 
+        // If deque is empty, then returns
+        // garbage value
+        if (isEmpty())
+            return (void*)-1;
+        return rear->pageAddress;
     }
-
-    void* getLastEnqueuedAddress()
-    {
-        return lastEnqueuedAddress; 
-    }
-
-    void dropLastEnqueuedAddress()
-    {   
-        this->currentQueueSize--;
-        QNode* temp = rear;
-        this->rear = this->previousRear;
-        delete(temp);
-        if(rear == NULL)
-        {   
-            this->front = NULL;  
-            // this->displayQueue();
-            return;
-        }
-        this->rear->next = NULL; 
-        // this->displayQueue();
-
-    }
-
-    void displayQueue()
-    {
-    	QNode* temp = front;
-    	cout << "Active chunks displayed in FirstIn/FirstOut" << endl;
-    	while(temp != NULL)
-    	{
-    		cout << reinterpret_cast<unsigned long>(temp->address) << " <= ";
-    		temp = temp->next; 
-    	}
-    	cout << endl;
-    }
-
     int size()
     {
-        return currentQueueSize; 
+        return Size;
+    }
+    bool isEmpty()
+    {
+        return (front == NULL);
+    }
+    void display()
+    {
+        Node *current = front; 
+        while(current != NULL)
+        {
+            cout << current->pageAddress << endl;
+            current = current->next;
+        }
+    }
+    void erase()
+    {
+        rear = NULL;
+        while (front != NULL)
+        {
+            Node *temp = front;
+            front = front->next;
+            free(temp);
+        }
+        Size = 0;
     }
 };
 
-class SwapFile: public RandomAccessFile
+class SwapFile : public RandomAccessFile
 {
 
-    public:
-        int fd; 
+public:
+    int fd;
 
-        SwapFile()
+    SwapFile()
+    {
+        fd = open("SwapFile", O_RDWR | O_CREAT | O_TRUNC);
+        if (fd == -1)
         {
-            fd = open("SwapFile", O_RDWR | O_CREAT | O_TRUNC);
-            if (fd == -1)
-            {
-                cerr << "Error Openining the swap file"; 
-                exit(1); 
-            }
+            cerr << "Error Openining the swap file";
+            exit(1);
         }
+    }
 
-        ~SwapFile() {
-            close(fd);
-            if (unlink("SwapFile") == -1) {
-                cerr << "Error unlink didn't delete the swapfile" << endl;
-            }
+    ~SwapFile()
+    {
+        close(fd);
+        if (unlink("SwapFile") == -1)
+        {
+            cerr << "Error unlink didn't delete the swapfile" << endl;
         }
+    }
 
-        /**
+    /**
             This function reads a specified amount of bytes from file to memory.
             Beginning at the offset in the file.
  
@@ -220,14 +214,14 @@ class SwapFile: public RandomAccessFile
             @param bytes is the amount of bytes, which should be copied
             @return value is the amount of bytes, which was copied
         */
-        virtual ssize_t swapFileRead(void* addr, off_t offset, size_t bytes)
-        {
-            lseek(fd, offset, SEEK_SET);
-            read(fd, addr, bytes);
-            return bytes;
-        }
+    virtual ssize_t swapFileRead(void *addr, off_t offset, size_t bytes)
+    {
+        lseek(fd, offset, SEEK_SET);
+        read(fd, addr, bytes);
+        return bytes;
+    }
 
-        /**
+    /**
             This function writes a specified amount of bytes from memory to file.
             Beginning at the offset in the file.
 
@@ -236,14 +230,14 @@ class SwapFile: public RandomAccessFile
             @param bytes is the amount of bytes, which should be copied
             @return value is the amount of bytes, which was copied
         */
-        virtual ssize_t swapFileWrite(void* addr, off_t offset, size_t bytes)
-        {
-            lseek(fd, offset, SEEK_SET); 
-            write(fd, addr, bytes);
-            return 0; 
-        }
+    virtual ssize_t swapFileWrite(void *addr, off_t offset, size_t bytes)
+    {
+        lseek(fd, offset, SEEK_SET);
+        write(fd, addr, bytes);
+        return 0;
+    }
 
-        /**
+    /**
             This function reserves a specified amount of bytes.
             Beginning at the offset in the file.
 
@@ -251,44 +245,44 @@ class SwapFile: public RandomAccessFile
             @param bytes is the amount of bytes, which should be reserved
             @return value is the amount of bytes which could be reserved
         */
-        virtual ssize_t swapFilereserve(off_t offset, size_t bytes)
-        {
-            return 0; 
+    virtual ssize_t swapFilereserve(off_t offset, size_t bytes)
+    {
+        return 0;
+    }
+};
 
-        }
-};  
-
-class VirtualMem {
+class VirtualMem
+{
 public:
-	/////////////////////////////////////////////////
-	// Signal handeler, constructor and deconstructor.
-	// static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
-	// VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
+    /////////////////////////////////////////////////
+    // Signal handeler, constructor and deconstructor.
+    // static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
+    // VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
     void initializeVirtualMem(unsigned numberOfPF);
-	~VirtualMem();
-	/////////////////////////////////////////////////
-	// Basic Methods
-	void* getStart();
-	size_t getSize();
-	void* expand(size_t size);
-	/////////////////////////////////////////////////
-	// Advanced Methods
-	void fixPermissions(void*);
+    ~VirtualMem();
+    /////////////////////////////////////////////////
+    // Basic Methods
+    void *getStart();
+    size_t getSize();
+    void *expand(size_t size);
+    /////////////////////////////////////////////////
+    // Advanced Methods
+    void fixPermissions(void *);
     void initializePDandFirstPT();
-    void addPageEntry2PT(unsigned* pageStartAddress);
-    void addPTEntry2PD(unsigned* startAddrPage);
-	void* findStartAddress(void* ptr);
-    void readPageActivate(void* ptr);
-    void writePageActivate(void* ptr);
-    void pageOut(void* ptr); 
-    void pageIn(void* ptr);
-    void mapOut(void* pageStartAddress);
-    void mapIn(void* pageStartAddress);
-    void fillList(list<int>* virtualMem, list<unsigned>* physicalMem);
+    void addPageEntry2PT(unsigned *pageStartAddress);
+    void addPTEntry2PD(unsigned *startAddrPage);
+    void *findStartAddress(void *ptr);
+    void readPageActivate(void *ptr);
+    void writePageActivate(void *ptr);
+    void pageOut(void *ptr);
+    void pageIn(void *ptr);
+    void mapOut(void *pageStartAddress);
+    void mapIn(void *pageStartAddress);
+    void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
     void resetQueues();
-	/////////////////////////////////////////////////
+    /////////////////////////////////////////////////
 private:
-	unsigned* virtualMemStartAddress = NULL;
+    unsigned *virtualMemStartAddress = NULL;
     unsigned nextFreeFrameIndex = 0;
     unsigned pagesinRAM = 0;
     unsigned pageoutPointer = 0;
@@ -296,9 +290,8 @@ private:
     int fd = 0;
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
-    Queue readQueue;
-    Queue writeQueue;
     SwapFile swapFile;
+    Deque AccessQueue; 
 };
 
 #endif
