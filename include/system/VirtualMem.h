@@ -19,167 +19,6 @@
 
 using namespace std;
 
-enum permission_change : int
-{
-    NONTOREAD_NOTFULL,
-    NONTOREAD_FULL,
-    READTOWRITE
-};
-
-struct Node
-{
-    void *pageAddress;
-    Node *prev, *next;
-};
-
-// A structure to represent a deque
-class Deque
-{
-    Node *front;
-    Node *rear;
-    int Size;
-
-public:
-    Deque()
-    {
-        front = rear = NULL;
-        Size = 0;
-    }
-    // Operations on Deque
-    void insertPageAtFront(void *pageAddr)
-    {
-        Node *newNode = new Node; 
-        newNode->pageAddress = pageAddr; 
-        newNode->prev = newNode->next = NULL;
-
-        if (front == NULL)
-            rear = front = newNode;
-        else
-        {
-            newNode->next = front;
-            front->prev = newNode;
-            front = newNode;
-        }
-        Size++; 
-    }
-    void insertPageAtRear(void *pageAddr)
-    {
-        Node *newNode = new Node; 
-        newNode->pageAddress = pageAddr; 
-        newNode->prev = newNode->next = NULL;
-
-        if (rear == NULL)
-            front = rear = newNode;
-        else
-        {
-            newNode->prev = rear;
-            rear->next = newNode;
-            rear = newNode;
-        }
-        Size++;
-    }
-    void deletePageAtFront()
-    {
-        Node *temp = front;
-        front = front->next;
-
-        // If only one element was present
-        if (front == NULL)
-            rear = NULL;
-        else
-            front->prev = NULL;
-        free(temp);
-
-        // Decrements count of elements by 1
-        Size--;
-    }
-    void deletePageAtRear()
-    {
-        Node *temp = rear;
-        rear = rear->prev;
-
-        // If only one element was present
-        if (rear == NULL)
-            front = NULL;
-        else
-            rear->next = NULL;
-        free(temp);
-
-        // Decrements count of elements by 1
-        Size--;
-    }
-    int deletePage(void *page)
-    {
-        // If deque is empty then
-        // 'Underflow' condition
-        if (isEmpty())
-            return -1; 
-
-        if (front->pageAddress == page)
-        {
-            deletePageAtFront();
-        }
-        else if (rear->pageAddress == page)
-        {
-            deletePageAtRear();
-        }
-        else
-        {
-            Node *current = front; 
-            while(current->pageAddress != page)
-                current = current->next; 
-
-            current->prev->next = current->next; 
-            delete current; 
-            Size--;
-        } 
-    }
-    void* getPageAtFront()
-    {
-        // If deque is empty, then returns
-        // garbage value
-        if (isEmpty())
-            return (void*)-1;
-        return front->pageAddress;
-    }
-    void* getPageAtRear()
-    {
-        // If deque is empty, then returns
-        // garbage value
-        if (isEmpty())
-            return (void*)-1;
-        return rear->pageAddress;
-    }
-    int size()
-    {
-        return Size;
-    }
-    bool isEmpty()
-    {
-        return (front == NULL);
-    }
-    void display()
-    {
-        Node *current = front; 
-        while(current != NULL)
-        {
-            cout << current->pageAddress << endl;
-            current = current->next;
-        }
-    }
-    void erase()
-    {
-        rear = NULL;
-        while (front != NULL)
-        {
-            Node *temp = front;
-            front = front->next;
-            free(temp);
-        }
-        Size = 0;
-    }
-};
-
 class SwapFile : public RandomAccessFile
 {
 
@@ -251,8 +90,176 @@ public:
     }
 };
 
+enum permission_change : int
+{
+    NONTOREAD_NOTFULL,
+    NONTOREAD_FULL,
+    READTOWRITE
+};
+
+struct stackPageNode
+{
+    void *pageAddress;
+    stackPageNode *prev, *next;
+};
+class Stack
+{
+    stackPageNode *top;
+    stackPageNode *bottom;
+    int stackSize;
+public:
+    Stack()
+    {
+        top = bottom = NULL;
+        stackSize = 0;
+    }
+    // Operations on Deque
+    void insertPageAtBottom(void *pageAddr)
+    {
+        stackPageNode *newStackPageNode = new stackPageNode; 
+        newStackPageNode->pageAddress = pageAddr; 
+        newStackPageNode->prev = newStackPageNode->next = NULL;
+
+        if (bottom == NULL)
+            top = bottom = newStackPageNode;
+        else
+        {
+            newStackPageNode->prev = bottom;
+            bottom->next = newStackPageNode;
+            bottom = newStackPageNode;
+        }
+        stackSize++; 
+    }
+    void insertPageAtTop(void *pageAddr)
+    {
+        stackPageNode *newStackPageNode = new stackPageNode; 
+        newStackPageNode->pageAddress = pageAddr; 
+        newStackPageNode->prev = newStackPageNode->next = NULL;
+
+        if (top == NULL)
+            bottom = top = newStackPageNode;
+        else
+        {
+            newStackPageNode->next = top;
+            top->prev = newStackPageNode;
+            top = newStackPageNode;
+        }
+        stackSize++;
+    }
+    void deletePageAtBottom()
+    {
+        stackPageNode *temp = bottom;
+        bottom = bottom->prev;
+
+        // If only one element was present
+        if (bottom == NULL)
+            top = NULL;
+        else
+            bottom->next = NULL;
+        free(temp);
+
+        // Decrements count of elements by 1
+        stackSize--;
+    }
+    void deletePageAtTop()
+    {
+        stackPageNode *temp = top;
+        top = top->next;
+
+        // If only one element was present
+        if (top == NULL)
+            bottom = NULL;
+        else
+            top->prev = NULL;
+        free(temp);
+
+        // Decrements count of elements by 1
+        stackSize--;
+    }
+    int deletePage(void *page)
+    {
+        // If deque is empty then
+        // 'Underflow' condition
+        if (isEmpty())
+            return -1; 
+
+        if (bottom->pageAddress == page)
+        {
+            deletePageAtBottom();
+        }
+        else if (top->pageAddress == page)
+        {
+            deletePageAtTop();
+        }
+        else
+        {
+            stackPageNode *current = bottom; 
+            while(current->pageAddress != page)
+                current = current->next; 
+
+            current->prev->next = current->next; 
+            delete current; 
+            stackSize--;
+        } 
+    }
+    void* getPageAtbottom()
+    {
+        // If deque is empty, then returns
+        // garbage value
+        if (isEmpty())
+            return (void*)-1;
+        return bottom->pageAddress;
+    }
+    void* getPageAtTop()
+    {
+        // If deque is empty, then returns
+        // garbage value
+        if (isEmpty())
+            return (void*)-1;
+        return top->pageAddress;
+    }
+    int size()
+    {
+        return stackSize;
+    }
+    bool isEmpty()
+    {
+        return (bottom == NULL);
+    }
+    void display()
+    {
+        stackPageNode *current = top; 
+        while(current != NULL)
+        {
+            cout << current->pageAddress << endl;
+            current = current->next;
+        }
+    }
+    void destroy()
+    {
+        top = NULL;
+        while (bottom != NULL)
+        {
+            stackPageNode *temp = bottom;
+            bottom = bottom->next;
+            free(temp);
+        }
+        stackSize = 0;
+    }
+};
 class VirtualMem
 {
+private:
+    unsigned *virtualMemStartAddress = NULL;
+    unsigned nextFreeFrameIndex = 0;
+    unsigned pagesinRAM = 0;
+    unsigned pageoutPointer = 0;
+    unsigned numberOfPF = 0;
+    int fd = 0;
+    AddressMapping mappingUnit;
+    size_t pinnedPages = 0;
+    SwapFile swapFile;
+    Stack AccessStack; 
 public:
     /////////////////////////////////////////////////
     // Signal handeler, constructor and deconstructor.
@@ -281,17 +288,7 @@ public:
     void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
     void resetQueues();
     /////////////////////////////////////////////////
-private:
-    unsigned *virtualMemStartAddress = NULL;
-    unsigned nextFreeFrameIndex = 0;
-    unsigned pagesinRAM = 0;
-    unsigned pageoutPointer = 0;
-    unsigned numberOfPF = 0;
-    int fd = 0;
-    AddressMapping mappingUnit;
-    size_t pinnedPages = 0;
-    SwapFile swapFile;
-    Deque AccessQueue; 
+
 };
 
 #endif
