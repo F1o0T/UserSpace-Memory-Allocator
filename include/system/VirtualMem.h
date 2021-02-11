@@ -259,7 +259,7 @@ private:
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
     SwapFile swapFile;
-    Stack AccessStack; 
+    Stack accessStack; 
 public:
     /////////////////////////////////////////////////
     // Signal handeler, constructor and deconstructor.
