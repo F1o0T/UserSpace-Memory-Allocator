@@ -119,8 +119,8 @@ void VirtualMem::fixPermissions(void *address)
 
 	void *pageStartAddr = findStartAddress(address);
 	unsigned *pagePTEntryAddr = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)pageStartAddr);
-	unsigned phyAddr = ((char *)pageStartAddr) - ((char *)virtualMemStartAddress);
-	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(phyAddr);
+	unsigned logAddrOf32Bits = ((char *)pageStartAddr) - ((char *)virtualMemStartAddress);
+	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(logAddrOf32Bits);
 	//if PT not present
 	if (pagePTEntryAddr == 0)
 	{
@@ -168,22 +168,11 @@ void VirtualMem::fixPermissions(void *address)
 
 	case NONTOREAD_FULL:
 		{ 
-			void *kickedChunkAddr = this->accessStack.getPageAtbottom();
-			this->accessStack.deletePageAtBottom();
-			unsigned kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
-			unsigned pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
-			while (pinnedBit == PINNED)
-			{
-				//cout << (void*) kickedChunkAddr << " is pinned" << endl;
-				kickedChunkAddr = this->accessStack.getPageAtbottom();
-				this->accessStack.deletePageAtBottom();
-				kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
-				pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
-			}
-			this->pageOut(kickedChunkAddr);
+			void *kickedPageAddr = kickPageFromStack();
+			this->pageOut(kickedPageAddr);
 			//cout << "kickedChunkAddr @ " << kickedChunkAddr << " paged out." << endl; 
 			//now just deactivate all the stuff
-			mapOut(kickedChunkAddr);
+			mapOut(kickedPageAddr);
 			mapIn(pageStartAddr);
 			//////////////////////////////////////////////////
 			// LRU Stuff
@@ -205,6 +194,22 @@ void VirtualMem::fixPermissions(void *address)
 		writePageActivate(pageStartAddr);
 		break;
 	}
+}
+
+void* VirtualMem::kickPageFromStack() {
+	void *kickedPageAddr = this->accessStack.getPageAtbottom();
+	this->accessStack.deletePageAtBottom();
+	unsigned kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedPageAddr);
+	unsigned pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
+	while (pinnedBit == PINNED)
+	{
+		//cout << (void*) kickedPageAddr << " is pinned" << endl;
+		kickedPageAddr = this->accessStack.getPageAtbottom();
+		this->accessStack.deletePageAtBottom();
+		kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedPageAddr);
+		pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
+	}
+	return kickedPageAddr;
 }
 
 void VirtualMem::readPageActivate(void *pageStartAddr)
@@ -289,8 +294,8 @@ void VirtualMem::mapIn(void *pageStartAddress)
 
 void VirtualMem::addPageEntry2PT(unsigned *startAddrPage)
 {
-	unsigned phyAddr = ((char *)startAddrPage) - ((char *)virtualMemStartAddress);
-	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(phyAddr);
+	unsigned logAddrOf32Bits = ((char *)startAddrPage) - ((char *)virtualMemStartAddress);
+	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(logAddrOf32Bits);
 	unsigned pageTableAddr = *(virtualMemStartAddress + first10Bits);
 
 	//if the PT not existing then create it by setting the presentBit
@@ -337,18 +342,7 @@ void VirtualMem::addPTEntry2PD(unsigned *pdEntryOfPT)
 	//if the RAM is full we need to throw something out
 	if (pagesinRAM >= numberOfPF)
 	{
-		void *kickedChunkAddr = this->accessStack.getPageAtbottom();
-		this->accessStack.deletePageAtBottom();
-		unsigned kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
-		unsigned pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
-		while (pinnedBit == PINNED)
-		{
-			this->accessStack.insertPageAtTop(virtualMemStartAddress);
-			kickedChunkAddr = this->accessStack.getPageAtbottom();
-			this->accessStack.deletePageAtBottom();
-			kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
-			pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
-		}
+		void *kickedChunkAddr = kickPageFromStack();
 		this->pageOut(kickedChunkAddr);
 		mapOut(kickedChunkAddr);
 	}

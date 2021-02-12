@@ -284,6 +284,7 @@ public:
     /////////////////////////////////////////////////
     // Advanced Methods
     void fixPermissions(void *);
+    void* kickPageFromStack();
     void initializePDandFirstPT();
     void addPageEntry2PT(unsigned *pageStartAddress);
     void addPTEntry2PD(unsigned *startAddrPage);

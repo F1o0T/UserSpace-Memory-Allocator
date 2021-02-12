@@ -126,7 +126,7 @@ int main(int argc, char** argv)
         }
         *blocks[i] = refNumbers[i]; 
         ////////////////
-    }                
+    }
     cout << "=============================================" << endl;
     cout << "AccessStack Current Elements " << endl; 
     cout << "=============================================" << endl;  
