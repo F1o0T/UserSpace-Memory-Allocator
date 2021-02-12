@@ -17,6 +17,8 @@
 #include <iterator>
 #include <map>
 
+#include <timer/timercpp.h>
+
 using namespace std;
 
 class SwapFile : public RandomAccessFile
@@ -263,6 +265,7 @@ private:
     unsigned pagesinRAM = 0;
     unsigned pageoutPointer = 0;
     unsigned numberOfPF = 0;
+    Timer protNonetimer = Timer();
     int fd = 0;
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
@@ -297,6 +300,7 @@ public:
     void mapIn(void *pageStartAddress);
     void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
     void resetQueues();
+    void protNoneAll();
     /////////////////////////////////////////////////
 
 };

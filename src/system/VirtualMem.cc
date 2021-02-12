@@ -44,9 +44,18 @@ void VirtualMem::initializeVirtualMem(unsigned numberOfPF)
 	cout << "#############################################" << endl;
 	cout << "#############################################" << endl;  
 	initializePDandFirstPT();
-
+	this->protNonetimer.setInterval([&]() {
+		cout << "Timer Interrupt xD" << endl;
+        protNoneAll(); 
+    }, 1);
 }
 
+
+void VirtualMem::protNoneAll()
+{
+	mprotect(this->getStart(), FOUR_GB - 1025*PAGESIZE, PROT_NONE);
+	
+}
 /**
  * This method is just called, when the whole virtual memory gets initialized.
  * It unmaps the first 2 pages of logical memory and maps 2 page frames of phys. memory,

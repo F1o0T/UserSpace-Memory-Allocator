@@ -8,6 +8,7 @@
 #include "gui/MemoryGUI.h"
 #include "system/VirtualMem.h"
 
+
 //size of a chunk
 static const unsigned DEFAULT_CHUNKSIZE = 4096;
 
@@ -17,7 +18,7 @@ VirtualMem vMem;
 DrawingWindow* window;
 MemoryGUI* gui;
 
-bool showGUI = false;
+bool showGUI = true;
 
 //a simple version of bubble sort
 void bubbleSort(unsigned** array, unsigned nrElements)
@@ -33,6 +34,7 @@ void bubbleSort(unsigned** array, unsigned nrElements)
                 int temp = *(array[i]);
                 *(array[i]) = *(array[j]);
                 *(array[j]) = temp;
+                cout << "Sorting " << endl; 
                 // unsigned test0 = *(array[0]); 
                 // unsigned test1 = *(array[1]);
                 // unsigned test2 = *(array[2]);
@@ -127,18 +129,18 @@ int main(int argc, char** argv)
         *blocks[i] = refNumbers[i]; 
         ////////////////
     }
-    cout << "=============================================" << endl;
-    cout << "AccessStack Current Elements " << endl; 
-    cout << "=============================================" << endl;  
-    vMem.accessStack.display();
-    cout << "=============================================" << endl; 
-    cout << "content of first page = " << *blocks[0] << endl;
-    cout << "=============================================" << endl;
-    cout << "AccessStack Current Elements " << endl; 
-    cout << "=============================================" << endl;  
-    vMem.accessStack.display();
-    cout << "=============================================" << endl; 
-    //bubbleSort(blocks, nrElements);
+    // cout << "=============================================" << endl;
+    // cout << "AccessStack Current Elements " << endl; 
+    // cout << "=============================================" << endl;  
+    // vMem.accessStack.display();
+    // cout << "=============================================" << endl; 
+    // cout << "content of first page = " << *blocks[0] << endl;
+    // cout << "=============================================" << endl;
+    // cout << "AccessStack Current Elements " << endl; 
+    // cout << "=============================================" << endl;  
+    // vMem.accessStack.display();
+    // cout << "=============================================" << endl; 
+    bubbleSort(blocks, nrElements);
 
     if (showGUI) {
         cout << "|>>> Write a char to close: "; char ch; 
