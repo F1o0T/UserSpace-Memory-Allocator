@@ -146,6 +146,7 @@ public:
         }
         stackSize++;
     }
+
     void deletePageAtBottom()
     {
         stackPageNode *temp = bottom;
@@ -156,11 +157,12 @@ public:
             top = NULL;
         else
             bottom->next = NULL;
-        free(temp);
+        delete(temp);
 
         // Decrements count of elements by 1
         stackSize--;
     }
+
     void deletePageAtTop()
     {
         stackPageNode *temp = top;
@@ -176,13 +178,14 @@ public:
         // Decrements count of elements by 1
         stackSize--;
     }
-    int deletePageIfExists(void *page)
+
+    void deletePageIfExists(void *page)
     {
         // b ../src/system/VirtualMem.cc:76
         // If deque is empty then
         // 'Underflow' condition
         if (isEmpty())
-            return -1; 
+            return; 
         if (top->pageAddress == page)
         {
             deletePageAtTop();

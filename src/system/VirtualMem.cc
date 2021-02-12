@@ -69,7 +69,7 @@ void VirtualMem::initializePDandFirstPT()
 	pagesinRAM++;
 	//////////////////////////////////////////////////
 	// LRU Stuff
-	this->accessStack.insertPageAtTop(virtualMemStartAddress);
+	//this->accessStack.insertPageAtTop(virtualMemStartAddress);
 	///////////////////////////////////////////////////
 	//initialize first PT with the two phys adresses of the PD and the PT itself
 	munmap(this->virtualMemStartAddress + PAGETABLE_SIZE, PAGESIZE);
@@ -85,7 +85,7 @@ void VirtualMem::initializePDandFirstPT()
 	pagesinRAM++;
 	//////////////////////////////////////////////////
 	// LRU Stuff
-	this->accessStack.insertPageAtTop(virtualMemStartAddress + PAGETABLE_SIZE);
+	//this->accessStack.insertPageAtTop(virtualMemStartAddress + PAGETABLE_SIZE);
 	///////////////////////////////////////////////////
 	*(virtualMemStartAddress + PAGETABLE_SIZE) = ((0 << 12) | mappingUnit.createOffset(1, 1, 1, 1));
 	*(virtualMemStartAddress + PAGETABLE_SIZE + 1) = ((1 << 12) | mappingUnit.createOffset(1, 1, 1, 1));
@@ -155,11 +155,12 @@ void VirtualMem::fixPermissions(void *address)
 		if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED)
 		{
 			this->pageIn(pageStartAddr);
+			// LRU Stuff
+			this->accessStack.deletePageIfExists(pageStartAddr);
 		}
 		mapIn(pageStartAddr);
 		//////////////////////////////////////////////////
 		// LRU Stuff
-		this->accessStack.deletePageIfExists(pageStartAddr);
 		this->accessStack.insertPageAtTop(pageStartAddr);
 		///////////////////////////////////////////////////
 		readPageActivate(pageStartAddr);
@@ -173,14 +174,14 @@ void VirtualMem::fixPermissions(void *address)
 			unsigned pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
 			while (pinnedBit == PINNED)
 			{
-				cout << (void*) kickedChunkAddr << " is pinned" << endl;
+				//cout << (void*) kickedChunkAddr << " is pinned" << endl;
 				kickedChunkAddr = this->accessStack.getPageAtbottom();
 				this->accessStack.deletePageAtBottom();
 				kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
 				pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
 			}
 			this->pageOut(kickedChunkAddr);
-			cout << "kickedChunkAddr @ " << kickedChunkAddr << " paged out." << endl; 
+			//cout << "kickedChunkAddr @ " << kickedChunkAddr << " paged out." << endl; 
 			//now just deactivate all the stuff
 			mapOut(kickedChunkAddr);
 			mapIn(pageStartAddr);
@@ -199,13 +200,11 @@ void VirtualMem::fixPermissions(void *address)
 			break;
 		}
 	case READTOWRITE:
+		this->accessStack.deletePageIfExists(pageStartAddr);
+		this->accessStack.insertPageAtTop(pageStartAddr);
 		writePageActivate(pageStartAddr);
 		break;
-	default: 
-		cout << "hey" << endl;
 	}
-
-	pageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)pageStartAddr);
 }
 
 void VirtualMem::readPageActivate(void *pageStartAddr)
