@@ -25,9 +25,20 @@ void bubbleSort(unsigned** array, unsigned nrElements)
     for (unsigned i = 0; i < nrElements; i++) {
         for (unsigned j = i; j < nrElements; j++) {
             if (*(array[i]) > *(array[j])) {
+                cout << "=============================================" << endl;
+                cout << "AccessStack Current Elements " << endl; 
+                cout << "=============================================" << endl;  
+                vMem.accessStack.display();
+                cout << "=============================================" << endl; 
                 int temp = *(array[i]);
                 *(array[i]) = *(array[j]);
                 *(array[j]) = temp;
+                unsigned test0 = *(array[0]); 
+                unsigned test1 = *(array[1]);
+                unsigned test2 = *(array[2]);
+                cout << "In bubble sort: " << test0 << " is @ " << (void*) array[0] << endl; 
+                cout << "In bubble sort: " << test1 << " is @ " << (void*) array[1] << endl; 
+                cout << "In bubble sort: " << test2 << " is @ " << (void*) array[2] << endl; 
             }
 
             if (showGUI) {

@@ -30,8 +30,21 @@ void VirtualMem::initializeVirtualMem(unsigned numberOfPF)
 		cerr << "|###> Error: virtual Mmap Failed" << endl;
 		exit(1);
 	}
-
+	char *current = (char*) virtualMemStartAddress;
+	
+	cout << "#############################################" << endl; 
+	cout << "#############################################" << endl; 
+	cout << "The Page Frames Addresses are : " <<endl;
+	cout << "#############################################" << endl; 
+	while(current < (char*)virtualMemStartAddress + this->numberOfPF * PAGESIZE)
+	{
+		cout << (void*)current << endl; 
+		current = current + PAGESIZE; 
+	}
+	cout << "#############################################" << endl;
+	cout << "#############################################" << endl;  
 	initializePDandFirstPT();
+
 }
 
 /**
@@ -160,13 +173,14 @@ void VirtualMem::fixPermissions(void *address)
 			unsigned pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
 			while (pinnedBit == PINNED)
 			{
-				this->accessStack.insertPageAtTop(virtualMemStartAddress);
+				cout << (void*) kickedChunkAddr << " is pinned" << endl;
 				kickedChunkAddr = this->accessStack.getPageAtbottom();
 				this->accessStack.deletePageAtBottom();
 				kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
 				pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
 			}
 			this->pageOut(kickedChunkAddr);
+			cout << "kickedChunkAddr @ " << kickedChunkAddr << " paged out." << endl; 
 			//now just deactivate all the stuff
 			mapOut(kickedChunkAddr);
 			mapIn(pageStartAddr);

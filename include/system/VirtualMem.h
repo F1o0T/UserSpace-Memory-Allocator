@@ -264,8 +264,9 @@ private:
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
     SwapFile swapFile;
-    Stack accessStack; 
+    
 public:
+    Stack accessStack; 
     /////////////////////////////////////////////////
     // Signal handeler, constructor and deconstructor.
     // static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
