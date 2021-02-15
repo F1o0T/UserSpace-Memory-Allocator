@@ -96,7 +96,9 @@ enum permission_change : int
 {
     NONTOREAD_NOTFULL,
     NONTOREAD_FULL,
-    READTOWRITE
+    READTOWRITE,
+    LRU_CASE_READ, 
+    LRU_CASE_WRITE
 };
 
 struct stackPageNode
@@ -106,10 +108,10 @@ struct stackPageNode
 };
 class Stack
 {
+public:
     stackPageNode *top;
     stackPageNode *bottom;
     int stackSize;
-public:
     Stack()
     {
         top = bottom = NULL;

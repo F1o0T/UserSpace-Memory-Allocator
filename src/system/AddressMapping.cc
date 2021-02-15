@@ -106,7 +106,7 @@ unsigned AddressMapping::cutOfOffset(unsigned logaddr) {
  * @param pinnedBit 0 = not pinned, 1 = pinned
  * @return complett Offset (you can add it to the address)
  */
-unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit) {
+unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit, bool lruBit) {
     unsigned offset = 0;
 
     if (presentBit) {
@@ -125,6 +125,9 @@ unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool 
         offset = offset | 0b1000;
     }
 
+    if (lruBit) {
+        offset = offset | 0b10000; 
+    }
     return offset;
 }
 
@@ -177,4 +180,18 @@ void AddressMapping::setPinnedBit(unsigned* tableEntry, bool pinnedBit) {
     } else {
         *(tableEntry) = *(tableEntry) & 0xFFFFFFF7;
     }
+}
+
+void AddressMapping::setLruBit(unsigned* tableEntry, bool lruBit)
+{
+    if(lruBit)
+    {
+        *(tableEntry) = *(tableEntry) | 0b10000; 
+    }else {
+        *(tableEntry) = *(tableEntry) & 0xFFFFFEF;
+    }
+}
+
+unsigned AddressMapping::getLruBit(unsigned phyAddr) {
+    return (phyAddr & 0b1000) >> 4;
 }

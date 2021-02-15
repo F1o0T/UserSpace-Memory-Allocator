@@ -50,7 +50,7 @@ public:
 
      unsigned cutOfOffset(unsigned logaddr);
 
-     unsigned createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit);
+     unsigned createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit, bool lruBit);
 
      unsigned getPresentBit(unsigned phyAddr);
 
@@ -67,6 +67,10 @@ public:
      unsigned getPinnedBit(unsigned phyAddr);
 
      void setPinnedBit(unsigned* tableEntry, bool pinnedBit);
+
+     void setLruBit(unsigned* tableEntry, bool lruBit);
+
+     unsigned getLruBit(unsigned phyAddr);
 };
 
 #endif

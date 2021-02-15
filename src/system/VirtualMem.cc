@@ -47,14 +47,20 @@ void VirtualMem::initializeVirtualMem(unsigned numberOfPF)
 	this->protNonetimer.setInterval([&]() {
 		cout << "Timer Interrupt xD" << endl;
         protNoneAll(); 
-    }, 1);
+    }, 100);
 }
 
 
 void VirtualMem::protNoneAll()
 {
 	mprotect(this->getStart(), FOUR_GB - 1025*PAGESIZE, PROT_NONE);
-	
+	stackPageNode *current = this->accessStack.top; 
+	while(current != NULL)
+	{
+		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress); 
+		mappingUnit.setLruBit(pageTableEntry, true);
+		current = current->next;  
+	}
 }
 /**
  * This method is just called, when the whole virtual memory gets initialized.
@@ -96,14 +102,14 @@ void VirtualMem::initializePDandFirstPT()
 	// LRU Stuff
 	//this->accessStack.insertPageAtTop(virtualMemStartAddress + PAGETABLE_SIZE);
 	///////////////////////////////////////////////////
-	*(virtualMemStartAddress + PAGETABLE_SIZE) = ((0 << 12) | mappingUnit.createOffset(1, 1, 1, 1));
-	*(virtualMemStartAddress + PAGETABLE_SIZE + 1) = ((1 << 12) | mappingUnit.createOffset(1, 1, 1, 1));
+	*(virtualMemStartAddress + PAGETABLE_SIZE) = ((0 << 12) | mappingUnit.createOffset(1, 1, 1, 1, 0));
+	*(virtualMemStartAddress + PAGETABLE_SIZE + 1) = ((1 << 12) | mappingUnit.createOffset(1, 1, 1, 1, 0));
 
 	//add the physical address of the PT in the PD -> here the logical and physical value is equal to one another
-	*(virtualMemStartAddress) = (1 << 12) | mappingUnit.createOffset(1, 1, 1, 1);
+	*(virtualMemStartAddress) = (1 << 12) | mappingUnit.createOffset(1, 1, 1, 1, 0);
 
 	//create all PT but the presentBits are not set -> they are not mapped in
-	unsigned offset = mappingUnit.createOffset(0, 1, 0, 0);
+	unsigned offset = mappingUnit.createOffset(0, 1, 0, 0, 0);
 	for (unsigned i = 1; i < PAGETABLE_SIZE; i++)
 	{
 		//(i+1) because at 0 is PD and at 1 is first PT, so start the others PT starts at 2
@@ -154,7 +160,16 @@ void VirtualMem::fixPermissions(void *address)
 	}
 	else
 	{
-		permissionChange = READTOWRITE;
+		if( mappingUnit.getLruBit(pageFrameAddr) && mappingUnit.getReadAndWriteBit(pageFrameAddr) == READ)
+		{
+			permissionChange = 	LRU_CASE_READ; 
+		}
+		else if( mappingUnit.getLruBit(pageFrameAddr) && mappingUnit.getReadAndWriteBit(pageFrameAddr) == WRITE)
+		{
+			permissionChange = 	LRU_CASE_WRITE;
+		}
+		else
+			permissionChange = READTOWRITE;
 	}
 
 	switch (permissionChange)
@@ -197,6 +212,23 @@ void VirtualMem::fixPermissions(void *address)
 			readPageActivate(pageStartAddr);
 			break;
 		}
+	case LRU_CASE_READ:
+		{
+			mprotect(pageStartAddr, PAGESIZE, PROT_READ);
+			this->accessStack.deletePageIfExists(pageStartAddr); 
+			this->accessStack.insertPageAtTop(pageStartAddr);
+			mappingUnit.setLruBit(pagePTEntryAddr, false);
+			break; 
+		}	
+	case LRU_CASE_WRITE:
+		{
+			mprotect(pageStartAddr, PAGESIZE, PROT_WRITE);
+			this->accessStack.deletePageIfExists(pageStartAddr); 
+			this->accessStack.insertPageAtTop(pageStartAddr);
+			mappingUnit.setLruBit(pagePTEntryAddr, false);
+			break;  
+		}
+	
 	case READTOWRITE:
 		this->accessStack.deletePageIfExists(pageStartAddr);
 		this->accessStack.insertPageAtTop(pageStartAddr);
@@ -218,6 +250,8 @@ void* VirtualMem::kickPageFromStack() {
 		kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedPageAddr);
 		pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
 	}
+	unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) kickedPageAddr); 
+	mappingUnit.setLruBit(pageTableEntry, false);
 	return kickedPageAddr;
 }
 
@@ -321,11 +355,11 @@ void VirtualMem::addPageEntry2PT(unsigned *startAddrPage)
 		//add the page in PT
 		if (pageoutPointer == 0)
 		{
-			*(pageTableEntry) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1, 0, 1, 1);
+			*(pageTableEntry) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1, 0, 1, 1, 0);
 		}
 		else
 		{
-			*(pageTableEntry) = (pageoutPointer << 12) | mappingUnit.createOffset(1, 0, 1, 1);
+			*(pageTableEntry) = (pageoutPointer << 12) | mappingUnit.createOffset(1, 0, 1, 1, 0);
 			pageoutPointer = 0;
 		}
 	}
@@ -334,11 +368,11 @@ void VirtualMem::addPageEntry2PT(unsigned *startAddrPage)
 		//add the page in PT
 		if (pageoutPointer == 0)
 		{
-			*(pageTableEntry) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1, 0, 1, 0);
+			*(pageTableEntry) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1, 0, 1, 0, 0);
 		}
 		else
 		{
-			*(pageTableEntry) = (pageoutPointer << 12) | mappingUnit.createOffset(1, 0, 1, 0);
+			*(pageTableEntry) = (pageoutPointer << 12) | mappingUnit.createOffset(1, 0, 1, 0, 0);
 			pageoutPointer = 0;
 		}
 	}
