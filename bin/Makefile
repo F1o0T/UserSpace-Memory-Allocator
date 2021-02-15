@@ -4,10 +4,9 @@ SRC_FILES = \
 	gui/DrawingWindow.cc \
 	gui/MemoryGUI.cc \
 	runtime/FirstFitHeap.cc \
-	system/BssMemory.cc \
-	system/MappedMemory.cc\
-	system/AddressMapping.cc\
-	system/VirtualMem.cc
+	system/AddressMapping.cc \
+	system/VirtualMem.cc \
+	timer/timecpp.cc
 	
 
 	

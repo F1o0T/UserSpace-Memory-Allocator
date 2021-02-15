@@ -1,3 +1,6 @@
+#ifndef TIMERCPP_H
+#define TIMERCPP_H
+
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -8,8 +11,7 @@ class Timer {
     public:
         void setTimeout(auto function, int delay);
         void setInterval(auto function, int interval);
-        void stop();
-
+        void stopLruTimer();
 };
 
 void Timer::setTimeout(auto function, int delay) {
@@ -35,4 +37,4 @@ void Timer::setInterval(auto function, int interval) {
     });
     t.detach();
 }
-
+#endif

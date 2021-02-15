@@ -259,9 +259,12 @@ public:
         stackSize = 0;
     }
 };
-class VirtualMem
+class VirtualMem: public Memory
 {
 private:
+    ///////////////////////////////////////////
+    
+    ///////////////////////////////////////////
     unsigned *virtualMemStartAddress = NULL;
     unsigned nextFreeFrameIndex = 0;
     unsigned pagesinRAM = 0;
@@ -279,7 +282,7 @@ public:
     // Signal handeler, constructor and deconstructor.
     // static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
     // VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
-    void initializeVirtualMem(unsigned numberOfPF);
+    VirtualMem();
     ~VirtualMem();
     /////////////////////////////////////////////////
     // Basic Methods
@@ -303,8 +306,8 @@ public:
     void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
     void resetQueues();
     void protNoneAll();
+    static void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext);
     /////////////////////////////////////////////////
-
 };
 
 #endif

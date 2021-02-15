@@ -146,18 +146,17 @@ MemoryGUI.o: ../src/gui/MemoryGUI.cc /usr/include/stdc-predef.h \
  /usr/include/c++/7/bits/stl_uninitialized.h \
  /usr/include/c++/7/bits/stl_vector.h \
  /usr/include/c++/7/bits/stl_bvector.h /usr/include/c++/7/bits/vector.tcc \
- ../include/runtime/FirstFitHeap.h ../include/system/BSSMemory.h \
- /usr/include/unistd.h /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
- /usr/include/x86_64-linux-gnu/bits/environments.h \
- /usr/include/x86_64-linux-gnu/bits/confname.h \
- /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
- /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
- ../include/system/VirtualMem.h ../include/misc/RandomAccessFile.h \
- ../include/system/AddressMapping.h \
+ ../include/runtime/FirstFitHeap.h ../include/system/VirtualMem.h \
+ ../include/misc/RandomAccessFile.h ../include/system/AddressMapping.h \
  /usr/include/x86_64-linux-gnu/sys/mman.h \
  /usr/include/x86_64-linux-gnu/bits/mman.h \
  /usr/include/x86_64-linux-gnu/bits/mman-linux.h \
- /usr/include/x86_64-linux-gnu/bits/mman-shared.h /usr/include/signal.h \
+ /usr/include/x86_64-linux-gnu/bits/mman-shared.h /usr/include/unistd.h \
+ /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
+ /usr/include/x86_64-linux-gnu/bits/environments.h \
+ /usr/include/x86_64-linux-gnu/bits/confname.h \
+ /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
+ /usr/include/x86_64-linux-gnu/bits/getopt_core.h /usr/include/signal.h \
  /usr/include/x86_64-linux-gnu/bits/signum.h \
  /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
  /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \

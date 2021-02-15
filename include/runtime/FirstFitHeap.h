@@ -3,7 +3,8 @@
 
 #include <iostream>
 #include "runtime/Heap.h"
-#include "system/BSSMemory.h"
+// #include "system/BSSMemory.h"
+#include "system/VirtualMem.h"
 #include <vector>
 
 using namespace std;
@@ -24,7 +25,7 @@ public:
     void initHeap();
 
     void* alloc(size_t size);
-
+    
 	int getSize();
 
     void fillList(list<int>* list);

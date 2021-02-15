@@ -6,8 +6,10 @@
 #define NUMBER_OF_PAGES FOUR_GB / PAGESIZE
 #define NUMBER_OF_PT NUMBER_OF_PAGES / PAGETABLE_SIZE
 
-void VirtualMem::initializeVirtualMem(unsigned numberOfPF)
+VirtualMem::VirtualMem()
 {
+	unsigned numberOfPF = 4; 
+
 	this->numberOfPF = numberOfPF;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
@@ -30,13 +32,13 @@ void VirtualMem::initializeVirtualMem(unsigned numberOfPF)
 		cerr << "|###> Error: virtual Mmap Failed" << endl;
 		exit(1);
 	}
-	char *current = (char*) virtualMemStartAddress;
+	char *current = (char*) getStart();
 	
 	cout << "#############################################" << endl; 
 	cout << "#############################################" << endl; 
-	cout << "The Page Frames Addresses are : " <<endl;
+	cout << "Pages Virtual Addresses are : " <<endl;
 	cout << "#############################################" << endl; 
-	while(current < (char*)virtualMemStartAddress + this->numberOfPF * PAGESIZE)
+	for(int i = 0; i < 20; i++)
 	{
 		cout << (void*)current << endl; 
 		current = current + PAGESIZE; 
@@ -45,11 +47,10 @@ void VirtualMem::initializeVirtualMem(unsigned numberOfPF)
 	cout << "#############################################" << endl;  
 	initializePDandFirstPT();
 	this->protNonetimer.setInterval([&]() {
-		cout << "Timer Interrupt xD" << endl;
+		// cout << "Timer Interrupt xD" << endl;
         protNoneAll(); 
-    }, 100);
+    }, .0001);
 }
-
 
 void VirtualMem::protNoneAll()
 {
@@ -59,16 +60,20 @@ void VirtualMem::protNoneAll()
 	{
 		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress); 
 		mappingUnit.setLruBit(pageTableEntry, true);
+		cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(*pageTableEntry) << endl;
+
 		current = current->next;  
 	}
 }
-/**
- * This method is just called, when the whole virtual memory gets initialized.
- * It unmaps the first 2 pages of logical memory and maps 2 page frames of phys. memory,
- * to use. Furthermore it pins them.
-*/
+
 void VirtualMem::initializePDandFirstPT()
 {
+	/**
+	 * This method is just called, when the whole virtual memory gets initialized.
+	 * It unmaps the first 2 pages of logical memory and maps 2 page frames of phys. memory,
+	 * to use. Furthermore it pins them.
+	**/
+
 	//unmap the first page, to map the same number of page frame for the PD
 	//munmap(this->virtualMemStartAddress, PAGESIZE*(NUMBER_OF_PT+1));-> think this is wrong, because we are not using all PT in the beginning
 	munmap(this->virtualMemStartAddress, PAGESIZE);
@@ -160,11 +165,12 @@ void VirtualMem::fixPermissions(void *address)
 	}
 	else
 	{
-		if( mappingUnit.getLruBit(pageFrameAddr) && mappingUnit.getReadAndWriteBit(pageFrameAddr) == READ)
+		//cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(pageFrameAddr) << endl;
+		if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == READ)
 		{
 			permissionChange = 	LRU_CASE_READ; 
 		}
-		else if( mappingUnit.getLruBit(pageFrameAddr) && mappingUnit.getReadAndWriteBit(pageFrameAddr) == WRITE)
+		else if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == WRITE)
 		{
 			permissionChange = 	LRU_CASE_WRITE;
 		}
@@ -233,6 +239,7 @@ void VirtualMem::fixPermissions(void *address)
 		this->accessStack.deletePageIfExists(pageStartAddr);
 		this->accessStack.insertPageAtTop(pageStartAddr);
 		writePageActivate(pageStartAddr);
+		cout << "Here " << pageStartAddr <<endl; 
 		break;
 	}
 }
@@ -273,6 +280,7 @@ void VirtualMem::writePageActivate(void *pageStartAddr)
 
 void VirtualMem::pageOut(void *kickedChunkAddr)
 {
+	cout << "PageOut " << kickedChunkAddr << endl; 
 	off_t offset = reinterpret_cast<off_t>(kickedChunkAddr) - reinterpret_cast<off_t>(this->virtualMemStartAddress);
 	this->swapFile.swapFileWrite(kickedChunkAddr, offset, PAGESIZE);
 	unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
@@ -418,7 +426,7 @@ void *VirtualMem::getStart()
 size_t VirtualMem::getSize()
 {
 
-	return PAGESIZE * NUMBER_OF_PAGES;
+	return FOUR_GB - (NUMBER_OF_PT + 1) * PAGESIZE;
 }
 
 void VirtualMem::fillList(list<int> *virtualMem, list<unsigned> *physicalMem)
@@ -486,8 +494,10 @@ void *VirtualMem::expand(size_t size)
 
 VirtualMem::~VirtualMem()
 {
+	this->protNonetimer.stopLruTimer();
 	munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
 	shm_unlink("phy-Mem");
+	
 }
 
 void VirtualMem::resetQueues()

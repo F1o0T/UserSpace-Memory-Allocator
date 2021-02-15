@@ -9,7 +9,6 @@ void FirstFitHeap::initHeap() {
     this -> head = first;
     first -> freeSpace = length - sizeUnsi;
     first -> nextAddress = 0;
-
     //create first direct list at the start of the memory
     //With only one free block with the length of memory - unsigned
 }
@@ -23,7 +22,7 @@ void* FirstFitHeap::alloc(size_t size) {
     } else if (size < 12) {
         size = 12;
     }
-    
+
     freeBlock* lastPos = 0;//Pointer to the free block before the right block
     freeBlock* curPos = this -> head;//Pointer that points to a matching block
     char* ar_ptr = 0;//Pointer thats create a new free block behind the matching block
