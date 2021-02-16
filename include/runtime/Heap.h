@@ -25,7 +25,11 @@ public:
 	 * @param size size of the memory to allocate
 	 * @return pointer to allocated memory or null on error
 	 */
-	virtual void* alloc(size_t size)=0;
+	virtual void* malloc(size_t size)=0;
+
+	virtual void* realloc(void* ptr, size_t size)=0;
+
+	virtual void* calloc(size_t nmemb, size_t size)=0;
 
 	/**
 	 * Free previously allocated memory.
@@ -33,6 +37,7 @@ public:
      * @param p pointer to the memory to free
 	 */
 	virtual void free(void* address)=0;
+
 
 	virtual int getSize()=0;
 

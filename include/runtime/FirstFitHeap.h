@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include "runtime/Heap.h"
-// #include "system/BSSMemory.h"
 #include "system/VirtualMem.h"
 #include <vector>
 
@@ -24,9 +23,27 @@ public:
 
     void initHeap();
 
-    void* alloc(size_t size);
+    void* malloc(size_t size);
     
+	void* realloc(void* ptr, size_t size);
+
+	void* calloc(size_t nmemb, size_t size);
+
+    void free(void* address);
+
+
+    void* operator new(size_t size);
+
+    void* operator new[](size_t size);
+
+    void operator delete(void* ptr);
+
+    void operator delete[](void* ptr);
+
+
 	int getSize();
+
+private:
 
     void fillList(list<int>* list);
 
@@ -34,11 +51,9 @@ public:
 
     void addBlockInList(freeBlock* block);
 
-    void free(void* address);
-
     bool correctAddress(void* address);
 
-private:
+
     freeBlock* head;
 };
 

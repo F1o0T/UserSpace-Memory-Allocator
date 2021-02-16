@@ -13,7 +13,7 @@ void FirstFitHeap::initHeap() {
     //With only one free block with the length of memory - unsigned
 }
 
-void* FirstFitHeap::alloc(size_t size) {
+void* FirstFitHeap::malloc(size_t size) {
     //catch Errors
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
@@ -212,4 +212,29 @@ bool FirstFitHeap::correctAddress(void* address){
 
     return false;
 
+}
+    
+void* FirstFitHeap::realloc(void* ptr, size_t size) {
+
+}
+
+void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
+
+}
+
+
+void* FirstFitHeap::operator new(size_t size) {
+
+}
+
+void* FirstFitHeap::operator new[](size_t size) {
+
+}
+
+void FirstFitHeap::operator delete(void* ptr) {
+
+}
+
+void FirstFitHeap::operator delete[](void* ptr) {
+    
 }

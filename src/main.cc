@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     /////////////////
 
     // User Code
-    char *array = (char*) heap.alloc(4100);   //malloc()
+    char *array = (char*) heap.malloc(4100);   //malloc()
     array[0]    = 'A';
     array[4099] = 'B';
 
