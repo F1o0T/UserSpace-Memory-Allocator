@@ -12,8 +12,6 @@
 
 int main(int argc, char** argv)
 {
-
-    
     FirstFitHeap heap;
     FirstFitHeap::initHeap();
     /////////////////

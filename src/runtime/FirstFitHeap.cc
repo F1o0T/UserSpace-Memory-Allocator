@@ -260,16 +260,17 @@ void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
 
 
 void* FirstFitHeap::operator new(size_t size) {
+    return malloc(size);
 }
 
 void* FirstFitHeap::operator new[](size_t size) {
-
+    return malloc(size);
 }
 
 void FirstFitHeap::operator delete(void* ptr) {
-
+    free(ptr);
 }
 
 void FirstFitHeap::operator delete[](void* ptr) {
-
+    free(ptr);
 }
