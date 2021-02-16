@@ -2,7 +2,6 @@
 #define FirstFitHeap_h
 
 #include <iostream>
-#include "runtime/Heap.h"
 #include "system/VirtualMem.h"
 #include <vector>
 
@@ -16,20 +15,22 @@ struct freeBlock {
     freeBlock* nextAddress;
 };
 
-class FirstFitHeap:public Heap {
+class FirstFitHeap {
 public:
 
-    FirstFitHeap(Memory& memory);
+    FirstFitHeap();
 
-    void initHeap();
+    static void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext);
 
-    void* malloc(size_t size);
+    static void initHeap();
+
+    static void* malloc(size_t size);
     
-	void* realloc(void* ptr, size_t size);
+	static void* realloc(void* ptr, size_t size);
 
-	void* calloc(size_t nmemb, size_t size);
+	static void* calloc(size_t nmemb, size_t size);
 
-    void free(void* address);
+    static void free(void* address);
 
 
     void* operator new(size_t size);
@@ -47,14 +48,16 @@ private:
 
     void fillList(list<int>* list);
 
-    void merge(freeBlock* block1, freeBlock* block2);
+    static void merge(freeBlock* block1, freeBlock* block2);
 
-    void addBlockInList(freeBlock* block);
+    static void addBlockInList(freeBlock* block);
 
-    bool correctAddress(void* address);
+    static bool correctAddress(void* address);
 
 
-    freeBlock* head;
+    static freeBlock* head;
+
+    static VirtualMem* memory;
 };
 
 #endif

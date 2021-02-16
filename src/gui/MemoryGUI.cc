@@ -1,7 +1,7 @@
 #include "gui/MemoryGUI.h"
 
 MemoryGUI::MemoryGUI() : heap(0), page(0), mode(MO_PAGE) {}
-MemoryGUI::MemoryGUI(Heap* heap, DrawingWindow* window, int mode) : heap(heap), page(0), window(window), mode(mode) {}
+//MemoryGUI::MemoryGUI(Heap* heap, DrawingWindow* window, int mode) : heap(heap), page(0), window(window), mode(mode) {}
 MemoryGUI::MemoryGUI(VirtualMem* page, DrawingWindow* window, int mode, unsigned numberOfElements) : heap(0), page(page), window(window), mode(mode), numberOfElements(numberOfElements) {}
 
 void MemoryGUI::drawMemory(){

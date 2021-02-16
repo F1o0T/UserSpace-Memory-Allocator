@@ -134,15 +134,9 @@ FirstFitHeap.o: ../src/runtime/FirstFitHeap.cc /usr/include/stdc-predef.h \
  /usr/include/c++/9/bits/locale_facets.tcc \
  /usr/include/c++/9/bits/basic_ios.tcc \
  /usr/include/c++/9/bits/ostream.tcc /usr/include/c++/9/istream \
- /usr/include/c++/9/bits/istream.tcc ../include/runtime/Heap.h \
- /usr/include/c++/9/list /usr/include/c++/9/bits/stl_list.h \
- /usr/include/c++/9/bits/allocated_ptr.h \
- /usr/include/c++/9/ext/aligned_buffer.h /usr/include/c++/9/bits/list.tcc \
- ../include/system/Memory.h /usr/include/c++/9/tuple \
- /usr/include/c++/9/utility /usr/include/c++/9/bits/stl_relops.h \
- /usr/include/c++/9/array /usr/include/c++/9/bits/uses_allocator.h \
- /usr/include/c++/9/bits/invoke.h ../include/system/VirtualMem.h \
- ../include/misc/RandomAccessFile.h ../include/system/AddressMapping.h \
+ /usr/include/c++/9/bits/istream.tcc ../include/system/VirtualMem.h \
+ ../include/system/Memory.h ../include/misc/RandomAccessFile.h \
+ ../include/system/AddressMapping.h \
  /usr/include/x86_64-linux-gnu/sys/mman.h \
  /usr/include/x86_64-linux-gnu/bits/mman.h \
  /usr/include/x86_64-linux-gnu/bits/mman-map-flags-generic.h \
@@ -173,7 +167,10 @@ FirstFitHeap.o: ../src/runtime/FirstFitHeap.cc /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
  /usr/include/x86_64-linux-gnu/bits/sigthread.h \
- /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
+ /usr/include/x86_64-linux-gnu/bits/signal_ext.h /usr/include/c++/9/list \
+ /usr/include/c++/9/bits/stl_list.h \
+ /usr/include/c++/9/bits/allocated_ptr.h \
+ /usr/include/c++/9/ext/aligned_buffer.h /usr/include/c++/9/bits/list.tcc \
  /usr/include/x86_64-linux-gnu/sys/stat.h \
  /usr/include/x86_64-linux-gnu/bits/stat.h \
  /usr/include/x86_64-linux-gnu/bits/statx.h /usr/include/linux/stat.h \
@@ -194,7 +191,10 @@ FirstFitHeap.o: ../src/runtime/FirstFitHeap.cc /usr/include/stdc-predef.h \
  /usr/include/linux/falloc.h /usr/include/c++/9/iterator \
  /usr/include/c++/9/bits/stream_iterator.h /usr/include/c++/9/map \
  /usr/include/c++/9/bits/stl_tree.h /usr/include/c++/9/bits/stl_map.h \
- /usr/include/c++/9/bits/stl_multimap.h \
+ /usr/include/c++/9/tuple /usr/include/c++/9/utility \
+ /usr/include/c++/9/bits/stl_relops.h /usr/include/c++/9/array \
+ /usr/include/c++/9/bits/uses_allocator.h \
+ /usr/include/c++/9/bits/invoke.h /usr/include/c++/9/bits/stl_multimap.h \
  /usr/include/c++/9/bits/erase_if.h ../include/timer/timercpp.h \
  /usr/include/c++/9/thread /usr/include/c++/9/chrono \
  /usr/include/c++/9/ratio /usr/include/c++/9/limits \

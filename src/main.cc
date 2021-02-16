@@ -6,38 +6,16 @@
 #include <boost/program_options.hpp>
 #include "system/VirtualMem.h"
 #include "runtime/FirstFitHeap.h"
-#include "gui/MemoryGUI.h"
 
 
-VirtualMem vMem;
-void VirtualMem::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
-{
-	if(info->si_code == SEGV_ACCERR)
-    {   
-        //cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
-        vMem.fixPermissions(info->si_addr);
-        //cout << "|>>> Permissions were fixed!" << endl;
-    }
-    else if(info->si_code == SEGV_MAPERR)
-    {
-        cout << "|### Error: Access denied, unmapped address!" << endl; 
-        exit(1);
-    }
-}
+
 
 int main(int argc, char** argv)
 {
-    ///////////////////////////////////////////////
-	// SignalHandling
-    struct sigaction SigAction;
-	SigAction.sa_sigaction = vMem.signalHandler;
-    SigAction.sa_flags = SA_SIGINFO;
-    sigaction(SIGSEGV, &SigAction, NULL);
-	///////////////////////////////////////////////
-    ////////////////
+
     
-    FirstFitHeap heap(vMem);
-    heap.initHeap();
+    FirstFitHeap heap;
+    FirstFitHeap::initHeap();
     /////////////////
 
     // User Code

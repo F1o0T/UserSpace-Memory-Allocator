@@ -306,7 +306,6 @@ public:
     void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
     void resetQueues();
     void protNoneAll();
-    static void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext);
     /////////////////////////////////////////////////
 };
 
