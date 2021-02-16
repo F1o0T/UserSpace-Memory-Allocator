@@ -13,31 +13,13 @@
 #define PINNED 1
 #define NOT_ACCESSED 0
 #define ACCESSED 1
+#define NO_LRU 0
+#define LRU 1
 
 using namespace std;
 
 class AddressMapping {
 public:
-     /*//returns the corresponding physical address of a logical address
-     unsigned log2phys(unsigned *virtualMemStart, unsigned* logaddr);
-
-     //returns pageidentifaction part of an address
-     unsigned addr2page(unsigned* logaddr);
-  
-     //returns the offset part of an address
-     unsigned addr2offset(unsigned* logaddr);
-  
-     //returns the physical frame of the given page
-     unsigned page2frame(unsigned *virtualMemStart, unsigned page);
-  
-     //returns the index for the pagetable
-     unsigned page2pageTableIndex(unsigned page);
-  
-     //returns the index for the pagedirectory
-     unsigned page2pageDirectoryIndex(unsigned page);*/
-
-     ///////////////////////////////////////////////////777
-
      unsigned logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr);
 
      unsigned* logAddr2PTEntryAddr(unsigned* virtualMemStart, unsigned* logAddr);
@@ -68,9 +50,9 @@ public:
 
      void setPinnedBit(unsigned* tableEntry, bool pinnedBit);
 
-     void setLruBit(unsigned* tableEntry, bool lruBit);
-
      unsigned getLruBit(unsigned phyAddr);
+
+     void setLruBit(unsigned* tableEntry, bool lruBit);
 };
 
 #endif

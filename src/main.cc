@@ -36,14 +36,14 @@ int main(int argc, char** argv)
 	///////////////////////////////////////////////
     ////////////////
     
-    FirstFitHeap heap(vMem); 
+    FirstFitHeap heap(vMem);
     heap.initHeap();
     /////////////////
 
     // User Code
-    char *array = (char*) heap.alloc(4097);   //malloc()
-    array[0]    = 'A'; 
-    array[4096] = 'B';
+    char *array = (char*) heap.alloc(4100);   //malloc()
+    array[0]    = 'A';
+    array[4099] = 'B';
 
     return 0;
 }

@@ -8,7 +8,7 @@
 
 VirtualMem::VirtualMem()
 {
-	unsigned numberOfPF = 4; 
+	unsigned numberOfPF = 4;
 
 	this->numberOfPF = numberOfPF;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
@@ -49,7 +49,7 @@ VirtualMem::VirtualMem()
 	this->protNonetimer.setInterval([&]() {
 		// cout << "Timer Interrupt xD" << endl;
         protNoneAll(); 
-    }, .0001);
+    }, .001);
 }
 
 void VirtualMem::protNoneAll()
@@ -58,12 +58,13 @@ void VirtualMem::protNoneAll()
 	stackPageNode *current = this->accessStack.top; 
 	while(current != NULL)
 	{
-		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress); 
-		mappingUnit.setLruBit(pageTableEntry, true);
-		cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(*pageTableEntry) << endl;
+		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress);
+		mappingUnit.setLruBit(pageTableEntry, LRU);
+		//cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(*(pageTableEntry)) << endl;
 
-		current = current->next;  
+		current = current->next;
 	}
+	//cout << "in Timer interupt" << endl;
 }
 
 void VirtualMem::initializePDandFirstPT()
@@ -75,7 +76,6 @@ void VirtualMem::initializePDandFirstPT()
 	**/
 
 	//unmap the first page, to map the same number of page frame for the PD
-	//munmap(this->virtualMemStartAddress, PAGESIZE*(NUMBER_OF_PT+1));-> think this is wrong, because we are not using all PT in the beginning
 	munmap(this->virtualMemStartAddress, PAGESIZE);
 
 	//map page frame for PD
@@ -87,10 +87,6 @@ void VirtualMem::initializePDandFirstPT()
 	}
 	nextFreeFrameIndex++;
 	pagesinRAM++;
-	//////////////////////////////////////////////////
-	// LRU Stuff
-	//this->accessStack.insertPageAtTop(virtualMemStartAddress);
-	///////////////////////////////////////////////////
 	//initialize first PT with the two phys adresses of the PD and the PT itself
 	munmap(this->virtualMemStartAddress + PAGETABLE_SIZE, PAGESIZE);
 
@@ -165,14 +161,13 @@ void VirtualMem::fixPermissions(void *address)
 	}
 	else
 	{
-		//cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(pageFrameAddr) << endl;
 		if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == READ)
 		{
-			permissionChange = 	LRU_CASE_READ; 
+			permissionChange = LRU_CASE_READ; 
 		}
 		else if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == WRITE)
 		{
-			permissionChange = 	LRU_CASE_WRITE;
+			permissionChange = LRU_CASE_WRITE;
 		}
 		else
 			permissionChange = READTOWRITE;
@@ -224,6 +219,7 @@ void VirtualMem::fixPermissions(void *address)
 			this->accessStack.deletePageIfExists(pageStartAddr); 
 			this->accessStack.insertPageAtTop(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
+			cout << "case LRU READ" << endl;
 			break; 
 		}	
 	case LRU_CASE_WRITE:
@@ -232,6 +228,7 @@ void VirtualMem::fixPermissions(void *address)
 			this->accessStack.deletePageIfExists(pageStartAddr); 
 			this->accessStack.insertPageAtTop(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
+			cout << "case LRU WRITE" << endl;
 			break;  
 		}
 	
@@ -239,6 +236,7 @@ void VirtualMem::fixPermissions(void *address)
 		this->accessStack.deletePageIfExists(pageStartAddr);
 		this->accessStack.insertPageAtTop(pageStartAddr);
 		writePageActivate(pageStartAddr);
+		cout << "case READ TO WRITE" << endl;
 		cout << "Here " << pageStartAddr <<endl; 
 		break;
 	}
