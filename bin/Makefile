@@ -22,7 +22,7 @@ CXX	= g++
 LD	= g++
 
 # -c  -fpic -fno-builtin -nostdlib -ffreestanding -nodefaultlibs
-CXXFLAGS = -g -Wall -fpic -nostdlib
+CXXFLAGS = -g -Wall 
 
 INCLUDES = -I$(INC_DIR)
 
@@ -42,7 +42,7 @@ DEPS += $(addprefix $(TMP_DIR), $(subst $(CXX_FILE_ENDING),.d, $(SRC_MAIN)))
 TMP_SUBDIRS = $(sort $(dir $(OBJS)))
 .PHONY: clean all depend
 
-all: clean depend $(TARGET_MAIN)
+all: depend $(TARGET_MAIN)
 
 $(TARGET_MAIN): $(OBJS) $(OBJS_MAIN)
 	$(LD) $(LDFLAGS) $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN); rm -rf SwapFile

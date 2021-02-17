@@ -260,10 +260,12 @@ void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
 
 
 void* FirstFitHeap::operator new(size_t size) {
+    cout << "new" << endl; 
     return malloc(size);
 }
 
 void* FirstFitHeap::operator new[](size_t size) {
+    cout << "new []" << endl; 
     return malloc(size);
 }
 
