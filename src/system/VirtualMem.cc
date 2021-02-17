@@ -6,9 +6,11 @@
 #define NUMBER_OF_PAGES FOUR_GB / PAGESIZE
 #define NUMBER_OF_PT NUMBER_OF_PAGES / PAGETABLE_SIZE
 
+
+
 VirtualMem::VirtualMem()
 {
-	this->numberOfPF = 10; 
+	this->numberOfPF = 100; 
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
 	this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -43,10 +45,12 @@ VirtualMem::VirtualMem()
 	cout << "#############################################" << endl;
 	cout << "#############################################" << endl;  
 	initializePDandFirstPT();
+	/*
 	this->protNonetimer.setInterval([&]() {
 		// cout << "Timer Interrupt xD" << endl;
         protNoneAll(); 
     }, 1000);
+	*/
 }
 
 
@@ -491,7 +495,7 @@ void *VirtualMem::expand(size_t size)
 
 VirtualMem::~VirtualMem()
 {
-	this->protNonetimer.stopLruTimer();
+	//this->protNonetimer.stopLruTimer();
 	munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
 	shm_unlink("phy-Mem");
 	
@@ -514,4 +518,12 @@ void VirtualMem::resetQueues()
 	}
 
 	this -> pinnedPages = 0;*/
+}
+
+void* VirtualMem::operator new(size_t size) {
+    return malloc(size);
+}
+
+void VirtualMem::operator delete(void* ptr) {
+    free(ptr);
 }

@@ -5,11 +5,9 @@
 #include <boost/program_options.hpp>
 #include "timer/CycleTimer.h"
 using namespace std; 
-//ofstream myfile;
 
 #define NEW
-VirtualMem* FirstFitHeap::memory = new VirtualMem();
-freeBlock* FirstFitHeap::head = (freeBlock*) memory -> getStart();
+
 
  //a simple version of bubble sort
 void bubbleSort(unsigned* array, unsigned nrElements)
@@ -40,7 +38,6 @@ void* operator new(size_t size) {
     return FirstFitHeap::malloc(size);
 }
 
-
 void operator delete(void* ptr) {
     FirstFitHeap::free(ptr);
 }
@@ -51,71 +48,71 @@ void operator delete[](void* ptr) {
 
 int main(int argc, char** argv)
 {
+    ofstream myfile;
     FirstFitHeap::initHeap();
 	//////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////
-	// cout << "dfsdfsdfsdf" << endl;
-	// CycleTimer t;
-	// namespace po = boost::program_options;
-    // //define available arguments
-    // po::options_description desc("Options");
-    // desc.add_options()
-    //     ("help,h", "Print help message")
-    //     ("numbers,n", po::value<unsigned>()->required(), "How many numbers you want for the bubblesort list")
-    //     (",r", po::value<uint64_t>()->default_value(10), "Repeat benchmark <arg> times")
-    //     (",o", po::value<string>()->default_value("values.csv"),"Name of the output file");
-    //     // ("pagesframes,p", po::value<unsigned>()->required(), "Number of pageframes available")
-    // //read arguments
-    // po::variables_map vm;
-    // po::store(po::parse_command_line(argc, argv, desc), vm);
-    // //did someone say 'help'?
-    // if (vm.count("help")) {
-    //     std::cerr << desc << std::endl;
-    //     return 0;
-    // }
-    // //read arguments into variables
-    // po::notify(vm);
-    // unsigned nrElements = vm["numbers"].as<unsigned>();
-    // uint64_t runs = vm["-r"].as<uint64_t>();
-    // string outputFileName = vm["-o"].as<string>();
-    // myfile.open(outputFileName, std::ofstream::trunc);
-    // FirstFitHeap heap;
-    // FirstFitHeap::initHeap();
+	cout << "dfsdfsdfsdf" << endl;
+	CycleTimer t;
+	namespace po = boost::program_options;
+    //define available arguments
+    po::options_description desc("Options");
+    desc.add_options()
+        ("help,h", "Print help message")
+        ("numbers,n", po::value<unsigned>()->required(), "How many numbers you want for the bubblesort list")
+        (",r", po::value<uint64_t>()->default_value(10), "Repeat benchmark <arg> times")
+        (",o", po::value<string>()->default_value("values.csv"),"Name of the output file");
+        // ("pagesframes,p", po::value<unsigned>()->required(), "Number of pageframes available")
+    //read arguments
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    //did someone say 'help'?
+    if (vm.count("help")) {
+        std::cerr << desc << std::endl;
+        return 0;
+    }
+    //read arguments into variables
+    po::notify(vm);
+    unsigned nrElements = vm["numbers"].as<unsigned>();
+    uint64_t runs = vm["-r"].as<uint64_t>();
+    string outputFileName = vm["-o"].as<string>();
+    myfile.open(outputFileName, std::ofstream::trunc);
+    FirstFitHeap heap;
+    FirstFitHeap::initHeap();
     //////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////
 
     #ifdef MALLOC
     unsigned *array = (unsigned*) FirstFitHeap::malloc(nrElements*4096);
     #else
-    cout << "here"; 
+    unsigned *array = new unsigned[nrElements*4096];
     #endif
-	int *array = new int [5] ;
     //////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////
+    for(unsigned i = 0; i < nrElements; i++)
+    {	
+    	array[i*1024] = nrElements-i; 
+    }
+
     // for(unsigned i = 0; i < nrElements; i++)
     // {	
-    // 	array[i*1024] = nrElements-i; 
+    // 	cout << array[i*1024] << endl;  
     // }
-
-    // // for(unsigned i = 0; i < nrElements; i++)
-    // // {	
-    // // 	cout << array[i*1024] << endl;  
-    // // }
-    // for(int i = 0; i < runs; i++)
-    // {
-    // 	t.start();
-    // 	bubbleSort(array, nrElements);
-    // 	uint64_t time = t.stop();
-    // 	if(i != runs -1)
-    // 	{
-    // 		myfile << time << ",";
-    // 	}
-    // 	else 
-    // 	{
-    // 		myfile << time;
-    // 	}
-    // }
-    // myfile << "\n";
+    for(int i = 0; i < runs; i++)
+    {
+    	t.start();
+    	bubbleSort(array, nrElements);
+    	uint64_t time = t.stop();
+    	if(i != runs -1)
+    	{
+    		myfile << time << ",";
+    	}
+    	else 
+    	{
+    		myfile << time;
+    	}
+    }
+    myfile << "\n";
 
     return 0;
 }

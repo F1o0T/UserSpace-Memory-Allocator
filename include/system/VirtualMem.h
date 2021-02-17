@@ -101,10 +101,19 @@ enum permission_change : int
     LRU_CASE_WRITE
 };
 
-struct stackPageNode
+class stackPageNode
 {
+public:
     void *pageAddress;
     stackPageNode *prev, *next;
+
+    void* operator new(size_t size) {
+    return malloc(size);
+    }
+
+    void operator delete(void* ptr) {
+    free(ptr);
+    }
 };
 class Stack
 {
@@ -269,7 +278,7 @@ private:
     unsigned pagesinRAM = 0;
     unsigned pageoutPointer = 0;
     unsigned numberOfPF = 0 ;
-    Timer protNonetimer = Timer();
+    //Timer protNonetimer = Timer();
     int fd = 0; 
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
@@ -305,6 +314,11 @@ public:
     void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
     void resetQueues();
     void protNoneAll();
+
+    void* operator new(size_t size);
+
+    void operator delete(void* ptr);
+
     /////////////////////////////////////////////////
 };
 
