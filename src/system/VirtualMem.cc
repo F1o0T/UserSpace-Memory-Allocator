@@ -8,9 +8,7 @@
 
 VirtualMem::VirtualMem()
 {
-	unsigned numberOfPF = 4;
-
-	this->numberOfPF = numberOfPF;
+	this->numberOfPF = 10; 
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
 	this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -24,7 +22,6 @@ VirtualMem::VirtualMem()
 		cerr << "|###> Error: truncate failed" << endl;
 		exit(1);
 	}
-
 	/*map the whole logical memory size*/
 	this->virtualMemStartAddress = (unsigned *)mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (this->virtualMemStartAddress == (unsigned *)MAP_FAILED)
@@ -49,8 +46,9 @@ VirtualMem::VirtualMem()
 	this->protNonetimer.setInterval([&]() {
 		// cout << "Timer Interrupt xD" << endl;
         protNoneAll(); 
-    }, .001);
+    }, 1000);
 }
+
 
 void VirtualMem::protNoneAll()
 {
@@ -176,6 +174,7 @@ void VirtualMem::fixPermissions(void *address)
 	switch (permissionChange)
 	{
 	case NONTOREAD_NOTFULL:
+		// cout << "NONTOREAD_NOTFULL  @ "<< pageStartAddr <<  endl;
 		//if there is already data on the disk, we have to this data in
 		if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED)
 		{
@@ -193,6 +192,7 @@ void VirtualMem::fixPermissions(void *address)
 
 	case NONTOREAD_FULL:
 		{ 
+			// cout << "NONTOREAD_FULL @ "<< pageStartAddr <<  endl;
 			void *kickedPageAddr = kickPageFromStack();
 			this->pageOut(kickedPageAddr);
 			//cout << "kickedChunkAddr @ " << kickedChunkAddr << " paged out." << endl; 
@@ -219,7 +219,7 @@ void VirtualMem::fixPermissions(void *address)
 			this->accessStack.deletePageIfExists(pageStartAddr); 
 			this->accessStack.insertPageAtTop(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
-			cout << "case LRU READ" << endl;
+			// cout << "case LRU READ" << endl;
 			break; 
 		}	
 	case LRU_CASE_WRITE:
@@ -228,7 +228,7 @@ void VirtualMem::fixPermissions(void *address)
 			this->accessStack.deletePageIfExists(pageStartAddr); 
 			this->accessStack.insertPageAtTop(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
-			cout << "case LRU WRITE" << endl;
+			// cout << "case LRU WRITE" << endl;
 			break;  
 		}
 	
@@ -236,8 +236,7 @@ void VirtualMem::fixPermissions(void *address)
 		this->accessStack.deletePageIfExists(pageStartAddr);
 		this->accessStack.insertPageAtTop(pageStartAddr);
 		writePageActivate(pageStartAddr);
-		cout << "case READ TO WRITE" << endl;
-		cout << "Here " << pageStartAddr <<endl; 
+		// cout << "READTOWRITE @ "<< pageStartAddr <<  endl;
 		break;
 	}
 }
@@ -278,7 +277,7 @@ void VirtualMem::writePageActivate(void *pageStartAddr)
 
 void VirtualMem::pageOut(void *kickedChunkAddr)
 {
-	cout << "PageOut " << kickedChunkAddr << endl; 
+	//cout << "PageOut " << kickedChunkAddr << endl; 
 	off_t offset = reinterpret_cast<off_t>(kickedChunkAddr) - reinterpret_cast<off_t>(this->virtualMemStartAddress);
 	this->swapFile.swapFileWrite(kickedChunkAddr, offset, PAGESIZE);
 	unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)kickedChunkAddr);

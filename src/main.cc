@@ -1,25 +1,69 @@
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <algorithm>
-#include <string>
-#include <boost/program_options.hpp>
 #include "system/VirtualMem.h"
 #include "runtime/FirstFitHeap.h"
-
-
-
-
+#include <boost/program_options.hpp>
+ 
+ //a simple version of bubble sort
+void bubbleSort(unsigned* array, unsigned nrElements)
+{
+    for (unsigned i = 0; i < nrElements * 1024; i+= 1024) {
+    	//cout << "Outer " << i << endl;  
+        for (unsigned j = i; j < nrElements * 1024; j += 1024) {
+        	//cout << "Inner " << i << endl;
+            if (array[i] > array[j]) {
+                unsigned temp = array[i];
+                //cout << temp << endl; 
+                array[i] = array[j];
+                array[j] = temp;
+            }
+        }
+    }
+}
 int main(int argc, char** argv)
 {
+	namespace po = boost::program_options;
+    //define available arguments
+    po::options_description desc("Options");
+    desc.add_options()
+        ("help,h", "Print help message")
+        ("numbers,n", po::value<unsigned>()->required(), "How many numbers you want for the bubblesort list");
+        // ("pagesframes,p", po::value<unsigned>()->required(), "Number of pageframes available")
+    //read arguments
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    //did someone say 'help'?
+    if (vm.count("help")) {
+        std::cerr << desc << std::endl;
+        return 0;
+    }
+    //read arguments into variables
+    po::notify(vm);
+    unsigned nrElements = vm["numbers"].as<unsigned>();
+    ///////////////
     FirstFitHeap heap;
     FirstFitHeap::initHeap();
     /////////////////
-
     // User Code
-    char *array = (char*) heap.malloc(4100);   //malloc()
-    array[0]    = 'A';
-    array[4099] = 'B';
+    unsigned *array = (unsigned*) FirstFitHeap::malloc(nrElements*4096);
+
+    for(unsigned i = 0; i < nrElements; i++)
+    {	
+    	array[i*1024] = nrElements-i; 
+    }
+    cout << "Before Sorting" << endl; 
+    for(unsigned i = 0; i < nrElements; i++)
+    {	
+    	cout << array[i*1024] << endl;  
+    }
+
+    bubbleSort(array, nrElements);
+	cout << "After Sorting" << endl; 
+    for(unsigned i = 0; i < nrElements; i++)
+    {	
+    	cout << array[i*1024] << endl;  
+    }
+    // array[0]    = 'A';
+    // array[3500] = 'B';
 
     return 0;
 }
@@ -63,38 +107,7 @@ int main(int argc, char** argv)
 
 
 
-// //a simple version of bubble sort
-// void bubbleSort(unsigned** array, unsigned nrElements)
-// {
-//     for (unsigned i = 0; i < nrElements; i++) {
-//         for (unsigned j = i; j < nrElements; j++) {
-//             if (*(array[i]) > *(array[j])) {
-//                 // cout << "=============================================" << endl;
-//                 // cout << "AccessStack Current Elements " << endl; 
-//                 // cout << "=============================================" << endl;  
-//                 // vMem.accessStack.display();
-//                 // cout << "=============================================" << endl; 
-//                 int temp = *(array[i]);
-//                 *(array[i]) = *(array[j]);
-//                 *(array[j]) = temp;
-//                 cout << "Sorting " << endl; 
-//                 // unsigned test0 = *(array[0]); 
-//                 // unsigned test1 = *(array[1]);
-//                 // unsigned test2 = *(array[2]);
-//                 // cout << "In bubble sort: " << test0 << " is @ " << (void*) array[0] << endl; 
-//                 // cout << "In bubble sort: " << test1 << " is @ " << (void*) array[1] << endl; 
-//                 // cout << "In bubble sort: " << test2 << " is @ " << (void*) array[2] << endl; 
-//             }
 
-//             if (showGUI) {
-// 				gui -> drawMemory();
-// 				sleep(1);
-// 				////cout << "|>>> Write a char: "; char ch; 
-// 				//cin >> ch; 
-// 		    }
-//         }
-//     }
-// }
 
 
 

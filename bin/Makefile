@@ -7,8 +7,6 @@ SRC_FILES = \
 	system/VirtualMem.cc \
 	timer/timecpp.cc
 	
-
-	
 SRC_MAIN = main.cc
 
 TMP_DIR = ./tmp/
@@ -23,7 +21,8 @@ ASM	= g++
 CXX	= g++
 LD	= g++
 
-CXXFLAGS = -g -Wall 
+# -c  -fpic -fno-builtin -nostdlib -ffreestanding -nodefaultlibs
+CXXFLAGS = -g -Wall -fpic -nostdlib
 
 INCLUDES = -I$(INC_DIR)
 
@@ -43,10 +42,10 @@ DEPS += $(addprefix $(TMP_DIR), $(subst $(CXX_FILE_ENDING),.d, $(SRC_MAIN)))
 TMP_SUBDIRS = $(sort $(dir $(OBJS)))
 .PHONY: clean all depend
 
-all: depend $(TARGET_MAIN)
+all: clean depend $(TARGET_MAIN)
 
 $(TARGET_MAIN): $(OBJS) $(OBJS_MAIN)
-	$(LD) $(LDFLAGS) $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN)
+	$(LD) $(LDFLAGS) $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN); rm -rf SwapFile
 
 $(TMP_SUBDIRS) :
 	mkdir -p $@

@@ -262,16 +262,15 @@ public:
 class VirtualMem: public Memory
 {
 private:
-    ///////////////////////////////////////////
     
     ///////////////////////////////////////////
     unsigned *virtualMemStartAddress = NULL;
     unsigned nextFreeFrameIndex = 0;
     unsigned pagesinRAM = 0;
     unsigned pageoutPointer = 0;
-    unsigned numberOfPF = 0;
+    unsigned numberOfPF = 0 ;
     Timer protNonetimer = Timer();
-    int fd = 0;
+    int fd = 0; 
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
     SwapFile swapFile;

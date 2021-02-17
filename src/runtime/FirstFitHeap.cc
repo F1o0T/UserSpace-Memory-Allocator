@@ -37,7 +37,7 @@ void FirstFitHeap::initHeap() {
 }
 
 void* FirstFitHeap::malloc(size_t size) {
-    //catch Errors
+    cout << "## Custom Malloc" << endl;
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
         return nullptr;
@@ -273,4 +273,5 @@ void FirstFitHeap::operator delete(void* ptr) {
 
 void FirstFitHeap::operator delete[](void* ptr) {
     free(ptr);
+
 }
