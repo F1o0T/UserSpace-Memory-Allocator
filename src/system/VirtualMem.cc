@@ -10,7 +10,7 @@
 
 VirtualMem::VirtualMem()
 {
-	this->numberOfPF = 10; 
+	this->numberOfPF = 12;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
 	this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -49,11 +49,15 @@ VirtualMem::VirtualMem()
 
 }
 
-void VirtualMem::startTimer() {
+void VirtualMem::setInterval() {
 	this->protNonetimer.setInterval([&]() {
-		cout << "Timer Interrupt xD" << endl;
+		cout << "Timer Interrupt xD" << getStart() << endl;
         protNoneAll(); 
-    }, 10);
+    }, 0.1);
+}
+
+void VirtualMem::startTimer() {
+	this->protNonetimer.startLruTimer();
 }
 
 void VirtualMem::stopTimer() {
@@ -63,10 +67,11 @@ void VirtualMem::stopTimer() {
 
 void VirtualMem::protNoneAll()
 {
-	mprotect(this->getStart(), FOUR_GB - 1025*PAGESIZE, PROT_NONE);
-	stackPageNode *current = this->accessStack.top; 
+	stackPageNode *current = this->accessStack.top;
 	while(current != NULL)
 	{
+		cout << (void*) current << endl; 
+		mprotect((void*) current, PAGESIZE, PROT_NONE);
 		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress);
 		mappingUnit.setLruBit(pageTableEntry, LRU);
 		//cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(*(pageTableEntry)) << endl;
@@ -156,16 +161,19 @@ void VirtualMem::fixPermissions(void *address)
 	unsigned pageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)pageStartAddr);
 	permission_change permissionChange;
 	//determine which permission change is the right one
+	
 	if (mappingUnit.getPresentBit(pageFrameAddr) == NOT_PRESENT)
 	{
 		//this is the case when we change the permission from non to read
 		if (pagesinRAM < numberOfPF)
 		{
 			permissionChange = NONTOREAD_NOTFULL;
+			//cout << "NON TO READ NOT FULL" << endl;
 		}
 		else
 		{
 			permissionChange = NONTOREAD_FULL;
+			//cout << "NON TO READ FULL" << endl;
 		}
 	}
 	else
@@ -173,13 +181,18 @@ void VirtualMem::fixPermissions(void *address)
 		if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == READ)
 		{
 			permissionChange = LRU_CASE_READ; 
+			//cout << "LRU Case Read" << endl;
 		}
 		else if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == WRITE)
 		{
 			permissionChange = LRU_CASE_WRITE;
+			//cout << "LRU Case Write" << endl;
 		}
 		else
+		{
 			permissionChange = READTOWRITE;
+			//cout << "READ TO WRITE" << endl;
+		}
 	}
 
 	switch (permissionChange)
@@ -288,18 +301,21 @@ void VirtualMem::writePageActivate(void *pageStartAddr)
 
 void VirtualMem::pageOut(void *kickedChunkAddr)
 {
-	//cout << "PageOut " << kickedChunkAddr << endl; 
+	stopTimer();
 	off_t offset = reinterpret_cast<off_t>(kickedChunkAddr) - reinterpret_cast<off_t>(this->virtualMemStartAddress);
 	this->swapFile.swapFileWrite(kickedChunkAddr, offset, PAGESIZE);
 	unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
 	unsigned pageFrameAddr = *(pageTableEntry);
 	this->pageoutPointer = mappingUnit.cutOfOffset(pageFrameAddr);
+	startTimer();
 }
 
 void VirtualMem::pageIn(void *chunckStartAddr)
 {
+	stopTimer();
 	off_t offset = reinterpret_cast<off_t>(chunckStartAddr) - reinterpret_cast<off_t>(this->virtualMemStartAddress);
 	this->swapFile.swapFileRead(chunckStartAddr, offset, PAGESIZE);
+	startTimer();
 }
 
 void VirtualMem::mapOut(void *pageStartAddress)

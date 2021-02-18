@@ -316,6 +316,7 @@ public:
     void protNoneAll();
     void startTimer();
     void stopTimer();
+    void setInterval();
 
     void* operator new(size_t size);
 

@@ -12,6 +12,7 @@ class Timer {
         void setTimeout(auto function, int delay);
         void setInterval(auto function, int interval);
         void stopLruTimer();
+        void startLruTimer();
 };
 
 void Timer::setTimeout(auto function, int delay) {

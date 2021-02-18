@@ -34,7 +34,7 @@ void FirstFitHeap::initHeap() {
     head -> nextAddress = 0;
     //create first direct list at the start of the memory
     //With only one free block with the length of memory - unsigned
-    memory -> startTimer();
+    memory -> setInterval();
 }
 
 void* FirstFitHeap::malloc(size_t size) {
