@@ -89,22 +89,10 @@ int main(int argc, char** argv)
     #endif
     //////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////
-    unsigned* blocks[nrElements];
-    unsigned randNumbers[nrElements];
-    for (unsigned i = 0; i < nrElements; i++) {
-        randNumbers[i] = i; //already sorted
-    }
-    unsigned* memStart = array;
-    for (unsigned i = 0; i < nrElements; i++) {
-        blocks[i] = memStart + (i * 1024);
-    }
-    for (unsigned i = 0; i < nrElements; i++) {
-        *blocks[i] = randNumbers[i]; //pseudo-random values
-    }
-    /*for(unsigned i = 0; i < nrElements; i++)
+    for(unsigned i = 0; i < nrElements; i++)
     {	
     	array[i*1024] = nrElements-i; 
-    }*/
+    }
 
     for(unsigned i = 0; i < nrElements; i++)
     {	
@@ -114,7 +102,7 @@ int main(int argc, char** argv)
     for(int i = 0; i < runs; i++)
     {
     	t.start();
-    	bubbleSort(blocks, nrElements);
+    	bubbleSort(array, nrElements);
     	uint64_t time = t.stop();
     	if(i != runs -1)
     	{
