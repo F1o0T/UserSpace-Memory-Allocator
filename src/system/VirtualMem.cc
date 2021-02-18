@@ -10,7 +10,7 @@
 
 VirtualMem::VirtualMem()
 {
-	this->numberOfPF = 100; 
+	this->numberOfPF = 10; 
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
 	this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -196,7 +196,7 @@ void VirtualMem::fixPermissions(void *address)
 
 	case NONTOREAD_FULL:
 		{ 
-			cout << "NONTOREAD_FULL @ "<< pageStartAddr <<  endl;
+			// cout << "NONTOREAD_FULL @ "<< pageStartAddr <<  endl;
 			void *kickedPageAddr = kickPageFromStack();
 			this->pageOut(kickedPageAddr);
 			//cout << "kickedChunkAddr @ " << kickedChunkAddr << " paged out." << endl; 

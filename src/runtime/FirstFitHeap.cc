@@ -37,7 +37,7 @@ void FirstFitHeap::initHeap() {
 }
 
 void* FirstFitHeap::malloc(size_t size) {
-    cout << "## Custom Malloc" << endl;
+    cout << "## Custom Malloc "  << size << endl;
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
         return nullptr;

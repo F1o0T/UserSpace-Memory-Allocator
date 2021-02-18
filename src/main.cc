@@ -6,7 +6,7 @@
 #include "timer/CycleTimer.h"
 using namespace std; 
 
-#define NEW
+#define MALLOC
 
 
  //a simple version of bubble sort
@@ -49,6 +49,7 @@ void operator delete[](void* ptr) {
 int main(int argc, char** argv)
 {
     ofstream myfile;
+    FirstFitHeap heap;
     FirstFitHeap::initHeap();
 	//////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////
@@ -77,8 +78,7 @@ int main(int argc, char** argv)
     uint64_t runs = vm["-r"].as<uint64_t>();
     string outputFileName = vm["-o"].as<string>();
     myfile.open(outputFileName, std::ofstream::trunc);
-    FirstFitHeap heap;
-    FirstFitHeap::initHeap();
+
     //////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////
 
@@ -94,10 +94,11 @@ int main(int argc, char** argv)
     	array[i*1024] = nrElements-i; 
     }
 
-    // for(unsigned i = 0; i < nrElements; i++)
-    // {	
-    // 	cout << array[i*1024] << endl;  
-    // }
+    for(unsigned i = 0; i < nrElements; i++)
+    {	
+    	cout << array[i*1024] << endl;  
+    }
+    
     for(int i = 0; i < runs; i++)
     {
     	t.start();
@@ -113,91 +114,14 @@ int main(int argc, char** argv)
     	}
     }
     myfile << "\n";
-
+    for(unsigned i = 0; i < nrElements; i++)
+    {	
+    	cout << array[i*1024] << endl; 
+    }
+    cout << array; 
+    FirstFitHeap::free(array); 
+    FirstFitHeap::free(array); 
+    int x = 5; 
+    FirstFitHeap::free(&x); 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// DrawingWindow* window;
-// MemoryGUI* gui;
-// bool showGUI = false;
-
-
-
-
-
-
-
-
-
-
-    // if (showGUI) {
-    //     window = new DrawingWindow(width, height, "GUI");
-    //     gui = new MemoryGUI(&vMem, window, MO_PAGE, nrElements);
-    //     gui -> drawMemory();
-    // }
- 
-    
-    
-
-    // if (showGUI) {
-    //     cout << "|>>> Write a char to close: "; char ch; 
-	// 	cin >> ch;
-    //     delete(window);
-    //     delete(gui);
-    // }
-    
-    // cout << "ok end of code" << endl;
-
-
-// namespace po = boost::program_options;
-    // //define available arguments
-    // po::options_description desc("Options");
-    // desc.add_options()
-    //     ("help,h", "Print help message")
-    //     ("numbers,n", po::value<unsigned>()->required(), "How many numbers you want for the bubblesort list")
-    //     ("pagesframes,p", po::value<unsigned>()->required(), "Number of pageframes available");
-
-    // //read arguments
-    // po::variables_map vm;
-    // po::store(po::parse_command_line(argc, argv, desc), vm);
-    // //did someone say 'help'?
-    // if (vm.count("help")) {
-    //     std::cerr << desc << std::endl;
-    //     return 0;
-    // }
-    // //read arguments into variables
-    // po::notify(vm);
-    // unsigned nrElements = vm["numbers"].as<unsigned>();
-    // unsigned numberOfPF = vm["pagesframes"].as<unsigned>();
