@@ -1,7 +1,5 @@
 #include "timer/timercpp.h"
 
-
-
-void LRUTimer::stopIt(){
+void Timer::stopLruTimer() {
     this->clear = true;
 }

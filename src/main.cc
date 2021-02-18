@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     FirstFitHeap::initHeap();
 	//////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////
-	cout << "dfsdfsdfsdf" << endl;
+	cout << "dfsdfsdffsafsafdafdafdafasfffasdffafafafafdsfafdfsdf" << endl;
 	CycleTimer t;
 	namespace po = boost::program_options;
     //define available arguments
@@ -118,10 +118,8 @@ int main(int argc, char** argv)
     {	
     	cout << array[i*1024] << endl; 
     }
-    cout << array; 
-    FirstFitHeap::free(array); 
-    FirstFitHeap::free(array); 
-    int x = 5; 
-    FirstFitHeap::free(&x); 
+    cout << array << endl;
+    FirstFitHeap::free(array);
+    heap.destroyTimer();
     return 0;
 }

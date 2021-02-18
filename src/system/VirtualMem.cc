@@ -45,12 +45,19 @@ VirtualMem::VirtualMem()
 	cout << "#############################################" << endl;
 	cout << "#############################################" << endl;  
 	initializePDandFirstPT();
-	/*
+	
+
+}
+
+void VirtualMem::startTimer() {
 	this->protNonetimer.setInterval([&]() {
-		// cout << "Timer Interrupt xD" << endl;
+		cout << "Timer Interrupt xD" << endl;
         protNoneAll(); 
-    }, 1000);
-	*/
+    }, 10);
+}
+
+void VirtualMem::stopTimer() {
+	this->protNonetimer.stopLruTimer();
 }
 
 
@@ -495,7 +502,6 @@ void *VirtualMem::expand(size_t size)
 
 VirtualMem::~VirtualMem()
 {
-	//this->protNonetimer.stopLruTimer();
 	munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
 	shm_unlink("phy-Mem");
 	

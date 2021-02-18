@@ -20,6 +20,8 @@ public:
 
     FirstFitHeap();
 
+    void destroyTimer();
+
     static void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext);
 
     static void initHeap();

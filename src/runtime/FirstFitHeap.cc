@@ -34,6 +34,7 @@ void FirstFitHeap::initHeap() {
     head -> nextAddress = 0;
     //create first direct list at the start of the memory
     //With only one free block with the length of memory - unsigned
+    memory -> startTimer();
 }
 
 void* FirstFitHeap::malloc(size_t size) {
@@ -219,14 +220,15 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
     } else if (size == 0 && ptr != NULL) {
         free(ptr);
         return NULL;
-    } else if (correctAddress(ptr) == false) {
+    } else if (correctAddress((void*) (( (unsigned*) ptr) - 1)) == false) {
         return NULL;
     }
 
+    void* returnPtr = malloc(size);
     caddr_t oldPosPtr = (caddr_t) ptr;
-    caddr_t newPosPtr = (caddr_t) malloc(size);
+    caddr_t newPosPtr = (caddr_t) returnPtr;
     //if it is to big then return NULL
-    if (ptr == NULL) {
+    if (newPosPtr == NULL) {
         return NULL;
     }
 
@@ -237,6 +239,7 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
     }
 
     free(ptr);
+    return returnPtr;
 }
 
 void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
@@ -244,7 +247,8 @@ void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
         return NULL;
     }
 
-    caddr_t ptr = (caddr_t) malloc(nmemb*size);
+    void* returnPtr = malloc(size);
+    caddr_t ptr = (caddr_t) returnPtr;
     //if it is to big then return NULL
     if (ptr == NULL) {
         return NULL;
@@ -255,7 +259,7 @@ void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
         ptr++;
     }
 
-    return ptr;
+    return returnPtr ;
 }
 
 
@@ -276,4 +280,8 @@ void FirstFitHeap::operator delete(void* ptr) {
 void FirstFitHeap::operator delete[](void* ptr) {
     free(ptr);
 
+}
+
+void FirstFitHeap::destroyTimer() {
+    memory -> stopTimer();
 }
