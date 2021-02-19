@@ -1,10 +1,11 @@
 #include "runtime/FirstFitHeap.h"
 
-VirtualMem* FirstFitHeap::memory = new VirtualMem();
+VirtualMem* FirstFitHeap::memory = new VirtualMem;
 freeBlock* FirstFitHeap::head = (freeBlock*) memory -> getStart();
-
+bool initalized = 0; 
 void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
+    memory -> protNonetimer.stop = true; 
 	if(info->si_code == SEGV_ACCERR)
     {   
         //cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
@@ -13,12 +14,15 @@ void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
     }
     else if(info->si_code == SEGV_MAPERR)
     {
-        cout << "|### Error: Access denied, unmapped address!" << endl; 
+        cout << "|### Error: Access denied, unmapped @ address = " << info->si_addr << endl; 
         exit(1);
     }
+    memory -> protNonetimer.stop = false;
 }
 
-FirstFitHeap::FirstFitHeap() {}
+FirstFitHeap::FirstFitHeap() 
+{
+}
 
 void FirstFitHeap::initHeap() {
     ///////////////////////////////////////////////
@@ -35,10 +39,16 @@ void FirstFitHeap::initHeap() {
     //create first direct list at the start of the memory
     //With only one free block with the length of memory - unsigned
     memory -> setInterval();
+    initalized = 1; 
 }
 
 void* FirstFitHeap::malloc(size_t size) {
-    cout << "## Custom Malloc "  << size << endl;
+    if(initalized == 0)
+    {
+        cout << memory << endl;
+        initHeap();
+    }
+    //cout << "## Custom Malloc "  << size << endl;
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
         return nullptr;
@@ -92,7 +102,8 @@ void* FirstFitHeap::malloc(size_t size) {
 
     //record the size of the block
     *((unsigned*) curPos) = (unsigned) size;
-
+ 
+    // cout << "The returned address by malloc will be : " << (void*) (((unsigned*) curPos) + 1) << endl;
     //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
 }
@@ -217,7 +228,7 @@ bool FirstFitHeap::correctAddress(void* address){
 void* FirstFitHeap::realloc(void* ptr, size_t size) {
     if (ptr == NULL) {
         return malloc(size);
-    } else if (size == 0 && ptr != NULL) {
+    } else if (size == 0) {
         free(ptr);
         return NULL;
     } else if (correctAddress((void*) (( (unsigned*) ptr) - 1)) == false) {
@@ -225,14 +236,14 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
     }
 
     void* returnPtr = malloc(size);
-    caddr_t oldPosPtr = (caddr_t) ptr;
-    caddr_t newPosPtr = (caddr_t) returnPtr;
     //if it is to big then return NULL
-    if (newPosPtr == NULL) {
+    if (returnPtr == NULL) {
         return NULL;
     }
+    caddr_t oldPosPtr = (caddr_t) ptr;
+    caddr_t newPosPtr = (caddr_t) returnPtr;
 
-    for (unsigned i = 0; i < size; i++) {
+    for (char i = 0; i < size; i++) {
         *(newPosPtr) = *(oldPosPtr);
         newPosPtr++;
         oldPosPtr++;
@@ -254,7 +265,7 @@ void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
         return NULL;
     }
     
-    for (unsigned i = 0; i < nmemb*size; i++) {
+    for (char i = 0; i < nmemb*size; i++) {
         *(ptr) = 0;
         ptr++;
     }
@@ -262,14 +273,12 @@ void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
     return returnPtr ;
 }
 
-
 void* FirstFitHeap::operator new(size_t size) {
-    cout << "new" << endl; 
+    cout << "new FirstFitHeap object" << endl; 
     return malloc(size);
 }
 
 void* FirstFitHeap::operator new[](size_t size) {
-    cout << "new []" << endl; 
     return malloc(size);
 }
 

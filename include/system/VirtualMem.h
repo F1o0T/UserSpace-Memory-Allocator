@@ -1,24 +1,18 @@
 #ifndef VirtualMem_h
 #define VirtualMem_h
-
 #include "system/Memory.h"
 #include "misc/RandomAccessFile.h"
 #include "system/AddressMapping.h"
-
 #include <sys/mman.h>
 #include <unistd.h>
 #include <iostream>
 #include <signal.h>
 #include <list>
-
 #include <sys/stat.h>
 #include <fcntl.h>
-
 #include <iterator>
 #include <map>
-
 #include <timer/timercpp.h>
-
 using namespace std;
 
 class SwapFile : public RandomAccessFile
@@ -115,6 +109,7 @@ public:
     free(ptr);
     }
 };
+
 class Stack
 {
 public:
@@ -145,10 +140,13 @@ public:
     }
     void insertPageAtTop(void *pageAddr)
     {
+        // cout << "Lets insert " << pageAddr << "to the accessStack" << endl;
+        ////////////////////////////////////////////
+        // Initialization
         stackPageNode *newStackPageNode = new stackPageNode; 
         newStackPageNode->pageAddress = pageAddr; 
         newStackPageNode->prev = newStackPageNode->next = NULL;
-
+        ////////////////////////////////////////////
         if (top == NULL)
             bottom = top = newStackPageNode;
         else
@@ -249,12 +247,21 @@ public:
     }
     void display()
     {
+        cout << "AccessStack has the following: " << endl; 
+        if(isEmpty())
+        {
+            cout << "Empty !" << endl; 
+            cout << "#####################################" << endl;
+
+            return;
+        }
         stackPageNode *current = top; 
         while(current != NULL)
         {
             cout << current->pageAddress << endl;
             current = current->next;
         }
+        cout << "#####################################" << endl;
     }
     void destroy()
     {
@@ -268,6 +275,7 @@ public:
         stackSize = 0;
     }
 };
+
 class VirtualMem: public Memory
 {
 private:
@@ -278,13 +286,14 @@ private:
     unsigned pagesinRAM = 0;
     unsigned pageoutPointer = 0;
     unsigned numberOfPF = 0 ;
-    Timer protNonetimer = Timer();
+    
     int fd = 0; 
     AddressMapping mappingUnit;
     size_t pinnedPages = 0;
     SwapFile swapFile;
     
 public:
+    Timer protNonetimer = Timer();
     Stack accessStack; 
     /////////////////////////////////////////////////
     // Signal handeler, constructor and deconstructor.

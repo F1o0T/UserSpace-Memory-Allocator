@@ -43,11 +43,13 @@ public:
 
     void operator delete[](void* ptr);
 
-
 	int getSize();
 
-private:
+   
 
+private:
+    static bool isInitialized; 
+    
     void fillList(list<int>* list);
 
     static void merge(freeBlock* block1, freeBlock* block2);
@@ -56,6 +58,7 @@ private:
 
     static bool correctAddress(void* address);
 
+    
 
     static freeBlock* head;
 

@@ -7,9 +7,9 @@
 #define NUMBER_OF_PT NUMBER_OF_PAGES / PAGETABLE_SIZE
 
 
-
 VirtualMem::VirtualMem()
 {
+	cout << "Here" << endl;
 	this->numberOfPF = 12;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
@@ -33,27 +33,24 @@ VirtualMem::VirtualMem()
 	}
 	char *current = (char*) getStart();
 	
-	cout << "#############################################" << endl; 
-	cout << "#############################################" << endl; 
-	cout << "Pages Virtual Addresses are : " <<endl;
-	cout << "#############################################" << endl; 
-	for(int i = 0; i < 20; i++)
-	{
-		cout << (void*)current << endl; 
-		current = current + PAGESIZE; 
-	}
-	cout << "#############################################" << endl;
-	cout << "#############################################" << endl;  
+	// cout << "#############################################" << endl; 
+	// cout << "#############################################" << endl; 
+	// cout << "Pages Virtual Addresses are : " <<endl;
+	// cout << "#############################################" << endl; 
+	// for(int i = 0; i < 20; i++)
+	// {
+	// 	cout << (void*)current << endl; 
+	// 	current = current + PAGESIZE; 
+	// }
+	// cout << "#############################################" << endl;
+	// cout << "#############################################" << endl;  
 	initializePDandFirstPT();
-	
-
 }
 
 void VirtualMem::setInterval() {
 	this->protNonetimer.setInterval([&]() {
-		cout << "Timer Interrupt xD" << getStart() << endl;
         protNoneAll(); 
-    }, 0.1);
+    }, 3);
 }
 
 void VirtualMem::startTimer() {
@@ -64,21 +61,27 @@ void VirtualMem::stopTimer() {
 	this->protNonetimer.stopLruTimer();
 }
 
-
 void VirtualMem::protNoneAll()
 {
+	this->protNonetimer.stop = true; 
 	stackPageNode *current = this->accessStack.top;
+	// cout << "this->accessStack.top" << this->accessStack.top << endl;
+	//this->accessStack.display();
+	//cout << "Lets ProtNonAll the following" << endl; 
+	//cout << "=============================" << endl;
 	while(current != NULL)
 	{
-		cout << (void*) current << endl; 
-		mprotect((void*) current, PAGESIZE, PROT_NONE);
+		//cout << current->pageAddress << endl; 
+		mprotect((void*) current->pageAddress, PAGESIZE, PROT_NONE);
 		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress);
 		mappingUnit.setLruBit(pageTableEntry, LRU);
 		//cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(*(pageTableEntry)) << endl;
 
 		current = current->next;
 	}
-	//cout << "in Timer interupt" << endl;
+	//cout << "=============================" << endl;
+	//this->accessStack.display();
+	this->protNonetimer.stop = false;
 }
 
 void VirtualMem::initializePDandFirstPT()
@@ -146,8 +149,9 @@ void VirtualMem::fixPermissions(void *address)
 		to the entry of PT (of course without the status bits that are inside of it) and return the address to the processor. Otehrwise
 		the translation will not be completed and your program will crash.
 	*/
-
 	void *pageStartAddr = findStartAddress(address);
+	// cout << "Fixing permission of page @ " << pageStartAddr << endl; 
+	//accessStack.display();
 	unsigned *pagePTEntryAddr = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)pageStartAddr);
 	unsigned logAddrOf32Bits = ((char *)pageStartAddr) - ((char *)virtualMemStartAddress);
 	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(logAddrOf32Bits);
@@ -216,7 +220,7 @@ void VirtualMem::fixPermissions(void *address)
 
 	case NONTOREAD_FULL:
 		{ 
-			// cout << "NONTOREAD_FULL @ "<< pageStartAddr <<  endl;
+			//cout << "NONTOREAD_FULL @ "<< pageStartAddr <<  endl;
 			void *kickedPageAddr = kickPageFromStack();
 			this->pageOut(kickedPageAddr);
 			//cout << "kickedChunkAddr @ " << kickedChunkAddr << " paged out." << endl; 
@@ -243,7 +247,7 @@ void VirtualMem::fixPermissions(void *address)
 			this->accessStack.deletePageIfExists(pageStartAddr); 
 			this->accessStack.insertPageAtTop(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
-			// cout << "case LRU READ" << endl;
+			//cout << "case LRU READ" << endl;
 			break; 
 		}	
 	case LRU_CASE_WRITE:
@@ -252,7 +256,7 @@ void VirtualMem::fixPermissions(void *address)
 			this->accessStack.deletePageIfExists(pageStartAddr); 
 			this->accessStack.insertPageAtTop(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
-			// cout << "case LRU WRITE" << endl;
+			//cout << "case LRU WRITE" << endl;
 			break;  
 		}
 	
@@ -260,9 +264,11 @@ void VirtualMem::fixPermissions(void *address)
 		this->accessStack.deletePageIfExists(pageStartAddr);
 		this->accessStack.insertPageAtTop(pageStartAddr);
 		writePageActivate(pageStartAddr);
-		// cout << "READTOWRITE @ "<< pageStartAddr <<  endl;
+		//cout << "READTOWRITE @ "<< pageStartAddr <<  endl;
 		break;
 	}
+	//cout << "At the End of fixpermissions" << endl; 
+	//accessStack.display(); 
 }
 
 void* VirtualMem::kickPageFromStack() {
@@ -301,21 +307,19 @@ void VirtualMem::writePageActivate(void *pageStartAddr)
 
 void VirtualMem::pageOut(void *kickedChunkAddr)
 {
-	stopTimer();
 	off_t offset = reinterpret_cast<off_t>(kickedChunkAddr) - reinterpret_cast<off_t>(this->virtualMemStartAddress);
 	this->swapFile.swapFileWrite(kickedChunkAddr, offset, PAGESIZE);
 	unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)kickedChunkAddr);
 	unsigned pageFrameAddr = *(pageTableEntry);
 	this->pageoutPointer = mappingUnit.cutOfOffset(pageFrameAddr);
-	startTimer();
 }
 
 void VirtualMem::pageIn(void *chunckStartAddr)
 {
-	stopTimer();
+	//stopTimer();
 	off_t offset = reinterpret_cast<off_t>(chunckStartAddr) - reinterpret_cast<off_t>(this->virtualMemStartAddress);
 	this->swapFile.swapFileRead(chunckStartAddr, offset, PAGESIZE);
-	startTimer();
+	//startTimer();
 }
 
 void VirtualMem::mapOut(void *pageStartAddress)

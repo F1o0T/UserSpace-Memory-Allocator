@@ -1,9 +1,9 @@
 #include "timer/timercpp.h"
 
 void Timer::stopLruTimer() {
-    this->clear = true;
+    this->stop = true;
 }
 
 void Timer::startLruTimer() {
-    this->clear = false;
+    this->stop = false;
 }

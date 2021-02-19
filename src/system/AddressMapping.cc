@@ -2,9 +2,11 @@
 
 
 unsigned AddressMapping::logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr) {
+    //cout << "In logAddr2PF logAddr = " << logAddr << endl; 
     unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
     char* pageTableEntry = ((char*) virtualMemStart) + phyAddr2page(addrOfPT) + (phyAddr2PTIndex(phyAddr)*4);
+    //cout << "In logAddr2PF pageTableEntry = " << (void*) pageTableEntry << endl;
     return *((unsigned*) pageTableEntry);
 }
 
