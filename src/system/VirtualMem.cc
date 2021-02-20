@@ -9,7 +9,7 @@
 
 VirtualMem::VirtualMem()
 {
-	cout << "Here  lol" << endl;
+	cout << "start VirtualMem" << endl;
 	this->numberOfPF = 12;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
@@ -31,30 +31,19 @@ VirtualMem::VirtualMem()
 		cerr << "|###> Error: virtual Mmap Failed" << endl;
 		exit(1);
 	}
-	//char *current = (char*) getStart();
-	
-	// cout << "#############################################" << endl; 
-	// cout << "#############################################" << endl; 
-	// cout << "Pages Virtual Addresses are : " <<endl;
-	// cout << "#############################################" << endl; 
-	// for(int i = 0; i < 20; i++)
-	// {
-	// 	cout << (void*)current << endl; 
-	// 	current = current + PAGESIZE; 
-	// }
-	// cout << "#############################################" << endl;
-	// cout << "#############################################" << endl;  
+
 	initializePDandFirstPT();
+
+	setInterval();
 }
 
+/**
+ * This method is just called, when the whole virtual memory gets initialized.
+ * It unmaps the first 2 pages of logical memory and maps 2 page frames of phys. memory,
+ * to use. Furthermore it pins them.
+*/
 void VirtualMem::initializePDandFirstPT()
 {
-	/**
-	 * This method is just called, when the whole virtual memory gets initialized.
-	 * It unmaps the first 2 pages of logical memory and maps 2 page frames of phys. memory,
-	 * to use. Furthermore it pins them.
-	**/
-
 	//unmap the first page, to map the same number of page frame for the PD
 	munmap(this->virtualMemStartAddress, PAGESIZE);
 
@@ -79,10 +68,7 @@ void VirtualMem::initializePDandFirstPT()
 	}
 	nextFreeFrameIndex++;
 	pagesinRAM++;
-	//////////////////////////////////////////////////
-	// LRU Stuff
-	//this->accessStack.insertPageAtTop(virtualMemStartAddress + PAGETABLE_SIZE);
-	///////////////////////////////////////////////////
+
 	*(virtualMemStartAddress + PAGETABLE_SIZE) = ((0 << 12) | mappingUnit.createOffset(1, 1, 1, 1, 0));
 	*(virtualMemStartAddress + PAGETABLE_SIZE + 1) = ((1 << 12) | mappingUnit.createOffset(1, 1, 1, 1, 0));
 
@@ -101,28 +87,27 @@ void VirtualMem::initializePDandFirstPT()
 void VirtualMem::setInterval() {
 	this->protNonetimer.setInterval([&]() {
         protNoneAll(); 
-    }, 3);
+    }, 1);
 }
 
 void VirtualMem::startTimer() {
-	this->protNonetimer.startLruTimer();
+	this->protNonetimer.stop = false;
 }
 
 void VirtualMem::stopTimer() {
-	this->protNonetimer.stopLruTimer();
+	this->protNonetimer.stop = true; 
+}
+
+void VirtualMem::deleteInterval() {
+	this->protNonetimer.destroy = true;
 }
 
 void VirtualMem::protNoneAll()
 {
-	this->protNonetimer.stop = true; 
+	this->protNoneAllFlag = true;
 	StackPageNode *current = this->accessStack.top;
-	// cout << "this->accessStack.top" << this->accessStack.top << endl;
-	//this->accessStack.display();
-	//cout << "Lets ProtNonAll the following" << endl; 
-	//cout << "=============================" << endl;
-	while(current != NULL)
-	{
-		//cout << current->pageAddress << endl; 
+	//cout << "Lets ProtNonAll the following = " << this->accessStack.size() << endl;
+	while(current != NULL) {
 		mprotect((void*) current->pageAddress, PAGESIZE, PROT_NONE);
 		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress);
 		mappingUnit.setLruBit(pageTableEntry, LRU);
@@ -130,14 +115,12 @@ void VirtualMem::protNoneAll()
 
 		current = current->next;
 	}
-	//cout << "=============================" << endl;
-	//this->accessStack.display();
-	this->protNonetimer.stop = false;
+	this->protNoneAllFlag = false;
+	cout << "============== Timer is up ===============" << endl;
 }
 
 void VirtualMem::fixPermissions(void *address)
 {
-	stopTimer();
 	/*
 		One part of fixPermissions is to translate the logical address, it is getting as the argument,
 		to the physical address the processor wants to read/write. To do this, we take the left most 10 bits of the logical address for looking in the
@@ -173,12 +156,12 @@ void VirtualMem::fixPermissions(void *address)
 		if (pagesinRAM < numberOfPF)
 		{
 			permissionChange = NONTOREAD_NOTFULL;
-			//cout << "NON TO READ NOT FULL" << endl;
+			cout << "NON TO READ NOT FULL" << endl;
 		}
 		else
 		{
 			permissionChange = NONTOREAD_FULL;
-			//cout << "NON TO READ FULL" << endl;
+			cout << "NON TO READ FULL" << endl;
 		}
 	}
 	else
@@ -186,17 +169,17 @@ void VirtualMem::fixPermissions(void *address)
 		if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == READ)
 		{
 			permissionChange = LRU_CASE_READ; 
-			//cout << "LRU Case Read" << endl;
+			cout << "LRU Case Read" << endl;
 		}
 		else if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == WRITE)
 		{
 			permissionChange = LRU_CASE_WRITE;
-			//cout << "LRU Case Write" << endl;
+			cout << "LRU Case Write" << endl;
 		}
 		else
 		{
 			permissionChange = READTOWRITE;
-			//cout << "READ TO WRITE" << endl;
+			cout << "READ TO WRITE" << endl;
 		}
 	}
 
@@ -268,9 +251,6 @@ void VirtualMem::fixPermissions(void *address)
 		//cout << "READTOWRITE @ "<< pageStartAddr <<  endl;
 		break;
 	}
-	//cout << "At the End of fixpermissions" << endl; 
-	//accessStack.display(); 
-	startTimer();
 }
 
 void* VirtualMem::kickPageFromStack() {
@@ -427,11 +407,7 @@ void VirtualMem::addPTEntry2PD(unsigned *pdEntryOfPT)
 	}
 
 	mapIn(pageStartAddressOfPT);
-	//////////////////////////////////////////////////
-	// LRU Stuff
-	this->accessStack.deletePageIfExists(pageStartAddressOfPT);
-	this->accessStack.insertPageAtTop(pageStartAddressOfPT);
-	///////////////////////////////////////////////////
+
 	writePageActivate(pageStartAddressOfPT);
 
 	//change PT to Present in PD
@@ -524,7 +500,6 @@ VirtualMem::~VirtualMem()
 {
 	munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
 	shm_unlink("phy-Mem");
-	
 }
 
 void VirtualMem::resetQueues()
@@ -544,12 +519,4 @@ void VirtualMem::resetQueues()
 	}
 
 	this -> pinnedPages = 0;*/
-}
-
-void* VirtualMem::operator new(size_t size) {
-    return malloc(size);
-}
-
-void VirtualMem::operator delete(void* ptr) {
-    free(ptr);
 }

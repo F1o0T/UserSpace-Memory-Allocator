@@ -2,11 +2,9 @@
 
 SRC_FILES = \
 	gui/DrawingWindow.cc \
-	runtime/FirstFitHeap.cc \
 	system/AddressMapping.cc \
 	system/VirtualMem.cc \
-	misc/Stack.cc \
-	timer/timercpp.cc
+	misc/Stack.cc
 	
 SRC_MAIN = main.cc
 

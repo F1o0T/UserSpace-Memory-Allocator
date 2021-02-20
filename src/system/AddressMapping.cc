@@ -46,6 +46,7 @@ unsigned AddressMapping::cutOfOffset(unsigned logaddr) {
  * @param read_writeBit 0 = read, 1 = write
  * @param accessed 0 = not accessed yet, 1 = accessed it first time
  * @param pinnedBit 0 = not pinned, 1 = pinned
+ * @param lruBit 0 = is not reseted to PROT_NONE, 1 = reseted to PROT_NONE
  * @return complett Offset (you can add it to the address)
  */
 unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit, bool lruBit) {

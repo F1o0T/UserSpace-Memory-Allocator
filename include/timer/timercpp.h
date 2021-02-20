@@ -8,10 +8,9 @@
 class Timer {
     public:
         bool stop = false;
+        bool destroy = false;
         void setTimeout(auto function, int delay);
         void setInterval(auto function, int interval);
-        void stopLruTimer();
-        void startLruTimer();
 };
 
 void Timer::setTimeout(auto function, int delay) {
@@ -29,12 +28,14 @@ void Timer::setInterval(auto function, int interval) {
     this->stop = false;
     std::thread t([=]() {
         while(true) {
-            if(this->stop) return;
-            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-            while (this->stop) {}
+            if(this->stop || this->destroy) return;
+            std::this_thread::sleep_for(std::chrono::nanoseconds(interval));
+            //if(this->stop || this->destroy) return;
+            while (this->stop || this->destroy) {}
             function();
         }
     });
     t.detach();
 }
+
 #endif

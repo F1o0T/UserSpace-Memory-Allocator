@@ -25,8 +25,6 @@ enum permission_change : int
     LRU_CASE_WRITE
 };
 
-
-
 class VirtualMem: public Memory
 {
 private:
@@ -45,6 +43,7 @@ private:
     
 public:
     Timer protNonetimer = Timer();
+    bool protNoneAllFlag = false;
     Stack accessStack; 
     /////////////////////////////////////////////////
     // Signal handeler, constructor and deconstructor.
@@ -74,15 +73,10 @@ public:
     void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
     void resetQueues();
     void protNoneAll();
+    void setInterval();
+    void deleteInterval();
     void startTimer();
     void stopTimer();
-    void setInterval();
-
-    void* operator new(size_t size);
-
-    void operator delete(void* ptr);
-
-    /////////////////////////////////////////////////
 };
 
 #endif
