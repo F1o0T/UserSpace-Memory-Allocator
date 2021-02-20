@@ -5,6 +5,7 @@ SRC_FILES = \
 	runtime/FirstFitHeap.cc \
 	system/AddressMapping.cc \
 	system/VirtualMem.cc \
+	misc/Stack.cc \
 	timer/timercpp.cc
 	
 SRC_MAIN = main.cc
