@@ -9,7 +9,7 @@
 
 VirtualMem::VirtualMem()
 {
-	cout << "Here" << endl;
+	cout << "Here  lol" << endl;
 	this->numberOfPF = 12;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
@@ -45,43 +45,6 @@ VirtualMem::VirtualMem()
 	// cout << "#############################################" << endl;
 	// cout << "#############################################" << endl;  
 	initializePDandFirstPT();
-}
-
-void VirtualMem::setInterval() {
-	this->protNonetimer.setInterval([&]() {
-        protNoneAll(); 
-    }, 3);
-}
-
-void VirtualMem::startTimer() {
-	this->protNonetimer.startLruTimer();
-}
-
-void VirtualMem::stopTimer() {
-	this->protNonetimer.stopLruTimer();
-}
-
-void VirtualMem::protNoneAll()
-{
-	this->protNonetimer.stop = true; 
-	StackPageNode *current = this->accessStack.top;
-	// cout << "this->accessStack.top" << this->accessStack.top << endl;
-	//this->accessStack.display();
-	//cout << "Lets ProtNonAll the following" << endl; 
-	//cout << "=============================" << endl;
-	while(current != NULL)
-	{
-		//cout << current->pageAddress << endl; 
-		mprotect((void*) current->pageAddress, PAGESIZE, PROT_NONE);
-		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress);
-		mappingUnit.setLruBit(pageTableEntry, LRU);
-		//cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(*(pageTableEntry)) << endl;
-
-		current = current->next;
-	}
-	//cout << "=============================" << endl;
-	//this->accessStack.display();
-	this->protNonetimer.stop = false;
 }
 
 void VirtualMem::initializePDandFirstPT()
@@ -133,6 +96,43 @@ void VirtualMem::initializePDandFirstPT()
 		//(i+1) because at 0 is PD and at 1 is first PT, so start the others PT starts at 2
 		*(virtualMemStartAddress + i) = (((i + 1) << 12) | offset);
 	}
+}
+
+void VirtualMem::setInterval() {
+	this->protNonetimer.setInterval([&]() {
+        protNoneAll(); 
+    }, 3);
+}
+
+void VirtualMem::startTimer() {
+	this->protNonetimer.startLruTimer();
+}
+
+void VirtualMem::stopTimer() {
+	this->protNonetimer.stopLruTimer();
+}
+
+void VirtualMem::protNoneAll()
+{
+	this->protNonetimer.stop = true; 
+	StackPageNode *current = this->accessStack.top;
+	// cout << "this->accessStack.top" << this->accessStack.top << endl;
+	//this->accessStack.display();
+	//cout << "Lets ProtNonAll the following" << endl; 
+	//cout << "=============================" << endl;
+	while(current != NULL)
+	{
+		//cout << current->pageAddress << endl; 
+		mprotect((void*) current->pageAddress, PAGESIZE, PROT_NONE);
+		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress);
+		mappingUnit.setLruBit(pageTableEntry, LRU);
+		//cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(*(pageTableEntry)) << endl;
+
+		current = current->next;
+	}
+	//cout << "=============================" << endl;
+	//this->accessStack.display();
+	this->protNonetimer.stop = false;
 }
 
 void VirtualMem::fixPermissions(void *address)

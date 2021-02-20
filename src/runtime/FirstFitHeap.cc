@@ -2,7 +2,8 @@
 
 VirtualMem* FirstFitHeap::memory = new VirtualMem;
 freeBlock* FirstFitHeap::head = (freeBlock*) memory -> getStart();
-bool initalized = 0; 
+bool initalized = false;
+
 void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
     memory -> protNonetimer.stop = true; 
@@ -39,13 +40,13 @@ void FirstFitHeap::initHeap() {
     //create first direct list at the start of the memory
     //With only one free block with the length of memory - unsigned
     memory -> setInterval();
-    initalized = 1; 
 }
 
 void* FirstFitHeap::malloc(size_t size) {
-    if(initalized == 0)
+    if(initalized == false)
     {
-        cout << memory << endl;
+        initalized = true;
+        cout << "first try malloc " << endl;
         initHeap();
     }
     //cout << "## Custom Malloc "  << size << endl;
@@ -283,6 +284,7 @@ void* FirstFitHeap::operator new[](size_t size) {
 }
 
 void FirstFitHeap::operator delete(void* ptr) {
+    cout << "delete FirstFitHeap object" << endl; 
     free(ptr);
 }
 

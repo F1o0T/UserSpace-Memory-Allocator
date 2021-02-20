@@ -2,7 +2,6 @@
 #include <fstream>
 #include "system/VirtualMem.h"
 #include "runtime/FirstFitHeap.h"
-#include <boost/program_options.hpp>
 #include "timer/CycleTimer.h"
 
 using namespace std; 

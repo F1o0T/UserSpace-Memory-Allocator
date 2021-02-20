@@ -48,7 +48,6 @@ public:
    
 
 private:
-    static bool isInitialized; 
     
     void fillList(list<int>* list);
 

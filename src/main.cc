@@ -1,39 +1,60 @@
 #include <iostream>
 #include <fstream>
-#include "system/Memalloc.h"
-#include <boost/program_options.hpp>
+#include "system/VirtualMem.h"
+#include "runtime/FirstFitHeap.h"
+//#include "system/Memalloc.h"
+//#include <boost/program_options.hpp>
 
 using namespace std; 
 
-void bubbleSort(unsigned* array, unsigned nrElements);
+// void bubbleSort(unsigned* array, unsigned nrElements)
+// {
+//     for (unsigned i = 0; i < nrElements * 1024; i+= 1024) {
+//         for (unsigned j = i; j < nrElements * 1024; j += 1024) {
+//             if (array[i] > array[j]) {
+//                 unsigned temp = array[i];
+//                 array[i] = array[j];
+//                 array[j] = temp;
+//             }
+//         }
+//     }
+// }
+
+void* operator new(size_t size) {
+    //cout << "new is called with size = " << size << endl; 
+    return FirstFitHeap::malloc(size);
+}
+
+void* operator new[](size_t size, int dummy) {
+    //cout << "new []" << endl; 
+    return FirstFitHeap::malloc(size);
+}
+
+void operator delete(void* ptr) {
+    FirstFitHeap::free(ptr);
+}
+
+void operator delete[](void* ptr) {
+    FirstFitHeap::free(ptr);
+}
+
+void free(void *ptr)
+{
+    FirstFitHeap::free(ptr); 
+}
 
 int main(int argc, char** argv)
 {  
+    FirstFitHeap heap;
+    //FirstFitHeap::initHeap();
     cout <<  "start Main" << endl;
-    memAllocInitialize();
-    cout << "#############################################" << endl;
-    cout << "Beginning of important code" << endl;
-    cout << "#############################################" << endl;
-    int *array = (int*) malloc(10);   
-    cout << (void*) array;
+    //cout << "#############################################" << endl;
+    //cout << "Beginning of important code" << endl;
+    //cout << "#############################################" << endl;
+    void* array = FirstFitHeap::malloc(10);   
+    cout << array << endl;
 }
 
- //a simple version of bubble sort
-void bubbleSort(unsigned* array, unsigned nrElements)
-{
-    for (unsigned i = 0; i < nrElements * 1024; i+= 1024) {
-    	//cout << "Outer " << i << endl;  
-        for (unsigned j = i; j < nrElements * 1024; j += 1024) {
-        	//cout << "Inner " << i << endl;
-            if (array[i] > array[j]) {
-                unsigned temp = array[i];
-                //cout << temp << endl; 
-                array[i] = array[j];
-                array[j] = temp;
-            }
-        }
-    }
-}
 
 
 
