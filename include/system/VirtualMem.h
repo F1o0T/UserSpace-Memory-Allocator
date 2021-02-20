@@ -77,6 +77,10 @@ public:
     void deleteInterval();
     void startTimer();
     void stopTimer();
+
+    void* operator new(size_t size);
+
+    void operator delete(void* ptr);
 };
 
 #endif

@@ -59,9 +59,9 @@ private:
 
     
 
+    static VirtualMem vMem;
+    static bool initalized;
     static freeBlock* head;
-
-    static VirtualMem* memory;
 };
 
 #endif

@@ -156,12 +156,12 @@ void VirtualMem::fixPermissions(void *address)
 		if (pagesinRAM < numberOfPF)
 		{
 			permissionChange = NONTOREAD_NOTFULL;
-			cout << "NON TO READ NOT FULL" << endl;
+			cout << "NON TO READ NOT FULL" << address << endl;
 		}
 		else
 		{
 			permissionChange = NONTOREAD_FULL;
-			cout << "NON TO READ FULL" << endl;
+			cout << "NON TO READ FULL" << address << endl;
 		}
 	}
 	else
@@ -169,17 +169,17 @@ void VirtualMem::fixPermissions(void *address)
 		if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == READ)
 		{
 			permissionChange = LRU_CASE_READ; 
-			cout << "LRU Case Read" << endl;
+			cout << "LRU Case Read" << address << endl;
 		}
 		else if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == WRITE)
 		{
 			permissionChange = LRU_CASE_WRITE;
-			cout << "LRU Case Write" << endl;
+			cout << "LRU Case Write" << address << endl;
 		}
 		else
 		{
 			permissionChange = READTOWRITE;
-			cout << "READ TO WRITE" << endl;
+			cout << "READ TO WRITE" << address << endl;
 		}
 	}
 
@@ -519,4 +519,12 @@ void VirtualMem::resetQueues()
 	}
 
 	this -> pinnedPages = 0;*/
+}
+
+void* VirtualMem::operator new(size_t size) {
+	return malloc(size);
+}
+
+void VirtualMem::operator delete(void* ptr) {
+	free(ptr);
 }

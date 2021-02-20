@@ -1,29 +1,44 @@
 #include "runtime/FirstFitHeap.h"
 
-VirtualMem* FirstFitHeap::memory = new VirtualMem;
-freeBlock* FirstFitHeap::head = (freeBlock*) memory -> getStart();
-bool initalized = false;
+VirtualMem FirstFitHeap::vMem;
+freeBlock* FirstFitHeap::head = (freeBlock*) vMem.getStart();
+bool FirstFitHeap::initalized = false;
 
 void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
-    memory -> protNonetimer.stop = true; 
-	if(info->si_code == SEGV_ACCERR)
+    //wait on ProtNoneAll
+    while(true){
+        if (vMem.protNoneAllFlag == false) {
+            vMem.stopTimer();
+            break;
+        }
+        cout << "ok lets wait for protNone1" << endl;
+    }
+
+	if (info->si_code == SEGV_ACCERR)
     {   
         //cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
-        memory -> fixPermissions(info->si_addr);
+        vMem.fixPermissions(info->si_addr);
         //cout << "|>>> Permissions were fixed!" << endl;
     }
-    else if(info->si_code == SEGV_MAPERR)
+    else if (info->si_code == SEGV_MAPERR)
     {
         cout << "|### Error: Access denied, unmapped @ address = " << info->si_addr << endl; 
         exit(1);
     }
-    memory -> protNonetimer.stop = false;
+    
+	vMem.startTimer();
+
+    //wait on ProtNoneAll
+    while(true){
+        if (vMem.protNoneAllFlag == false) {
+            break;
+        }
+        cout << "ok lets wait for protNone2" << endl;
+    }
 }
 
-FirstFitHeap::FirstFitHeap() 
-{
-}
+FirstFitHeap::FirstFitHeap() {}
 
 void FirstFitHeap::initHeap() {
     ///////////////////////////////////////////////
@@ -33,13 +48,13 @@ void FirstFitHeap::initHeap() {
     SigAction.sa_flags = SA_SIGINFO;
     sigaction(SIGSEGV, &SigAction, NULL);
 	///////////////////////////////////////////////
-    unsigned length = (unsigned) memory -> getSize();
+    unsigned length = (unsigned) vMem.getSize();
 
     head -> freeSpace = length - sizeUnsi;
     head -> nextAddress = 0;
     //create first direct list at the start of the memory
     //With only one free block with the length of memory - unsigned
-    memory -> setInterval();
+    vMem.setInterval();
 }
 
 void* FirstFitHeap::malloc(size_t size) {
@@ -110,11 +125,11 @@ void* FirstFitHeap::malloc(size_t size) {
 }
 
 int FirstFitHeap::getSize() {
-    return memory -> getSize();
+    return vMem.getSize();
 }
 
 void FirstFitHeap::fillList(list<int>* list) {
-    char* ptr1 = (char*) memory -> getStart();//move pointer
+    char* ptr1 = (char*) vMem.getStart();//move pointer
     void* ptr2 = head;//comparison pointer points on the next free block
 
     while (ptr2 != 0) {
@@ -173,11 +188,13 @@ void FirstFitHeap::addBlockInList(freeBlock* block){
 
 void FirstFitHeap::free(void* address) {
 
-    if(address < memory -> getStart()){
+    cout << "give the address of free = " << address << endl;
+
+    if(address < vMem.getStart()){
         cerr << "Error: Address to free is smaller than start of the heap" << endl;
         return;
     }
-    if(address > (((char*) memory -> getStart()) + memory -> getSize())){
+    if(address > (((char*) vMem.getStart()) + vMem.getSize())){
         cerr << "Error: Address to free is bigger than end of the heap" << endl;
         return;
     }
@@ -201,7 +218,7 @@ void FirstFitHeap::free(void* address) {
 
 //checks whether the address to free is a correct start of a block
 bool FirstFitHeap::correctAddress(void* address){
-    char* ptr1 = (char*) memory -> getStart();//move zeiger
+    char* ptr1 = (char*) vMem.getStart();//move zeiger
     void* ptr2 = head;//comparison pointer points on the next free block
 
     while (ptr2 != 0) {
@@ -225,7 +242,11 @@ bool FirstFitHeap::correctAddress(void* address){
     return false;
 
 }
-    
+
+void FirstFitHeap::destroyTimer() {
+    vMem.deleteInterval();
+}
+
 void* FirstFitHeap::realloc(void* ptr, size_t size) {
     if (ptr == NULL) {
         return malloc(size);
@@ -290,9 +311,4 @@ void FirstFitHeap::operator delete(void* ptr) {
 
 void FirstFitHeap::operator delete[](void* ptr) {
     free(ptr);
-
-}
-
-void FirstFitHeap::destroyTimer() {
-    memory -> stopTimer();
 }

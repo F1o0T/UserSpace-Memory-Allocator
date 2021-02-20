@@ -4,6 +4,7 @@ SRC_FILES = \
 	gui/DrawingWindow.cc \
 	system/AddressMapping.cc \
 	system/VirtualMem.cc \
+	runtime/FirstFitHeap.cc \
 	misc/Stack.cc
 	
 SRC_MAIN = main.cc
