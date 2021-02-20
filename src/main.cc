@@ -7,6 +7,7 @@ void bubbleSort(unsigned* array, unsigned nrElements);
 
 int main(int argc, char** argv)
 {  
+    cout <<  "start Main" << endl;
     memAllocInitialize();
     cout << "#############################################" << endl;
     cout << "Beginning of important code" << endl;

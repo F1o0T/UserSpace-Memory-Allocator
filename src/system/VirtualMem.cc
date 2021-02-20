@@ -64,7 +64,7 @@ void VirtualMem::stopTimer() {
 void VirtualMem::protNoneAll()
 {
 	this->protNonetimer.stop = true; 
-	stackPageNode *current = this->accessStack.top;
+	StackPageNode *current = this->accessStack.top;
 	// cout << "this->accessStack.top" << this->accessStack.top << endl;
 	//this->accessStack.display();
 	//cout << "Lets ProtNonAll the following" << endl; 
