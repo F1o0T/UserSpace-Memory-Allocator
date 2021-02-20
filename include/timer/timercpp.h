@@ -31,7 +31,7 @@ void Timer::setInterval(auto function, int interval) {
         while(true) {
             if(this->stop) return;
             std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-            if(this->stop) return;
+            while (this->stop) {}
             function();
         }
     });

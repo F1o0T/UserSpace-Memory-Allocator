@@ -1,8 +1,10 @@
 #include <iostream>
 #include <fstream>
+#include "system/Memalloc.h"
 #include <boost/program_options.hpp>
-#include "memalloc.cc"
+
 using namespace std; 
+
 void bubbleSort(unsigned* array, unsigned nrElements);
 
 int main(int argc, char** argv)

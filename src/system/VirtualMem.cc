@@ -31,7 +31,7 @@ VirtualMem::VirtualMem()
 		cerr << "|###> Error: virtual Mmap Failed" << endl;
 		exit(1);
 	}
-	char *current = (char*) getStart();
+	//char *current = (char*) getStart();
 	
 	// cout << "#############################################" << endl; 
 	// cout << "#############################################" << endl; 
@@ -137,6 +137,7 @@ void VirtualMem::initializePDandFirstPT()
 
 void VirtualMem::fixPermissions(void *address)
 {
+	stopTimer();
 	/*
 		One part of fixPermissions is to translate the logical address, it is getting as the argument,
 		to the physical address the processor wants to read/write. To do this, we take the left most 10 bits of the logical address for looking in the
@@ -269,6 +270,7 @@ void VirtualMem::fixPermissions(void *address)
 	}
 	//cout << "At the End of fixpermissions" << endl; 
 	//accessStack.display(); 
+	startTimer();
 }
 
 void* VirtualMem::kickPageFromStack() {
@@ -316,10 +318,8 @@ void VirtualMem::pageOut(void *kickedChunkAddr)
 
 void VirtualMem::pageIn(void *chunckStartAddr)
 {
-	//stopTimer();
 	off_t offset = reinterpret_cast<off_t>(chunckStartAddr) - reinterpret_cast<off_t>(this->virtualMemStartAddress);
 	this->swapFile.swapFileRead(chunckStartAddr, offset, PAGESIZE);
-	//startTimer();
 }
 
 void VirtualMem::mapOut(void *pageStartAddress)

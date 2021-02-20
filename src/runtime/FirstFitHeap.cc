@@ -243,7 +243,7 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
     caddr_t oldPosPtr = (caddr_t) ptr;
     caddr_t newPosPtr = (caddr_t) returnPtr;
 
-    for (char i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
         *(newPosPtr) = *(oldPosPtr);
         newPosPtr++;
         oldPosPtr++;
@@ -265,7 +265,7 @@ void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
         return NULL;
     }
     
-    for (char i = 0; i < nmemb*size; i++) {
+    for (size_t i = 0; i < nmemb*size; i++) {
         *(ptr) = 0;
         ptr++;
     }
