@@ -47,7 +47,6 @@ public:
 	int getSize();
 
    
-    static VirtualMem vMem;
 private:
     
     void fillList(list<int>* list);
@@ -58,7 +57,7 @@ private:
 
     static bool correctAddress(void* address);
 
-    
+    static VirtualMem* vMem;
 
     static bool initalized;
     

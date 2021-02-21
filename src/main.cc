@@ -2,6 +2,9 @@
 //#include <boost/program_options.hpp>
 using namespace std;
 
+
+FirstFitHeap heap();
+
 int main(int argc, char** argv)
 {
     cout << "################### start Main ######################" << endl;

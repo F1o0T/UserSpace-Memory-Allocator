@@ -1,9 +1,8 @@
 #include "runtime/MemAlloc.h"
 
-freeBlock* FirstFitHeap::head = (freeBlock*) vMem.getStart();
-bool FirstFitHeap::initalized = false;
 
-//FirstFitHeap heap;
+
+FirstFitHeap heap();
 
 void* operator new(size_t size) {
     cout << "new is called with size = " << size << endl; 
@@ -32,7 +31,6 @@ void memAllocInitialize()
 void* malloc(size_t size)
 {
     cout << "We are here in malloc in " << __FILE__ << endl;
-    FirstFitHeap::vMem = VirtualMem();
     exit(1);
     void* returnPtr = FirstFitHeap::malloc(size); 
     return returnPtr;

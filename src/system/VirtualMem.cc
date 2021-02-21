@@ -9,7 +9,7 @@
 
 VirtualMem::VirtualMem()
 {
-	cout << "start VirtualMem" << endl;
+	//cout << "start VirtualMem" << endl;
 	this->numberOfPF = 12;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
@@ -34,7 +34,7 @@ VirtualMem::VirtualMem()
 
 	initializePDandFirstPT();
 
-	setInterval();
+	//setInterval();
 }
 
 /**
@@ -524,9 +524,9 @@ void VirtualMem::resetQueues()
 }
 
 void* VirtualMem::operator new(size_t size) {
-	return malloc(size);
+	return std::malloc(size);
 }
 
 void VirtualMem::operator delete(void* ptr) {
-	free(ptr);
+	std::free(ptr);
 }

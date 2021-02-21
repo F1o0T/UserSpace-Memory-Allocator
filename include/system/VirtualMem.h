@@ -42,7 +42,7 @@ private:
     SwapFile swapFile;
     
 public:
-    Timer protNonetimer = Timer();
+    Timer protNonetimer;
     bool protNoneAllFlag = false;
     Stack accessStack; 
     /////////////////////////////////////////////////
