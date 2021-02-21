@@ -530,3 +530,4 @@ void* VirtualMem::operator new(size_t size) {
 void VirtualMem::operator delete(void* ptr) {
 	std::free(ptr);
 }
+

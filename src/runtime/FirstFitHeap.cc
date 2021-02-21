@@ -1,8 +1,7 @@
 #include "runtime/FirstFitHeap.h"
 
-VirtualMem* vMemmory = new VirtualMem();
-VirtualMem* FirstFitHeap::vMem = vMemmory;
 
+VirtualMem *FirstFitHeap::vMem = new VirtualMem();
 freeBlock* FirstFitHeap::head = (freeBlock*) vMem->getStart();
 bool FirstFitHeap::initalized = false;
 
@@ -67,9 +66,10 @@ void FirstFitHeap::initHeap() {
 
 void* FirstFitHeap::malloc(size_t size) {
     if(initalized == false)
-    {
+    {   
         initalized = true;
         initHeap();
+        
     }
     //cout << "## Custom Malloc "  << size << endl;
     if (size == 0) {

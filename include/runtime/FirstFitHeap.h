@@ -57,7 +57,7 @@ private:
 
     static bool correctAddress(void* address);
 
-    static VirtualMem* vMem;
+    static VirtualMem *vMem;
 
     static bool initalized;
     

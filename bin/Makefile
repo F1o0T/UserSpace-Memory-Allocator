@@ -24,7 +24,7 @@ CXX	= g++
 LD	= g++
 
 # -c  -fpic -fno-builtin -nostdlib -ffreestanding -nodefaultlibs
-CXXFLAGS = -g  -Wall -fconcepts
+CXXFLAGS = -g  -Wall -fconcepts -fpic
 
 INCLUDES = -I$(INC_DIR)
 
@@ -47,7 +47,7 @@ TMP_SUBDIRS = $(sort $(dir $(OBJS)))
 all: depend $(TARGET_MAIN)
 
 $(TARGET_MAIN): $(OBJS) $(OBJS_MAIN)
-	$(LD) $(LDFLAGS) $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN); rm -rf SwapFile
+	$(LD) $(LDFLAGS)  -z undefs $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN); rm -rf SwapFile
 
 $(TMP_SUBDIRS) :
 	mkdir -p $@

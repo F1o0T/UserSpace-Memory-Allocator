@@ -1,9 +1,5 @@
 #include "runtime/MemAlloc.h"
 
-
-
-FirstFitHeap heap();
-
 void* operator new(size_t size) {
     cout << "new is called with size = " << size << endl; 
     return FirstFitHeap::malloc(size);
@@ -22,21 +18,17 @@ void operator delete[](void* ptr) {
     FirstFitHeap::free(ptr);
 }
 
-void memAllocInitialize()
+namespace memAlloc
 {
-    FirstFitHeap::initHeap();
-    cout << "Mmeory has been initalized" << endl;
-}
+    void* malloc(size_t size)
+    {
+        cout << "Here" << endl;
+        void* returnPtr = FirstFitHeap::malloc(size); 
+        return returnPtr;
+    }
 
-void* malloc(size_t size)
-{
-    cout << "We are here in malloc in " << __FILE__ << endl;
-    exit(1);
-    void* returnPtr = FirstFitHeap::malloc(size); 
-    return returnPtr;
-}
-
-void free(void *ptr)
-{
-    FirstFitHeap::free(ptr); 
+    void free(void *ptr)
+    {
+        FirstFitHeap::free(ptr); 
+    }
 }

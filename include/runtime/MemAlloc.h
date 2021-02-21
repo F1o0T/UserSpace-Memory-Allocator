@@ -11,9 +11,11 @@ void operator delete(void* ptr);
 
 void operator delete[](void* ptr);
 
-void memAllocInitialize();
 
+namespace memAlloc
+{
 void* malloc(size_t size);
 
 void free(void *ptr);
+}
 #endif
