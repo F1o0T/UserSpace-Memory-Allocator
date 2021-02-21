@@ -105,6 +105,7 @@ void VirtualMem::deleteInterval() {
 void VirtualMem::protNoneAll()
 {
 	this->protNoneAllFlag = true;
+
 	StackPageNode *current = this->accessStack.top;
 	//cout << "Lets ProtNonAll the following = " << this->accessStack.size() << endl;
 	while(current != NULL) {
@@ -115,6 +116,7 @@ void VirtualMem::protNoneAll()
 
 		current = current->next;
 	}
+	
 	this->protNoneAllFlag = false;
 	cout << "============== Timer is up ===============" << endl;
 }

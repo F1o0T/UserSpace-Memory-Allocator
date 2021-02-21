@@ -1,11 +1,8 @@
 #include "runtime/FirstFitHeap.h"
 
-VirtualMem FirstFitHeap::vMem;
-freeBlock* FirstFitHeap::head = (freeBlock*) vMem.getStart();
-bool FirstFitHeap::initalized = false;
-
 void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
+    
     //wait on ProtNoneAll
     while(true){
         if (vMem.protNoneAllFlag == false) {
@@ -38,9 +35,14 @@ void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
     }
 }
 
-FirstFitHeap::FirstFitHeap() {}
-
+FirstFitHeap::FirstFitHeap() {
+    
+}
+FirstFitHeap::~FirstFitHeap(){
+    destroyTimer();
+}
 void FirstFitHeap::initHeap() {
+    
     ///////////////////////////////////////////////
 	// SignalHandling
     struct sigaction SigAction;
@@ -61,7 +63,6 @@ void* FirstFitHeap::malloc(size_t size) {
     if(initalized == false)
     {
         initalized = true;
-        cout << "first try malloc " << endl;
         initHeap();
     }
     //cout << "## Custom Malloc "  << size << endl;

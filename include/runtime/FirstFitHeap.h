@@ -19,6 +19,7 @@ class FirstFitHeap {
 public:
 
     FirstFitHeap();
+    ~FirstFitHeap();
 
     void destroyTimer();
 
@@ -46,7 +47,7 @@ public:
 	int getSize();
 
    
-
+    static VirtualMem vMem;
 private:
     
     void fillList(list<int>* list);
@@ -59,8 +60,8 @@ private:
 
     
 
-    static VirtualMem vMem;
     static bool initalized;
+    
     static freeBlock* head;
 };
 

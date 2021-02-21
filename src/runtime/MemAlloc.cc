@@ -1,10 +1,9 @@
-#include <iostream>
-#include <fstream>
-#include "system/VirtualMem.h"
-#include "runtime/FirstFitHeap.h"
-#include "timer/CycleTimer.h"
+#include "runtime/MemAlloc.h"
 
-using namespace std; 
+freeBlock* FirstFitHeap::head = (freeBlock*) vMem.getStart();
+bool FirstFitHeap::initalized = false;
+
+//FirstFitHeap heap;
 
 void* operator new(size_t size) {
     cout << "new is called with size = " << size << endl; 
@@ -32,6 +31,9 @@ void memAllocInitialize()
 
 void* malloc(size_t size)
 {
+    cout << "We are here in malloc in " << __FILE__ << endl;
+    FirstFitHeap::vMem = VirtualMem();
+    exit(1);
     void* returnPtr = FirstFitHeap::malloc(size); 
     return returnPtr;
 }

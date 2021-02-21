@@ -5,7 +5,9 @@ SRC_FILES = \
 	system/AddressMapping.cc \
 	system/VirtualMem.cc \
 	runtime/FirstFitHeap.cc \
+	runtime/MemAlloc.cc \
 	misc/Stack.cc
+
 	
 SRC_MAIN = main.cc
 
@@ -22,7 +24,7 @@ CXX	= g++
 LD	= g++
 
 # -c  -fpic -fno-builtin -nostdlib -ffreestanding -nodefaultlibs
-CXXFLAGS = -g -Wall -fconcepts
+CXXFLAGS = -g  -Wall -fconcepts
 
 INCLUDES = -I$(INC_DIR)
 
