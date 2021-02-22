@@ -6,14 +6,9 @@
 using namespace std;
 
 
-class StackPageNode
-{
-public:
+struct StackPageNode {
     void *pageAddress;
     StackPageNode *prev, *next;
-
-    void* operator new(size_t size);
-    void operator delete(void* ptr);
 };
 
 

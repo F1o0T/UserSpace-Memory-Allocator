@@ -4,8 +4,6 @@ SRC_FILES = \
 	gui/DrawingWindow.cc \
 	system/AddressMapping.cc \
 	system/VirtualMem.cc \
-	runtime/FirstFitHeap.cc \
-	runtime/MemAlloc.cc \
 	misc/Stack.cc
 
 	
@@ -47,7 +45,7 @@ TMP_SUBDIRS = $(sort $(dir $(OBJS)))
 all: depend $(TARGET_MAIN)
 
 $(TARGET_MAIN): $(OBJS) $(OBJS_MAIN)
-	$(LD) $(LDFLAGS)  -z undefs $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN); rm -rf SwapFile
+	$(LD) $(LDFLAGS)  -z undefs $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN);
 
 $(TMP_SUBDIRS) :
 	mkdir -p $@

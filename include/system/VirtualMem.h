@@ -42,7 +42,7 @@ private:
     SwapFile swapFile;
     
 public:
-    Timer protNonetimer;
+    Timer protNonetimer = Timer();
     bool protNoneAllFlag = false;
     Stack accessStack; 
     /////////////////////////////////////////////////
@@ -50,6 +50,7 @@ public:
     // static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
     // VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
     VirtualMem();
+    void initMem();
     ~VirtualMem();
     /////////////////////////////////////////////////
     // Basic Methods
@@ -77,6 +78,7 @@ public:
     void deleteInterval();
     void startTimer();
     void stopTimer();
+    void initFirstPageForHeap();
 
     void* operator new(size_t size);
 

@@ -7,8 +7,9 @@
 #define NUMBER_OF_PT NUMBER_OF_PAGES / PAGETABLE_SIZE
 
 
-VirtualMem::VirtualMem()
-{
+VirtualMem::VirtualMem() {}
+
+void VirtualMem::initMem() {
 	//cout << "start VirtualMem" << endl;
 	this->numberOfPF = 12;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
@@ -33,8 +34,6 @@ VirtualMem::VirtualMem()
 	}
 
 	initializePDandFirstPT();
-
-	//setInterval();
 }
 
 /**
@@ -84,6 +83,21 @@ void VirtualMem::initializePDandFirstPT()
 	}
 }
 
+void VirtualMem::initFirstPageForHeap() {
+	void* start = (void*) (((char*) this->virtualMemStartAddress) + (1025*4096));
+	munmap(start, PAGESIZE);
+
+	//map page frame for PD
+	unsigned *addrPD = (unsigned *)mmap(start, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this->fd, 0);
+	if (addrPD == (unsigned *)MAP_FAILED)
+	{
+		cerr << "|###> Error: Mmap PD Failed" << endl;
+		exit(1);
+	}
+	nextFreeFrameIndex++;
+	pagesinRAM++;
+}
+
 void VirtualMem::setInterval() {
 	this->protNonetimer.setInterval([&]() {
         protNoneAll(); 
@@ -105,7 +119,6 @@ void VirtualMem::deleteInterval() {
 void VirtualMem::protNoneAll()
 {
 	this->protNoneAllFlag = true;
-
 	StackPageNode *current = this->accessStack.top;
 	//cout << "Lets ProtNonAll the following = " << this->accessStack.size() << endl;
 	while(current != NULL) {
@@ -116,7 +129,6 @@ void VirtualMem::protNoneAll()
 
 		current = current->next;
 	}
-	
 	this->protNoneAllFlag = false;
 	cout << "============== Timer is up ===============" << endl;
 }
@@ -158,12 +170,12 @@ void VirtualMem::fixPermissions(void *address)
 		if (pagesinRAM < numberOfPF)
 		{
 			permissionChange = NONTOREAD_NOTFULL;
-			cout << "NON TO READ NOT FULL" << address << endl;
+			//cout << "NON TO READ NOT FULL" << address << endl;
 		}
 		else
 		{
 			permissionChange = NONTOREAD_FULL;
-			cout << "NON TO READ FULL" << address << endl;
+			//cout << "NON TO READ FULL" << address << endl;
 		}
 	}
 	else
@@ -171,17 +183,17 @@ void VirtualMem::fixPermissions(void *address)
 		if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == READ)
 		{
 			permissionChange = LRU_CASE_READ; 
-			cout << "LRU Case Read" << address << endl;
+			//cout << "LRU Case Read" << address << endl;
 		}
 		else if( mappingUnit.getLruBit(*pagePTEntryAddr) && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == WRITE)
 		{
 			permissionChange = LRU_CASE_WRITE;
-			cout << "LRU Case Write" << address << endl;
+			//cout << "LRU Case Write" << address << endl;
 		}
 		else
 		{
 			permissionChange = READTOWRITE;
-			cout << "READ TO WRITE" << address << endl;
+			//cout << "READ TO WRITE" << address << endl;
 		}
 	}
 
@@ -500,6 +512,7 @@ void *VirtualMem::expand(size_t size)
 
 VirtualMem::~VirtualMem()
 {
+	deleteInterval();
 	munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
 	shm_unlink("phy-Mem");
 }
@@ -524,10 +537,9 @@ void VirtualMem::resetQueues()
 }
 
 void* VirtualMem::operator new(size_t size) {
-	return std::malloc(size);
+	return malloc(size);
 }
 
 void VirtualMem::operator delete(void* ptr) {
-	std::free(ptr);
+	free(ptr);
 }
-

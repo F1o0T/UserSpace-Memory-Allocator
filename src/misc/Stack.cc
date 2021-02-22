@@ -1,16 +1,5 @@
 #include "misc/Stack.h"
 
-//class StackpageNode
-///////////////////////////////////////////////
-void StackPageNode::operator delete(void* ptr) {
-    free(ptr);
-}
-
-void* StackPageNode::operator new(size_t size) {
-    return malloc(size);
-}
-//////////////////////////////////////////////
-
 
 
 //class Stack
@@ -21,7 +10,7 @@ Stack::Stack(){
 }
 
 void Stack::insertPageAtBottom(void *pageAddr){
-    StackPageNode *newStackPageNode = new StackPageNode; 
+    StackPageNode *newStackPageNode = (StackPageNode*) malloc(sizeof(StackPageNode));
     newStackPageNode->pageAddress = pageAddr; 
     newStackPageNode->prev = newStackPageNode->next = NULL;
 
@@ -40,7 +29,7 @@ void Stack::insertPageAtTop(void *pageAddr){
     // cout << "Lets insert " << pageAddr << "to the accessStack" << endl;
     ////////////////////////////////////////////
     // Initialization
-    StackPageNode *newStackPageNode = new StackPageNode; 
+    StackPageNode *newStackPageNode = (StackPageNode*) malloc(sizeof(StackPageNode));; 
     newStackPageNode->pageAddress = pageAddr; 
     newStackPageNode->prev = newStackPageNode->next = NULL;
     ////////////////////////////////////////////
