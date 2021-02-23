@@ -119,16 +119,19 @@ void VirtualMem::deleteInterval() {
 void VirtualMem::protNoneAll()
 {
 	this->protNoneAllFlag = true;
-	StackPageNode *current = this->accessStack.top;
-	//cout << "Lets ProtNonAll the following = " << this->accessStack.size() << endl;
-	while(current != NULL) {
-		mprotect((void*) current->pageAddress, PAGESIZE, PROT_NONE);
-		unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) current->pageAddress);
-		mappingUnit.setLruBit(pageTableEntry, LRU);
-		//cout << "mappingUnit.getLruBit(pageFrameAddr) = " << mappingUnit.getLruBit(*(pageTableEntry)) << endl;
 
-		current = current->next;
-	}
+    if (this->accessQueue.checkEmpty())
+        return; 
+    else
+    {
+        for (int i = this->accessQueue.front; i != this->accessQueue.rear; i = (i + 1) % MAX_PAGES_IN_ACCESS_STACK)
+        {
+            
+			mprotect(this->accessQueue.accessedPages[i], PAGESIZE, PROT_NONE);
+			unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) this->accessQueue.accessedPages[i]);
+			mappingUnit.setLruBit(pageTableEntry, LRU);
+		}
+    }
 	this->protNoneAllFlag = false;
 	cout << "============== Timer is up ===============" << endl;
 }
@@ -149,7 +152,7 @@ void VirtualMem::fixPermissions(void *address)
 	*/
 	void *pageStartAddr = findStartAddress(address);
 	// cout << "Fixing permission of page @ " << pageStartAddr << endl; 
-	//accessStack.display();
+	//accessQueue.display();
 	unsigned *pagePTEntryAddr = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)pageStartAddr);
 	unsigned logAddrOf32Bits = ((char *)pageStartAddr) - ((char *)virtualMemStartAddress);
 	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(logAddrOf32Bits);
@@ -206,12 +209,12 @@ void VirtualMem::fixPermissions(void *address)
 		{
 			this->pageIn(pageStartAddr);
 			// LRU Stuff
-			this->accessStack.deletePageIfExists(pageStartAddr);
+			//this->accessQueue.deletePageIfExists(pageStartAddr);
 		}
 		mapIn(pageStartAddr);
 		//////////////////////////////////////////////////
 		// LRU Stuff
-		this->accessStack.insertPageAtTop(pageStartAddr);
+		this->accessQueue.enqueue(pageStartAddr);
 		///////////////////////////////////////////////////
 		readPageActivate(pageStartAddr);
 		break;
@@ -227,8 +230,8 @@ void VirtualMem::fixPermissions(void *address)
 			mapIn(pageStartAddr);
 			//////////////////////////////////////////////////
 			// LRU Stuff
-			this->accessStack.deletePageIfExists(pageStartAddr);
-			this->accessStack.insertPageAtTop(pageStartAddr);
+			//this->accessQueue.deletePageIfExists(pageStartAddr);
+			this->accessQueue.enqueue(pageStartAddr);
 			///////////////////////////////////////////////////
 			//last but not least: activate the chunk just like in case 1
 			if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED)
@@ -242,8 +245,8 @@ void VirtualMem::fixPermissions(void *address)
 	case LRU_CASE_READ:
 		{
 			mprotect(pageStartAddr, PAGESIZE, PROT_READ);
-			this->accessStack.deletePageIfExists(pageStartAddr); 
-			this->accessStack.insertPageAtTop(pageStartAddr);
+			//this->accessQueue.deletePageIfExists(pageStartAddr); 
+			this->accessQueue.enqueue(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
 			//cout << "case LRU READ" << endl;
 			break; 
@@ -251,16 +254,16 @@ void VirtualMem::fixPermissions(void *address)
 	case LRU_CASE_WRITE:
 		{
 			mprotect(pageStartAddr, PAGESIZE, PROT_WRITE);
-			this->accessStack.deletePageIfExists(pageStartAddr); 
-			this->accessStack.insertPageAtTop(pageStartAddr);
+			//this->accessQueue.deletePageIfExists(pageStartAddr); 
+			this->accessQueue.enqueue(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
 			//cout << "case LRU WRITE" << endl;
 			break;  
 		}
 	
 	case READTOWRITE:
-		this->accessStack.deletePageIfExists(pageStartAddr);
-		this->accessStack.insertPageAtTop(pageStartAddr);
+		//this->accessQueue.deletePageIfExists(pageStartAddr);
+		this->accessQueue.enqueue(pageStartAddr);
 		writePageActivate(pageStartAddr);
 		//cout << "READTOWRITE @ "<< pageStartAddr <<  endl;
 		break;
@@ -268,15 +271,15 @@ void VirtualMem::fixPermissions(void *address)
 }
 
 void* VirtualMem::kickPageFromStack() {
-	void *kickedPageAddr = this->accessStack.getPageAtbottom();
-	this->accessStack.deletePageAtBottom();
+	void *kickedPageAddr = this->accessQueue.dequeue();
+	//this->accessQueue.deletePageAtBottom();
 	unsigned kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedPageAddr);
 	unsigned pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
 	while (pinnedBit == PINNED)
 	{
 		//cout << (void*) kickedPageAddr << " is pinned" << endl;
-		kickedPageAddr = this->accessStack.getPageAtbottom();
-		this->accessStack.deletePageAtBottom();
+		kickedPageAddr = this->accessQueue.dequeue();
+		//this->accessQueue.deletePageAtBottom();
 		kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedPageAddr);
 		pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
 	}

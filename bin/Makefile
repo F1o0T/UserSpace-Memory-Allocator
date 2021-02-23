@@ -4,7 +4,7 @@ SRC_FILES = \
 	gui/DrawingWindow.cc \
 	system/AddressMapping.cc \
 	system/VirtualMem.cc \
-	misc/Stack.cc
+	misc/AccessQueue.cc
 
 	
 SRC_MAIN = main.cc

@@ -3,7 +3,7 @@
 #include "system/Memory.h"
 #include "system/AddressMapping.h"
 #include "misc/SwapFile.h"
-#include "misc/Stack.h"
+#include "misc/AccessQueue.h"
 #include <iostream>
 #include <signal.h>
 #include <list>
@@ -44,7 +44,7 @@ private:
 public:
     Timer protNonetimer = Timer();
     bool protNoneAllFlag = false;
-    Stack accessStack; 
+    Queue accessQueue; 
     /////////////////////////////////////////////////
     // Signal handeler, constructor and deconstructor.
     // static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);

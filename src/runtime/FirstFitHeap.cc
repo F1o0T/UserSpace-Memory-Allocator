@@ -56,12 +56,11 @@ void FirstFitHeap::initHeap() {
     sigaction(SIGSEGV, &SigAction, NULL);
 	///////////////////////////////////////////////
     unsigned length = (unsigned) vMem->getSize();
-
     head -> freeSpace = length - sizeUnsi;
     head -> nextAddress = 0;
     //create first direct list at the start of the memory
     //With only one free block with the length of memory - unsigned
-    vMem->setInterval();
+    //vMem->setInterval();
 }
 
 void* FirstFitHeap::malloc(size_t size) {

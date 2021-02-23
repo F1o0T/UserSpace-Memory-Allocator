@@ -5,8 +5,6 @@
 
 int main(int argc, char** argv)
 {
-    cout << "################### start Main ######################" << endl;
-
     unsigned nrElements = 20;
     unsigned* blocks[nrElements];
     
@@ -29,5 +27,4 @@ int main(int argc, char** argv)
     cout << "what is inside of " << *blocks[8] << endl;
     cout << "what is inside of " << *blocks[1] << endl;
 
-    cout << "################### end of Code ######################" << endl;
 }

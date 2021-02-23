@@ -166,7 +166,7 @@ VirtualMem.o: ../src/system/VirtualMem.cc /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/statx-generic.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h \
- ../include/misc/RandomAccessFile.h ../include/misc/Stack.h \
+ ../include/misc/RandomAccessFile.h ../include/misc/AccessQueue.h \
  /usr/include/signal.h /usr/include/x86_64-linux-gnu/bits/signum.h \
  /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
  /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \

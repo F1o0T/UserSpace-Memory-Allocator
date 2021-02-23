@@ -94,7 +94,7 @@ void* malloc(size_t size) {
         initalized = true;
         vMem.initMem();
         initHeap();
-        vMem.accessStack.insertPageAtTop(vMem.getStart());
+        //vMem.accessQueue.enqueue(vMem.getStart());
         vMem.addPageEntry2PT((unsigned*) vMem.getStart());
         vMem.writePageActivate(vMem.getStart());
     }
