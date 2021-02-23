@@ -7,11 +7,9 @@
 #define NUMBER_OF_PT NUMBER_OF_PAGES / PAGETABLE_SIZE
 
 
-VirtualMem::VirtualMem() {}
-
-void VirtualMem::initMem() {
-	//cout << "start VirtualMem" << endl;
-	this->numberOfPF = 12;
+VirtualMem::VirtualMem() {
+		//cout << "start VirtualMem" << endl;
+	this->numberOfPF = 100;
 	unsigned phyMenLength = PAGESIZE * numberOfPF;
 	//open the shared memory file (physical memory)
 	this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -35,6 +33,7 @@ void VirtualMem::initMem() {
 
 	initializePDandFirstPT();
 }
+
 
 /**
  * This method is just called, when the whole virtual memory gets initialized.
@@ -101,7 +100,7 @@ void VirtualMem::initFirstPageForHeap() {
 void VirtualMem::setInterval() {
 	this->protNonetimer.setInterval([&]() {
         protNoneAll(); 
-    }, 1);
+    }, 0.000001);
 }
 
 void VirtualMem::startTimer() {
@@ -515,9 +514,10 @@ void *VirtualMem::expand(size_t size)
 
 VirtualMem::~VirtualMem()
 {
-	deleteInterval();
-	munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
-	shm_unlink("phy-Mem");
+	stopTimer();
+	//deleteInterval();
+	//munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
+	//shm_unlink("phy-Mem");
 }
 
 void VirtualMem::resetQueues()
@@ -540,6 +540,7 @@ void VirtualMem::resetQueues()
 }
 
 void* VirtualMem::operator new(size_t size) {
+	cout << "virtual mem new" << endl;
 	return malloc(size);
 }
 

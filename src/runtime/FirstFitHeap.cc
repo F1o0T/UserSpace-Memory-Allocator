@@ -1,13 +1,10 @@
 #include "runtime/FirstFitHeap.h"
+//FirstFitHeap heap;
 
 
-VirtualMem *FirstFitHeap::vMem = new VirtualMem();
-freeBlock* FirstFitHeap::head = (freeBlock*) vMem->getStart();
-bool FirstFitHeap::initalized = false;
 
 void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
-    
     //wait on ProtNoneAll
     while(true){
         if (vMem->protNoneAllFlag == false) {
@@ -41,13 +38,20 @@ void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 }
 
 FirstFitHeap::FirstFitHeap() {
-    
+    initHeap();
+    FirstFitHeap::vMem->setInterval();
 }
 FirstFitHeap::~FirstFitHeap(){
+    cout << "destructor ffheap" << endl;
+    while(true){
+        if (vMem->protNoneAllFlag == false) {
+            vMem->stopTimer();
+            break;
+        }
+    }
     destroyTimer();
 }
 void FirstFitHeap::initHeap() {
-    
     ///////////////////////////////////////////////
 	// SignalHandling
     struct sigaction SigAction;
@@ -64,13 +68,7 @@ void FirstFitHeap::initHeap() {
 }
 
 void* FirstFitHeap::malloc(size_t size) {
-    if(initalized == false)
-    {   
-        initalized = true;
-        initHeap();
-        
-    }
-    //cout << "## Custom Malloc "  << size << endl;
+    cout << "## Custom Malloc "  << size << endl;
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
         return nullptr;
@@ -250,6 +248,7 @@ bool FirstFitHeap::correctAddress(void* address){
 }
 
 void FirstFitHeap::destroyTimer() {
+    vMem->stopTimer();
     vMem->deleteInterval();
 }
 

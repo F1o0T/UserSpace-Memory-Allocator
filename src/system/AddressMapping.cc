@@ -11,7 +11,7 @@ unsigned AddressMapping::logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr
 }
 
 unsigned* AddressMapping::logAddr2PTEntryAddr(unsigned* virtualMemStart, unsigned* logAddr) {
-    unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
+    unsigned phyAddr = ((size_t) logAddr) - ((size_t) virtualMemStart);
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
     if (getPresentBit(addrOfPT) == NOT_PRESENT) {
         return 0;

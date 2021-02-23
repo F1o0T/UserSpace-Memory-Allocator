@@ -4,6 +4,8 @@ SRC_FILES = \
 	gui/DrawingWindow.cc \
 	system/AddressMapping.cc \
 	system/VirtualMem.cc \
+	runtime/Memalloc.cc \
+	runtime/FirstFitHeap.cc \
 	misc/AccessQueue.cc
 
 	

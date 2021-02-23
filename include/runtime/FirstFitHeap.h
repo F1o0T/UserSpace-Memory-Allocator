@@ -46,6 +46,9 @@ public:
 
 	int getSize();
 
+    static VirtualMem* vMem;
+
+    static freeBlock* head;
    
 private:
     
@@ -57,11 +60,7 @@ private:
 
     static bool correctAddress(void* address);
 
-    static VirtualMem *vMem;
 
-    static bool initalized;
-    
-    static freeBlock* head;
 };
 
 #endif
