@@ -46,9 +46,10 @@ public:
 
 	int getSize();
 
-    static VirtualMem* vMem;
+    //static VirtualMem* vMem;
 
     static freeBlock* head;
+
    
 private:
     

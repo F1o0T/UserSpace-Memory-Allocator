@@ -6,33 +6,66 @@
 #define NUMBER_OF_PAGES FOUR_GB / PAGESIZE
 #define NUMBER_OF_PT NUMBER_OF_PAGES / PAGETABLE_SIZE
 
+extern bool initialized;
+
 
 VirtualMem::VirtualMem() {
+		initialized = 1;
 		//cout << "start VirtualMem" << endl;
-	this->numberOfPF = 100;
-	unsigned phyMenLength = PAGESIZE * numberOfPF;
-	//open the shared memory file (physical memory)
-	this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-	if (fd == -1)
-	{
-		cerr << "|###> Error: open the shm failed" << endl;
-		exit(1);
-	}
-	if (ftruncate(fd, phyMenLength) == -1)
-	{
-		cerr << "|###> Error: truncate failed" << endl;
-		exit(1);
-	}
-	/*map the whole logical memory size*/
-	this->virtualMemStartAddress = (unsigned *)mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	if (this->virtualMemStartAddress == (unsigned *)MAP_FAILED)
-	{
-		cerr << "|###> Error: virtual Mmap Failed" << endl;
-		exit(1);
-	}
+		this->numberOfPF = 100;
+		unsigned phyMenLength = PAGESIZE * numberOfPF;
+		//open the shared memory file (physical memory)
+		this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+		if (fd == -1)
+		{
+			cerr << "|###> Error: open the shm failed" << endl;
+			exit(1);
+		}
+		if (ftruncate(fd, phyMenLength) == -1)
+		{
+			cerr << "|###> Error: truncate failed" << endl;
+			exit(1);
+		}
+		/*map the whole logical memory size*/
+		this->virtualMemStartAddress = (unsigned *)mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+		if (this->virtualMemStartAddress == (unsigned *)MAP_FAILED)
+		{
+			cerr << "|###> Error: virtual Mmap Failed" << endl;
+			exit(1);
+		}
 
-	initializePDandFirstPT();
+		initializePDandFirstPT();
+	
 }
+
+
+void VirtualMem::initMem(){
+		//cout << "start VirtualMem" << endl;
+		this->numberOfPF = 100;
+		unsigned phyMenLength = PAGESIZE * numberOfPF;
+		//open the shared memory file (physical memory)
+		this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+		if (fd == -1)
+		{
+			cerr << "|###> Error: open the shm failed" << endl;
+			exit(1);
+		}
+		if (ftruncate(fd, phyMenLength) == -1)
+		{
+			cerr << "|###> Error: truncate failed" << endl;
+			exit(1);
+		}
+		/*map the whole logical memory size*/
+		this->virtualMemStartAddress = (unsigned *)mmap(NULL, FOUR_GB, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+		if (this->virtualMemStartAddress == (unsigned *)MAP_FAILED)
+		{
+			cerr << "|###> Error: virtual Mmap Failed" << endl;
+			exit(1);
+		}
+
+		initializePDandFirstPT();
+}
+
 
 
 /**
