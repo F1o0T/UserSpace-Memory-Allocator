@@ -12,7 +12,7 @@ using namespace std;
 
 struct freeBlock {
     unsigned freeSpace;//ist immer der frei Platz - 4 byte für die die groesse des Blockes
-    freeBlock* nextAddress;
+    freeBlock* nextAddress = NULL;
 };
 
 class FirstFitHeap {

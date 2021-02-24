@@ -1,10 +1,11 @@
 #include "runtime/FirstFitHeap.h"
+#include <unistd.h>
 //FirstFitHeap heap;
 
 bool initialized = 0;
-freeBlock* someHead;
-unsigned *virtStart;
 VirtualMem e_vMem;
+freeBlock* someHead;
+
 //VirtualMem* FirstFitHeap::vMem = &e_vMem;
 
 
@@ -44,9 +45,9 @@ void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 }
 
 FirstFitHeap::FirstFitHeap() {
-    initHeap();
     e_vMem.setInterval();
 }
+
 FirstFitHeap::~FirstFitHeap(){
     cout << "destructor ffheap" << endl;
     while(true){
@@ -57,29 +58,19 @@ FirstFitHeap::~FirstFitHeap(){
     }
     destroyTimer();
 }
-void FirstFitHeap::initHeap() {
-    ///////////////////////////////////////////////
-	// SignalHandling
-    struct sigaction SigAction;
-	SigAction.sa_sigaction = signalHandler;
-    SigAction.sa_flags = SA_SIGINFO;
-    sigaction(SIGSEGV, &SigAction, NULL);
-	///////////////////////////////////////////////
-    unsigned length = (unsigned) e_vMem.getSize();
-    someHead = (freeBlock*)e_vMem.getStart();
-    someHead -> freeSpace = length - sizeUnsi;
-    someHead -> nextAddress = 0;
-    //create first direct list at the start of the memory
-    //With only one free block with the length of memory - unsigned
-    //e_vMem.setInterval();
-}
 
 void* FirstFitHeap::malloc(size_t size) {
     if(!initialized){
-        e_vMem = VirtualMem();
-        FirstFitHeap::initHeap();
         initialized = 1;
+        struct sigaction SigAction;
+        SigAction.sa_sigaction = signalHandler;
+        SigAction.sa_flags = SA_SIGINFO;
+        sigaction(SIGSEGV, &SigAction, NULL);
+        return sbrk(size); 
     }
+    unsigned length = (unsigned) e_vMem.getSize();
+    someHead = (freeBlock*)e_vMem.getStart();
+    someHead -> freeSpace = length - sizeUnsi;
     //cout << "## Custom Malloc "  << size << endl;
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
@@ -138,10 +129,6 @@ void* FirstFitHeap::malloc(size_t size) {
     // cout << "The returned address by malloc will be : " << (void*) (((unsigned*) curPos) + 1) << endl;
     //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
-}
-
-int FirstFitHeap::getSize() {
-    return e_vMem.getSize();
 }
 
 void FirstFitHeap::fillList(list<int>* list) {

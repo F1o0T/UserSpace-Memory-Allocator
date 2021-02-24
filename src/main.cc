@@ -25,10 +25,11 @@ int main(int argc, char** argv)
     }
 
     cout << "what is inside of " << *blocks[1] << endl;
-
     cout << "what is inside of " << *blocks[18] << endl;
     cout << "what is inside of " << *blocks[19] << endl;
     cout << "what is inside of " << *blocks[5] << endl;
     cout << "what is inside of " << *blocks[8] << endl;
     cout << "what is inside of " << *blocks[1] << endl;
+    cout << "what is inside of " << *blocks[0] << endl;
+
 }
