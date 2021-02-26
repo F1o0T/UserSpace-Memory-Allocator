@@ -2,7 +2,6 @@
 #define FirstFitHeap_h
 
 #include <iostream>
-#include "runtime/Heap.h"
 #include "system/VirtualMem.h"
 #include <vector>
 
@@ -13,23 +12,28 @@ using namespace std;
 
 struct freeBlock {
     unsigned freeSpace;//ist immer der frei Platz - 4 byte für die die groesse des Blockes
-    freeBlock* nextAddress;
+    freeBlock* nextAddress = NULL;
 };
 
-class FirstFitHeap:public Heap {
+class FirstFitHeap {
 public:
 
-    FirstFitHeap(Memory& memory);
+    FirstFitHeap();
+    ~FirstFitHeap();
 
-    void initHeap();
+    void destroyTimer();
 
-    void* malloc(size_t size);
+    static void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext);
+
+    static void initHeap();
+
+    static void* malloc(size_t size);
     
-	void* realloc(void* ptr, size_t size);
+	static void* realloc(void* ptr, size_t size);
 
-	void* calloc(size_t nmemb, size_t size);
+	static void* calloc(size_t nmemb, size_t size);
 
-    void free(void* address);
+    static void free(void* address);
 
 
     void* operator new(size_t size);
@@ -40,21 +44,24 @@ public:
 
     void operator delete[](void* ptr);
 
-
 	int getSize();
 
-private:
+    //static VirtualMem* vMem;
 
+    static freeBlock* head;
+
+   
+private:
+    
     void fillList(list<int>* list);
 
-    void merge(freeBlock* block1, freeBlock* block2);
+    static void merge(freeBlock* block1, freeBlock* block2);
 
-    void addBlockInList(freeBlock* block);
+    static void addBlockInList(freeBlock* block);
 
-    bool correctAddress(void* address);
+    static bool correctAddress(void* address);
 
 
-    freeBlock* head;
 };
 
 #endif

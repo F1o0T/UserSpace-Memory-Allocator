@@ -3,9 +3,7 @@
 
 #include <sys/types.h>
 #include "system/Memory.h"
-#include "runtime/Heap.h"
 #include "gui/DrawingWindow.h"
-#include "runtime/FixedHeap.h"
 #include "runtime/FirstFitHeap.h"
 #include "system/VirtualMem.h"
 #include <list>
@@ -24,7 +22,7 @@ using namespace GUI;
 class MemoryGUI {
 public:
     MemoryGUI();
-	MemoryGUI(Heap* heap, DrawingWindow* window, int mode);
+	//MemoryGUI(Heap* heap, DrawingWindow* window, int mode);
     MemoryGUI(VirtualMem* page, DrawingWindow* window, int mode, unsigned numberOfElements);
 
     void drawMemory();
@@ -40,7 +38,7 @@ private:
 
     void clearWindow();
 
-    Heap* heap;
+    //Heap* heap;
     VirtualMem* page;
     DrawingWindow* window;
     int mode;

@@ -1,20 +1,77 @@
 #include "runtime/FirstFitHeap.h"
+#include <unistd.h>
+//FirstFitHeap heap;
 
-FirstFitHeap::FirstFitHeap(Memory& memory) : Heap(memory) {}
+bool initialized = 0;
+VirtualMem e_vMem;
+freeBlock* someHead;
 
-void FirstFitHeap::initHeap() {
-    freeBlock* first = (freeBlock*) memory.getStart();
-    unsigned length = (unsigned) memory.getSize();
+//VirtualMem* FirstFitHeap::vMem = &e_vMem;
 
-    this -> head = first;
-    first -> freeSpace = length - sizeUnsi;
-    first -> nextAddress = 0;
-    //create first direct list at the start of the memory
-    //With only one free block with the length of memory - unsigned
+
+
+void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
+{
+    //wait on ProtNoneAll
+    while(true){
+        if (e_vMem.protNoneAllFlag == false) {
+            e_vMem.stopTimer();
+            break;
+        }
+        cout << "ok lets wait for protNone1" << endl;
+    }
+
+	if (info->si_code == SEGV_ACCERR)
+    {   
+        //cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
+        e_vMem.fixPermissions(info->si_addr);
+        //cout << "|>>> Permissions were fixed!" << endl;
+    }
+    else if (info->si_code == SEGV_MAPERR)
+    {
+        cout << "|### Error: Access denied, unmapped @ address = " << info->si_addr << endl; 
+        exit(1);
+    }
+    
+	e_vMem.startTimer();
+
+    //wait on ProtNoneAll
+    while(true){
+        if (e_vMem.protNoneAllFlag == false) {
+            break;
+        }
+        cout << "ok lets wait for protNone2" << endl;
+    }
+}
+
+FirstFitHeap::FirstFitHeap() {
+    e_vMem.setInterval();
+}
+
+FirstFitHeap::~FirstFitHeap(){
+    cout << "destructor ffheap" << endl;
+    while(true){
+        if (e_vMem.protNoneAllFlag == false) {
+            e_vMem.stopTimer();
+            break;
+        }
+    }
+    destroyTimer();
 }
 
 void* FirstFitHeap::malloc(size_t size) {
-    //catch Errors
+    if(!initialized){
+        initialized = 1;
+        struct sigaction SigAction;
+        SigAction.sa_sigaction = signalHandler;
+        SigAction.sa_flags = SA_SIGINFO;
+        sigaction(SIGSEGV, &SigAction, NULL);
+        return sbrk(size); 
+    }
+    unsigned length = (unsigned) e_vMem.getSize();
+    someHead = (freeBlock*)e_vMem.getStart();
+    someHead -> freeSpace = length - sizeUnsi;
+    //cout << "## Custom Malloc "  << size << endl;
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
         return nullptr;
@@ -24,62 +81,39 @@ void* FirstFitHeap::malloc(size_t size) {
     }
 
     freeBlock* lastPos = 0;//Pointer to the free block before the right block
-    freeBlock* curPos = this -> head;//Pointer that points to a matching block
+    freeBlock* curPos = someHead;//Pointer that points to a matching block
     char* ar_ptr = 0;//Pointer thats create a new free block behind the matching block
 
     while ((size_t) (curPos -> freeSpace) < size) {
 
-        if (curPos -> nextAddress == 0) {
-            int i = memory.getSize();
-            void* ptr = memory.expand(size);
-            
-            if (ptr == 0 || ptr == (void*) -1) {
-                cerr << "Error: There is not enough memory available." << endl;
-                return nullptr;
-            }
-            
-            curPos -> freeSpace += (memory.getSize() - i);
-            break;
+        if (curPos -> nextAddress == 0) {                
+            cerr << "Error: There is not enough memory available." << endl;
+            return nullptr;
         }
 
         lastPos = curPos;
         curPos = curPos -> nextAddress;
     }
 
+    // if the next freeBlock didnt have enough memory
     if ((curPos -> freeSpace) - size < minByte) {
-        if (curPos -> nextAddress == 0) {//last block in heap
-            int i = memory.getSize();
-            void* ptr = memory.expand(1);//minimum to expand
+        size = (curPos -> freeSpace);
 
-            if (ptr == 0 || ptr == (void*) -1) {
-                cerr << "Error: Es kann nicht genug Speicher zur verfügung gestellt werden." << endl;
-                return nullptr;
-            }
-            curPos -> freeSpace += (memory.getSize() - i);
+        if (curPos == someHead) {
+            someHead = curPos -> nextAddress;
 
-        } else {//somewhere in the middle of the heap
-            size = (curPos -> freeSpace);
-
-            if (curPos == head) {
-                head = curPos -> nextAddress;
-
-            } else {
-                lastPos -> nextAddress = curPos -> nextAddress;
-            }
+        } else {
+            lastPos -> nextAddress = curPos -> nextAddress;
         }
-    }
+    } else {
+        //goes to the Position for the next free block
+        ar_ptr = (char*) curPos;
+        ar_ptr += sizeUnsi;
+        ar_ptr += size;
 
-    //goes to the Position for the next free block
-    ar_ptr = (char*) curPos;
-    ar_ptr += sizeUnsi;
-    ar_ptr += size;
-
-    //if enough space left then create a new free block
-    if ((size_t) (curPos -> freeSpace) > size) {
-
-        //if the matching block were the head then create a new head
-        if (this -> head == curPos) { 
-            this -> head = ((freeBlock*) ar_ptr);
+        //if the matching block were the someHead then create a new someHead
+        if (someHead == curPos) { 
+            someHead = ((freeBlock*) ar_ptr);
 
         } else { //else the free block before the matching block need to point on him
             lastPos -> nextAddress = ((freeBlock*) ar_ptr);
@@ -91,18 +125,15 @@ void* FirstFitHeap::malloc(size_t size) {
 
     //record the size of the block
     *((unsigned*) curPos) = (unsigned) size;
-
+ 
+    // cout << "The returned address by malloc will be : " << (void*) (((unsigned*) curPos) + 1) << endl;
     //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
 }
 
-int FirstFitHeap::getSize() {
-    return memory.getSize();
-}
-
 void FirstFitHeap::fillList(list<int>* list) {
-    char* ptr1 = (char*) memory.getStart();//move pointer
-    void* ptr2 = head;//comparison pointer points on the next free block
+    char* ptr1 = (char*) e_vMem.getStart();//move pointer
+    void* ptr2 = someHead;//comparison pointer points on the next free block
 
     while (ptr2 != 0) {
         if (ptr1 == ptr2) {
@@ -133,15 +164,15 @@ void FirstFitHeap::merge(freeBlock* block1, freeBlock* block2) {
 
 void FirstFitHeap::addBlockInList(freeBlock* block){
     freeBlock* pred = NULL;
-    freeBlock* succ = head;
+    freeBlock* succ = someHead;
     while(succ < block && succ != NULL){
         pred = succ;
         succ = succ -> nextAddress;
     }
     block->nextAddress = succ;
 
-    if(head > block){
-        head = block;
+    if(someHead > block){
+        someHead = block;
     }
     
 
@@ -160,11 +191,13 @@ void FirstFitHeap::addBlockInList(freeBlock* block){
 
 void FirstFitHeap::free(void* address) {
 
-    if(address < memory.getStart()){
+    cout << "give the address of free = " << address << endl;
+
+    if(address < e_vMem.getStart()){
         cerr << "Error: Address to free is smaller than start of the heap" << endl;
         return;
     }
-    if(address > (((char*) memory.getStart()) + memory.getSize())){
+    if(address > (((char*) e_vMem.getStart()) + e_vMem.getSize())){
         cerr << "Error: Address to free is bigger than end of the heap" << endl;
         return;
     }
@@ -186,11 +219,10 @@ void FirstFitHeap::free(void* address) {
 
 }
 
-
 //checks whether the address to free is a correct start of a block
 bool FirstFitHeap::correctAddress(void* address){
-    char* ptr1 = (char*) memory.getStart();//move zeiger
-    void* ptr2 = head;//comparison pointer points on the next free block
+    char* ptr1 = (char*) e_vMem.getStart();//move zeiger
+    void* ptr2 = someHead;//comparison pointer points on the next free block
 
     while (ptr2 != 0) {
         if (ptr1 == ptr2) {
@@ -213,28 +245,77 @@ bool FirstFitHeap::correctAddress(void* address){
     return false;
 
 }
-    
-void* FirstFitHeap::realloc(void* ptr, size_t size) {
 
+void FirstFitHeap::destroyTimer() {
+    e_vMem.stopTimer();
+    e_vMem.deleteInterval();
+}
+
+void* FirstFitHeap::realloc(void* ptr, size_t size) {
+    if (ptr == NULL) {
+        return malloc(size);
+    } else if (size == 0) {
+        free(ptr);
+        return NULL;
+    } else if (correctAddress((void*) (( (unsigned*) ptr) - 1)) == false) {
+        return NULL;
+    }
+
+    void* returnPtr = malloc(size);
+    if(!initialized){
+
+    }
+    //if it is to big then return NULL
+    if (returnPtr == NULL) {
+        return NULL;
+    }
+    caddr_t oldPosPtr = (caddr_t) ptr;
+    caddr_t newPosPtr = (caddr_t) returnPtr;
+
+    for (size_t i = 0; i < size; i++) {
+        *(newPosPtr) = *(oldPosPtr);
+        newPosPtr++;
+        oldPosPtr++;
+    }
+
+    free(ptr);
+    return returnPtr;
 }
 
 void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
+    if (nmemb == 0 || size == 0) {
+        return NULL;
+    }
 
+    void* returnPtr = malloc(size);
+    caddr_t ptr = (caddr_t) returnPtr;
+    //if it is to big then return NULL
+    if (ptr == NULL) {
+        return NULL;
+    }
+    
+    for (size_t i = 0; i < nmemb*size; i++) {
+        *(ptr) = 0;
+        ptr++;
+    }
+
+    return returnPtr ;
 }
 
-
 void* FirstFitHeap::operator new(size_t size) {
-
+    cout << "new FirstFitHeap object" << endl; 
+    return malloc(size);
 }
 
 void* FirstFitHeap::operator new[](size_t size) {
-
+    return malloc(size);
 }
 
 void FirstFitHeap::operator delete(void* ptr) {
-
+    cout << "delete FirstFitHeap object" << endl; 
+    free(ptr);
 }
 
 void FirstFitHeap::operator delete[](void* ptr) {
-    
+    free(ptr);
 }

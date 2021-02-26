@@ -6,35 +6,36 @@
 #include <chrono>
 
 class Timer {
-    bool clear = false;
-
     public:
+        bool stop = false;
+        bool destroy = false;
         void setTimeout(auto function, int delay);
         void setInterval(auto function, int interval);
-        void stopLruTimer();
 };
 
 void Timer::setTimeout(auto function, int delay) {
-    this->clear = false;
+    this->stop = false;
     std::thread t([=]() {
-        if(this->clear) return;
+        if(this->stop) return;
         std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-        if(this->clear) return;
+        if(this->stop) return;
         function();
     });
     t.detach();
 }
 
 void Timer::setInterval(auto function, int interval) {
-    this->clear = false;
+    this->stop = false;
     std::thread t([=]() {
         while(true) {
-            if(this->clear) return;
-            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-            if(this->clear) return;
+            if(this->stop || this->destroy) return;
+            std::this_thread::sleep_for(std::chrono::nanoseconds(interval));
+            //if(this->stop || this->destroy) return;
+            while (this->stop || this->destroy) {}
             function();
         }
     });
     t.detach();
 }
+
 #endif

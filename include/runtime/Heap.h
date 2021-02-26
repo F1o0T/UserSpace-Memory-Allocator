@@ -14,9 +14,9 @@ protected:
 	/**
 	 * Initializes reference to system memory.
 	 */
-	Heap(Memory& memory) : memory(memory)
+	/*Heap(Memory& memory) : memory(memory)
 	{
-	}
+	}*/
 
 public:
 	/**
@@ -50,7 +50,7 @@ protected:
 	/**
 	 * Reference to the system memory source.
 	 */
-	Memory& memory;
+	//static Memory& memory;
 
 };
 

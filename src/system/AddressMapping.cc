@@ -2,14 +2,16 @@
 
 
 unsigned AddressMapping::logAddr2PF(unsigned* virtualMemStart, unsigned* logAddr) {
+    //cout << "In logAddr2PF logAddr = " << logAddr << endl; 
     unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
     char* pageTableEntry = ((char*) virtualMemStart) + phyAddr2page(addrOfPT) + (phyAddr2PTIndex(phyAddr)*4);
+    //cout << "In logAddr2PF pageTableEntry = " << (void*) pageTableEntry << endl;
     return *((unsigned*) pageTableEntry);
 }
 
 unsigned* AddressMapping::logAddr2PTEntryAddr(unsigned* virtualMemStart, unsigned* logAddr) {
-    unsigned phyAddr = ((char*) logAddr) - ((char*) virtualMemStart);
+    unsigned phyAddr = ((size_t) logAddr) - ((size_t) virtualMemStart);
     unsigned addrOfPT = *(virtualMemStart + phyAddr2PDIndex(phyAddr));
     if (getPresentBit(addrOfPT) == NOT_PRESENT) {
         return 0;
@@ -44,6 +46,7 @@ unsigned AddressMapping::cutOfOffset(unsigned logaddr) {
  * @param read_writeBit 0 = read, 1 = write
  * @param accessed 0 = not accessed yet, 1 = accessed it first time
  * @param pinnedBit 0 = not pinned, 1 = pinned
+ * @param lruBit 0 = is not reseted to PROT_NONE, 1 = reseted to PROT_NONE
  * @return complett Offset (you can add it to the address)
  */
 unsigned AddressMapping::createOffset(bool presentBit, bool read_writeBit, bool accessed, bool pinnedBit, bool lruBit) {

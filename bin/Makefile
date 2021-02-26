@@ -2,12 +2,11 @@
 
 SRC_FILES = \
 	gui/DrawingWindow.cc \
-	gui/MemoryGUI.cc \
-	runtime/FirstFitHeap.cc \
 	system/AddressMapping.cc \
 	system/VirtualMem.cc \
-	timer/timecpp.cc
-	
+	runtime/Memalloc.cc \
+	runtime/FirstFitHeap.cc \
+	misc/AccessQueue.cc
 
 	
 SRC_MAIN = main.cc
@@ -24,7 +23,8 @@ ASM	= g++
 CXX	= g++
 LD	= g++
 
-CXXFLAGS = -g -Wall 
+# -c  -fpic -fno-builtin -nostdlib -ffreestanding -nodefaultlibs
+CXXFLAGS = -g  -Wall -fconcepts -fpic
 
 INCLUDES = -I$(INC_DIR)
 
@@ -47,7 +47,7 @@ TMP_SUBDIRS = $(sort $(dir $(OBJS)))
 all: depend $(TARGET_MAIN)
 
 $(TARGET_MAIN): $(OBJS) $(OBJS_MAIN)
-	$(LD) $(LDFLAGS) $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN)
+	$(LD) $(LDFLAGS)  -z undefs $(OBJS) $(OBJS_MAIN) $(LIBS) -o $(TARGET_MAIN);
 
 $(TMP_SUBDIRS) :
 	mkdir -p $@
