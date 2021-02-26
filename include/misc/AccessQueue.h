@@ -13,6 +13,8 @@ public:
     int rear = - 1;
     bool checkFull();
 
+    void putElementAtRear(void * element);
+
     bool checkEmpty();
 
     void enqueue(void* pageAddress);

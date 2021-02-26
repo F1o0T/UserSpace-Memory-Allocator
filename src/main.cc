@@ -6,6 +6,7 @@ extern FirstFitHeap heap;
 
 int main(int argc, char** argv)
 {
+    
     cout << "start main" << endl;
     unsigned nrElements = 20;
     unsigned* blocks[nrElements];
@@ -31,5 +32,6 @@ int main(int argc, char** argv)
     cout << "what is inside of " << *blocks[8] << endl;
     cout << "what is inside of " << *blocks[1] << endl;
     cout << "what is inside of " << *blocks[0] << endl;
+
 
 }

@@ -225,7 +225,10 @@ void VirtualMem::fixPermissions(void *address)
 		{ 
 			//cout << "NONTOREAD_FULL @ "<< pageStartAddr <<  endl;
 			void *kickedPageAddr = kickPageFromStack();
-			this->pageOut(kickedPageAddr);
+			unsigned physKickedPage = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned*)kickedPageAddr);
+			if(mappingUnit.getReadAndWriteBit(physKickedPage) == WRITE){
+				this->pageOut(kickedPageAddr);
+			}
 			//cout << "kickedChunkAddr @ " << kickedChunkAddr << " paged out." << endl; 
 			//now just deactivate all the stuff
 			mapOut(kickedPageAddr);
@@ -247,8 +250,8 @@ void VirtualMem::fixPermissions(void *address)
 	case LRU_CASE_READ:
 		{
 			mprotect(pageStartAddr, PAGESIZE, PROT_READ);
-			//this->accessQueue.deletePageIfExists(pageStartAddr); 
-			this->accessQueue.enqueue(pageStartAddr);
+			this->accessQueue.putElementAtRear(pageStartAddr); 
+			//this->accessQueue.enqueue(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
 			//cout << "case LRU READ" << endl;
 			break; 
@@ -257,7 +260,8 @@ void VirtualMem::fixPermissions(void *address)
 		{
 			mprotect(pageStartAddr, PAGESIZE, PROT_WRITE);
 			//this->accessQueue.deletePageIfExists(pageStartAddr); 
-			this->accessQueue.enqueue(pageStartAddr);
+			//this->accessQueue.enqueue(pageStartAddr);
+			this->accessQueue.putElementAtRear(pageStartAddr);
 			mappingUnit.setLruBit(pagePTEntryAddr, false);
 			//cout << "case LRU WRITE" << endl;
 			break;  
