@@ -289,9 +289,7 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
     }
 
     void* returnPtr = malloc(size);
-    if(!initialized){
 
-    }
     //if it is to big then return NULL
     if (returnPtr == NULL) {
         return NULL;

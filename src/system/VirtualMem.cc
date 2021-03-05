@@ -33,8 +33,6 @@ VirtualMem::VirtualMem() {
 		}
 
 		initializePDandFirstPT();
-
-		//setInterval();
 }
 
 /**
@@ -103,7 +101,7 @@ void VirtualMem::setInterval() {
 	
 	this->protNonetimer.setInterval([&]() {
         protNoneAll(); 
-    }, 0.001);
+    }, 0.00000001);
 	
 }
 

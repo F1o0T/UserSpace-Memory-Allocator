@@ -10,12 +10,10 @@ void *malloc(size_t size){
 */
 
 void* operator new(size_t size) {
-    //cout << "own new, size: " << size <<endl;
     return heap.malloc(size);
 }
 
 void* operator new[](size_t size) {
-    //cout << "own new[], size: " << size <<endl;
     return heap.malloc(size);
 }
 
