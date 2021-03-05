@@ -50,7 +50,7 @@ FirstFitHeap::FirstFitHeap(): vMem() {
     SigAction.sa_sigaction = signalHandler;
     SigAction.sa_flags = SA_SIGINFO;
     sigaction(SIGSEGV, &SigAction, NULL);
-    this->head->freeSpace = (unsigned) vMem.getSize() - sizeUnsi;
+    this->head->freeSpace = (unsigned) vMem.getSize();
 
     vMem.setInterval();
 }
@@ -125,7 +125,7 @@ void* FirstFitHeap::malloc(size_t size) {
     //record the size of the block
     *((unsigned*) curPos) = (unsigned) size;
  
-    // cout << "The returned address by malloc will be : " << (void*) (((unsigned*) curPos) + 1) << endl;
+    //cout << "The returned address by malloc will be : " << (void*) (((unsigned*) curPos) + 1) << endl;
     //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
 
@@ -228,16 +228,14 @@ void FirstFitHeap::free(void* address) {
         cerr << "Error: Address to free is bigger than end of the heap" << endl;
         return;
     }
-    list<void*> blockList;
-
 
     
     if(!correctAddress((void*) (((unsigned*) address) - 1))){
         cerr << "Error: Address in Heap can't be freed" << endl;
         return;
     }
-
-
+    cout << "here" << endl;
+ 
     unsigned* blockStart = ((unsigned*) address) - 1;
     unsigned int blockSize = *((unsigned*) blockStart);
     freeBlock* block = (freeBlock*) blockStart;
@@ -256,7 +254,7 @@ bool FirstFitHeap::correctAddress(void* address){
             //move on ptr
             ptr2 = (((freeBlock*) ptr1) -> nextAddress);
             ptr1 += (((freeBlock*) ptr1) -> freeSpace);
-            ptr1 += sizeUnsi;
+            //ptr1 += sizeUnsi;
 
         } else {
             //move on ptr
@@ -265,7 +263,7 @@ bool FirstFitHeap::correctAddress(void* address){
             }
 
             ptr1 += *((unsigned*) ptr1);
-            ptr1 += sizeUnsi;
+            //ptr1 += sizeUnsi;
         }
     }
 

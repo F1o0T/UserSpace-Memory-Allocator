@@ -2,11 +2,6 @@
 
 void Queue::enqueue(void *pageAddress)
 {
-    if (checkFull())
-    {
-        dequeue();
-    }
-
     if (front == -1)
         front = 0;
 

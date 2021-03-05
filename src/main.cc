@@ -1,13 +1,13 @@
 #include "runtime/Memalloc.h"
-//#include <boost/program_options.hpp>
+#include <iostream>
 
 //using namespace std;
-extern FirstFitHeap heap;
+//extern FirstFitHeap heap;
 
 int main(int argc, char** argv)
 {
     
-    cout << "start main" << endl;
+    std::cout << "start main" << std::endl;
     unsigned nrElements = 20;
     unsigned* blocks[nrElements];
 
@@ -23,13 +23,15 @@ int main(int argc, char** argv)
         *blocks[i] = i;
     }
 
-    cout << "what is inside of " << *blocks[1] << endl;
-    cout << "what is inside of " << *blocks[18] << endl;
-    cout << "what is inside of " << *blocks[19] << endl;
-    cout << "what is inside of " << *blocks[5] << endl;
-    cout << "what is inside of " << *blocks[8] << endl;
-    cout << "what is inside of " << *blocks[1] << endl;
-    cout << "what is inside of " << *blocks[0] << endl;
-
+    std::cout << "what is inside of " << *blocks[1] << std::endl;
+    std::cout << "what is inside of " << *blocks[18] << std::endl;
+    std::cout << "what is inside of " << *blocks[19] << std::endl;
+    std::cout << "what is inside of " << *blocks[5] << std::endl;
+    std::cout << "what is address of 0 = " << (void*) blocks[0] << std::endl;
+    std::cout << "what is address of 5 = " << (void*) blocks[5] << std::endl;
+    free(blocks[5]);
+    std::cout << "what is inside of " << *blocks[8] << std::endl;
+    std::cout << "what is inside of " << *blocks[1] << std::endl;
+    std::cout << "what is inside of " << *blocks[0] << std::endl;
 
 }

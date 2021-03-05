@@ -39,6 +39,8 @@ void *calloc(size_t nmemb, size_t size){
     return heap.calloc(nmemb, size);
 }
 
-
+void free(void* address) {
+    heap.free(address);
+}
 
 

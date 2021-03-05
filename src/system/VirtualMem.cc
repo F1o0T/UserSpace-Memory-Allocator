@@ -101,7 +101,7 @@ void VirtualMem::setInterval() {
 	
 	this->protNonetimer.setInterval([&]() {
         protNoneAll(); 
-    }, 0.00000001);
+    }, 10);
 	
 }
 
