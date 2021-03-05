@@ -35,7 +35,7 @@ VirtualMem::VirtualMem() {
 
 		initializePDandFirstPT();
 
-		setInterval();
+		//setInterval();
 		//initialized = 1;
 }
 
@@ -104,7 +104,7 @@ void VirtualMem::initFirstPageForHeap() {
 void VirtualMem::setInterval() {
 	this->protNonetimer.setInterval([&]() {
         protNoneAll(); 
-    }, 0.000001);
+    }, 0.00001);
 }
 
 void VirtualMem::startTimer() {

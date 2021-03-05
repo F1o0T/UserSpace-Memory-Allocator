@@ -157,7 +157,7 @@ size_t FirstFitHeap::setRightSize(size_t size) {
     size_t rightSize = size + 4; //increase size, because each memory block given to the user stores an unsigned of meta data (its blocksize)
 
     if (size < sizeof(freeBlock)) {//if size is smaller than meata data freeFblock, size is set to size of meta data free block
-        //rightSize = sizeof(freeBlock);
+        rightSize = sizeof(freeBlock);
     }
 
     return rightSize;

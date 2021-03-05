@@ -32,3 +32,13 @@ void* malloc(size_t size)
 {
     return FirstFitHeap::malloc(size);
 }
+
+void *realloc(void* ptr, size_t size){
+    return FirstFitHeap::realloc(ptr, size);
+}
+
+void *calloc(size_t nmemb, size_t size){
+    return FirstFitHeap::calloc(nmemb, size);
+}
+
+
