@@ -6,7 +6,11 @@ bool initialized = 0;
 VirtualMem e_vMem;
 freeBlock* someHead;
 
-//VirtualMem* FirstFitHeap::vMem = &e_vMem;
+
+
+
+FirstFitHeap::FirstFitHeap(){
+}
 
 
 
@@ -43,10 +47,11 @@ void FirstFitHeap::signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
         cout << "ok lets wait for protNone2" << endl;
     }
 }
-
+/*
 FirstFitHeap::FirstFitHeap() {
     e_vMem.setInterval();
 }
+*/
 
 FirstFitHeap::~FirstFitHeap(){
     cout << "destructor ffheap" << endl;
@@ -59,44 +64,55 @@ FirstFitHeap::~FirstFitHeap(){
     destroyTimer();
 }
 
+void FirstFitHeap::initHeap(){
+
+    initialized = 1;
+    someHead = NULL;
+
+    struct sigaction SigAction;
+    SigAction.sa_sigaction = signalHandler;
+    SigAction.sa_flags = SA_SIGINFO;
+    sigaction(SIGSEGV, &SigAction, NULL);
+}
+
+
+
 void* FirstFitHeap::malloc(size_t size) {
     if(!initialized){
-        initialized = 1;
-        struct sigaction SigAction;
-        SigAction.sa_sigaction = signalHandler;
-        SigAction.sa_flags = SA_SIGINFO;
-        sigaction(SIGSEGV, &SigAction, NULL);
+        initHeap();
         return sbrk(size); 
     }
-    unsigned length = (unsigned) e_vMem.getSize();
-    someHead = (freeBlock*)e_vMem.getStart();
-    someHead -> freeSpace = length - sizeUnsi;
-    //cout << "## Custom Malloc "  << size << endl;
+
+    if(someHead == NULL){
+        someHead = (freeBlock*) e_vMem.getStart();
+        (*(someHead)).freeSpace = (unsigned) e_vMem.getSize() - sizeUnsi;
+    }
+
+
+    //user cannot allocate 0 byte
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
         return nullptr;
-
-    } else if (size < 12) {
-        size = 12;
     }
 
     freeBlock* lastPos = 0;//Pointer to the free block before the right block
     freeBlock* curPos = someHead;//Pointer that points to a matching block
-    char* ar_ptr = 0;//Pointer thats create a new free block behind the matching block
+    char* startFreeMemRest = 0;//Pointer thats create a new free block behind the now allocated memory
+    size = setRightSize(size);
 
+
+    //find free memory block with the needed size
     while ((size_t) (curPos -> freeSpace) < size) {
-
         if (curPos -> nextAddress == 0) {                
             cerr << "Error: There is not enough memory available." << endl;
             return nullptr;
         }
-
         lastPos = curPos;
         curPos = curPos -> nextAddress;
     }
 
-    // if the next freeBlock didnt have enough memory
-    if ((curPos -> freeSpace) - size < minByte) {
+    // if rest memory block after allocating would be smaller than the size of a freeBlock (meta data), this is also given to the user
+    if ((curPos -> freeSpace) - size < sizeof(freeBlock)) {
         size = (curPos -> freeSpace);
 
         if (curPos == someHead) {
@@ -107,20 +123,20 @@ void* FirstFitHeap::malloc(size_t size) {
         }
     } else {
         //goes to the Position for the next free block
-        ar_ptr = (char*) curPos;
-        ar_ptr += sizeUnsi;
-        ar_ptr += size;
+        startFreeMemRest = (char*) curPos;
+        startFreeMemRest += sizeUnsi;
+        startFreeMemRest += size;
 
         //if the matching block were the someHead then create a new someHead
         if (someHead == curPos) { 
-            someHead = ((freeBlock*) ar_ptr);
+            someHead = ((freeBlock*) startFreeMemRest);
 
         } else { //else the free block before the matching block need to point on him
-            lastPos -> nextAddress = ((freeBlock*) ar_ptr);
+            lastPos -> nextAddress = ((freeBlock*) startFreeMemRest);
         }
 
-        ((freeBlock*) ar_ptr) -> freeSpace = (((freeBlock*) curPos) -> freeSpace) - size - sizeUnsi;
-        ((freeBlock*) ar_ptr) -> nextAddress = ((freeBlock*) curPos) -> nextAddress;
+        ((freeBlock*) startFreeMemRest) -> freeSpace = (((freeBlock*) curPos) -> freeSpace) - size;
+        ((freeBlock*) startFreeMemRest) -> nextAddress = ((freeBlock*) curPos) -> nextAddress;
     }
 
     //record the size of the block
@@ -130,6 +146,27 @@ void* FirstFitHeap::malloc(size_t size) {
     //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
 }
+
+/*
+takes the size of a memory block the user wants to allocate and returns the size
+the block will actually have because of the meta data of the FirstFitHeap
+
+*/
+size_t FirstFitHeap::setRightSize(size_t size) {
+
+    size_t rightSize = size + 4; //increase size, because each memory block given to the user stores an unsigned of meta data (its blocksize)
+
+    if (size < sizeof(freeBlock)) {//if size is smaller than meata data freeFblock, size is set to size of meta data free block
+        //rightSize = sizeof(freeBlock);
+    }
+
+    return rightSize;
+}
+
+
+
+
+
 
 void FirstFitHeap::fillList(list<int>* list) {
     char* ptr1 = (char*) e_vMem.getStart();//move pointer

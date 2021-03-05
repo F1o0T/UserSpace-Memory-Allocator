@@ -1,0 +1,43 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:557: checking for a BSD compatible install
+configure:610: checking whether build environment is sane
+configure:667: checking whether make sets ${MAKE}
+configure:713: checking for working aclocal-1.4
+configure:726: checking for working autoconf
+configure:739: checking for working automake-1.4
+configure:752: checking for working autoheader
+configure:765: checking for working makeinfo
+configure:782: checking for gcc
+configure:895: checking whether the C compiler (gcc  ) works
+configure:911: gcc -o conftest    conftest.c  1>&5
+configure:908:1: warning: return type defaults to 'int' [-Wimplicit-int]
+  908 | main(){return(0);}
+      | ^~~~
+configure:937: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:942: checking whether we are using GNU C
+configure:951: gcc -E conftest.c
+configure:970: checking whether gcc accepts -g
+configure:1006: checking for c++
+configure:1038: checking whether the C++ compiler (c++  ) works
+configure:1054: c++ -o conftest    conftest.C  1>&5
+configure:1080: checking whether the C++ compiler (c++  ) is a cross-compiler
+configure:1085: checking whether we are using GNU C++
+configure:1094: c++ -E conftest.C
+configure:1113: checking whether c++ accepts -g
+configure:1147: checking for ranlib
+configure:1176: checking how to run the C preprocessor
+configure:1197: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1259: checking for _G_config.h
+configure:1269: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1265:10: fatal error: _G_config.h: No such file or directory
+ 1265 | #include <$ac_hdr>
+      |          ^~~~~~~~~    
+compilation terminated.
+configure: failed program was:
+#line 1264 "configure"
+#include "confdefs.h"
+#include <_G_config.h>
+configure:1259: checking for ftw.h
+configure:1269: gcc -E  conftest.c >/dev/null 2>conftest.out

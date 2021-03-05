@@ -10,10 +10,9 @@ extern bool initialized;
 
 
 VirtualMem::VirtualMem() {
-		initialized = 1;
 		//cout << "start VirtualMem" << endl;
 		this->numberOfPF = 100;
-		unsigned phyMenLength = PAGESIZE * numberOfPF;
+		unsigned phyMemLength = PAGESIZE * numberOfPF;
 		//open the shared memory file (physical memory)
 		this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 		if (fd == -1)
@@ -21,7 +20,7 @@ VirtualMem::VirtualMem() {
 			cerr << "|###> Error: open the shm failed" << endl;
 			exit(1);
 		}
-		if (ftruncate(fd, phyMenLength) == -1)
+		if (ftruncate(fd, phyMemLength) == -1)
 		{
 			cerr << "|###> Error: truncate failed" << endl;
 			exit(1);
@@ -35,7 +34,9 @@ VirtualMem::VirtualMem() {
 		}
 
 		initializePDandFirstPT();
-	
+
+		setInterval();
+		//initialized = 1;
 }
 
 /**

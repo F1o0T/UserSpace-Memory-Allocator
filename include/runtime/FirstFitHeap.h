@@ -35,6 +35,8 @@ public:
 
     static void free(void* address);
 
+    static size_t setRightSize(size_t size);
+
 
     void* operator new(size_t size);
 
@@ -47,18 +49,14 @@ public:
 	int getSize();
 
     //static VirtualMem* vMem;
-
-    static freeBlock* head;
+    //static freeBlock* head;
 
    
 private:
     
     void fillList(list<int>* list);
-
     static void merge(freeBlock* block1, freeBlock* block2);
-
     static void addBlockInList(freeBlock* block);
-
     static bool correctAddress(void* address);
 
 

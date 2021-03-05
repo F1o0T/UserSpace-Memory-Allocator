@@ -11,13 +11,11 @@ int main(int argc, char** argv)
     unsigned nrElements = 20;
     unsigned* blocks[nrElements];
 
-    void *array1 = malloc(1024);
     
-    void* array = new int[30];
-    cout << "arraysize" << sizeof(array) << endl;
-    unsigned* memStart = static_cast<unsigned*>(array);
+    
     for (unsigned i = 0; i < nrElements; i++) {
-        blocks[i] = memStart + (i * 1024);
+        blocks[i] = (unsigned*) malloc(sizeof(unsigned));;
+        //blocks[i] = malloc(sizeof(unsigned));
     }
 
     //initialize the field

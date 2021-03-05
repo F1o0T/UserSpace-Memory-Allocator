@@ -1,0 +1,94 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:556: checking for a BSD compatible install
+configure:609: checking whether build environment is sane
+configure:666: checking whether make sets ${MAKE}
+configure:712: checking for working aclocal
+configure:725: checking for working autoconf
+configure:738: checking for working automake
+configure:751: checking for working autoheader
+configure:764: checking for working makeinfo
+configure:785: checking for gcc
+configure:898: checking whether the C compiler (gcc  ) works
+configure:914: gcc -o conftest    conftest.c  1>&5
+configure:911:1: warning: return type defaults to 'int' [-Wimplicit-int]
+  911 | main(){return(0);}
+      | ^~~~
+configure:940: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:945: checking whether we are using GNU C
+configure:954: gcc -E conftest.c
+configure:973: checking whether gcc accepts -g
+configure:1009: checking for c++
+configure:1041: checking whether the C++ compiler (c++  ) works
+configure:1057: c++ -o conftest    conftest.C  1>&5
+configure:1083: checking whether the C++ compiler (c++  ) is a cross-compiler
+configure:1088: checking whether we are using GNU C++
+configure:1097: c++ -E conftest.C
+configure:1116: checking whether c++ accepts -g
+configure:1148: checking how to run the C preprocessor
+configure:1169: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1230: checking for ranlib
+configure:1259: checking whether struct tm is in sys/time.h or time.h
+configure:1272: gcc -c -g -O2  conftest.c 1>&5
+configure:1293: checking for tm_zone in struct tm
+configure:1306: gcc -c -g -O2  conftest.c 1>&5
+configure:1373: checking how to run the C++ preprocessor
+configure:1391: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for vector
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for iostream
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for fstream
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for string
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for algorithm
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for list
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for memory
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for iterator
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for exception
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1419: checking for utility
+configure:1429: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1461: checking for hash_map
+configure:1471: c++ -E  conftest.C >/dev/null 2>conftest.out
+In file included from /usr/include/c++/9/backward/hash_map:60,
+                 from configure:1467:
+/usr/include/c++/9/backward/backward_warning.h:32:2: warning: #warning This file includes at least one deprecated or antiquated header which may be removed without further notice at a future date. Please use a non-deprecated interface with equivalent functionality instead. For a listing of replacement headers and interfaces, consult the file backward_warning.h. To disable this warning use -Wno-deprecated. [-Wcpp]
+   32 | #warning \
+      |  ^~~~~~~
+configure: failed program was:
+#line 1466 "configure"
+#include "confdefs.h"
+#include <hash_map>
+configure:1461: checking for strstream
+configure:1471: c++ -E  conftest.C >/dev/null 2>conftest.out
+In file included from /usr/include/c++/9/backward/strstream:50,
+                 from configure:1467:
+/usr/include/c++/9/backward/backward_warning.h:32:2: warning: #warning This file includes at least one deprecated or antiquated header which may be removed without further notice at a future date. Please use a non-deprecated interface with equivalent functionality instead. For a listing of replacement headers and interfaces, consult the file backward_warning.h. To disable this warning use -Wno-deprecated. [-Wcpp]
+   32 | #warning \
+      |  ^~~~~~~
+configure: failed program was:
+#line 1466 "configure"
+#include "confdefs.h"
+#include <strstream>
+configure:1461: checking for ext/hash_map
+configure:1471: c++ -E  conftest.C >/dev/null 2>conftest.out
+In file included from /usr/include/c++/9/ext/hash_map:60,
+                 from configure:1467:
+/usr/include/c++/9/backward/backward_warning.h:32:2: warning: #warning This file includes at least one deprecated or antiquated header which may be removed without further notice at a future date. Please use a non-deprecated interface with equivalent functionality instead. For a listing of replacement headers and interfaces, consult the file backward_warning.h. To disable this warning use -Wno-deprecated. [-Wcpp]
+   32 | #warning \
+      |  ^~~~~~~
+configure: failed program was:
+#line 1466 "configure"
+#include "confdefs.h"
+#include <ext/hash_map>
+configure:1461: checking for sstream
+configure:1471: c++ -E  conftest.C >/dev/null 2>conftest.out
+configure:1502: checking for ext/hash_map
+configure:1539: checking for hash_map

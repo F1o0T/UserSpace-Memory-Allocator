@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 
+
 class Timer {
     public:
         bool stop = false;
@@ -37,5 +38,6 @@ void Timer::setInterval(auto function, int interval) {
     });
     t.detach();
 }
+
 
 #endif

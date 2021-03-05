@@ -1,0 +1,51 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:564: checking for a BSD compatible install
+configure:617: checking whether build environment is sane
+configure:674: checking whether make sets ${MAKE}
+configure:720: checking for working aclocal-1.4
+configure:733: checking for working autoconf
+configure:746: checking for working automake-1.4
+configure:759: checking for working autoheader
+configure:772: checking for working makeinfo
+configure:793: checking host system type
+configure:817: checking for gcc
+configure:930: checking whether the C compiler (gcc  ) works
+configure:946: gcc -o conftest    conftest.c  1>&5
+configure:943:1: warning: return type defaults to 'int' [-Wimplicit-int]
+  943 | main(){return(0);}
+      | ^~~~
+configure:972: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:977: checking whether we are using GNU C
+configure:986: gcc -E conftest.c
+configure:1005: checking whether gcc accepts -g
+configure:1041: checking for c++
+configure:1073: checking whether the C++ compiler (c++  ) works
+configure:1089: c++ -o conftest    conftest.C  1>&5
+configure:1115: checking whether the C++ compiler (c++  ) is a cross-compiler
+configure:1120: checking whether we are using GNU C++
+configure:1129: c++ -E conftest.C
+configure:1148: checking whether c++ accepts -g
+configure:1182: checking for ranlib
+configure:1211: checking how to run the C preprocessor
+configure:1232: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1294: checking for _G_config.h
+configure:1304: gcc -E  conftest.c >/dev/null 2>conftest.out
+configure:1300:10: fatal error: _G_config.h: No such file or directory
+ 1300 | #include <$ac_hdr>
+      |          ^~~~~~~~~    
+compilation terminated.
+configure: failed program was:
+#line 1299 "configure"
+#include "confdefs.h"
+#include <_G_config.h>
+configure:1363: checking for ld used by GCC
+configure:1431: checking if the linker (/usr/bin/ld) is GNU ld
+GNU ld (GNU Binutils for Ubuntu) 2.34
+configure:1465: checking for shared library run path origin
+configure:1908: checking for iconv
+configure:1926: c++ -o conftest -g -O2   conftest.C  1>&5
+configure:2012: checking for iconv
+configure:2087: checking for iconv declaration
+configure:2112: c++ -c -g -O2  conftest.C 1>&5
