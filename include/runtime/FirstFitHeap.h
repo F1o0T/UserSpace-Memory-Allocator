@@ -10,10 +10,13 @@ using namespace std;
 #define minByte sizeof(freeBlock)
 #define sizeUnsi sizeof(unsigned)
 
-struct freeBlock {
+class freeBlock {
+public:
     unsigned freeSpace;//ist immer der frei Platz - 4 byte für die die groesse des Blockes
     freeBlock* nextAddress = NULL;
 };
+
+void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext);
 
 class FirstFitHeap {
 public:
@@ -23,19 +26,17 @@ public:
 
     void destroyTimer();
 
-    static void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext);
+    void initHeap();
 
-    static void initHeap();
-
-    static void* malloc(size_t size);
+    void* malloc(size_t size);
     
-	static void* realloc(void* ptr, size_t size);
+	void* realloc(void* ptr, size_t size);
 
-	static void* calloc(size_t nmemb, size_t size);
+	void* calloc(size_t nmemb, size_t size);
 
-    static void free(void* address);
+    void free(void* address);
 
-    static size_t setRightSize(size_t size);
+    size_t setRightSize(size_t size);
 
 
     void* operator new(size_t size);
@@ -48,16 +49,18 @@ public:
 
 	int getSize();
 
-    //static VirtualMem* vMem;
-    //static freeBlock* head;
 
    
 private:
     
     void fillList(list<int>* list);
-    static void merge(freeBlock* block1, freeBlock* block2);
-    static void addBlockInList(freeBlock* block);
-    static bool correctAddress(void* address);
+    void merge(freeBlock* block1, freeBlock* block2);
+    void addBlockInList(freeBlock* block);
+    bool correctAddress(void* address);
+
+    struct sigaction SigAction;
+    VirtualMem* vMem;
+    freeBlock* head;
 
 
 };
