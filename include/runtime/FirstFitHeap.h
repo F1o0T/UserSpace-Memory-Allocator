@@ -49,7 +49,7 @@ public:
 
 	int getSize();
 
-
+    VirtualMem vMem;
    
 private:
     
@@ -57,9 +57,8 @@ private:
     void merge(freeBlock* block1, freeBlock* block2);
     void addBlockInList(freeBlock* block);
     bool correctAddress(void* address);
-
+    
     struct sigaction SigAction;
-    VirtualMem* vMem;
     freeBlock* head;
 
 

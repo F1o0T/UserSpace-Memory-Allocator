@@ -2,7 +2,6 @@
 
 
 extern FirstFitHeap heap;
-extern VirtualMem e_vMem;
 
 /*
 void *malloc(size_t size){

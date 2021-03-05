@@ -1,9 +1,7 @@
 #include "runtime/FirstFitHeap.h"
 #include <unistd.h>
-//FirstFitHeap heap;
 
 bool initialized = 0;
-VirtualMem e_vMem;
 FirstFitHeap heap;
 
 
@@ -13,8 +11,8 @@ void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
     //wait on ProtNoneAll
     while(true){
-        if (e_vMem.protNoneAllFlag == false) {
-            e_vMem.stopTimer();
+        if (heap.vMem.protNoneAllFlag == false) {
+            heap.vMem.stopTimer();
             break;
         }
         cout << "ok lets wait for protNone1" << endl;
@@ -23,7 +21,7 @@ void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 	if (info->si_code == SEGV_ACCERR)
     {   
         //cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
-        e_vMem.fixPermissions(info->si_addr);
+        heap.vMem.fixPermissions(info->si_addr);
         //cout << "|>>> Permissions were fixed!" << endl;
     }
     else if (info->si_code == SEGV_MAPERR)
@@ -32,11 +30,11 @@ void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
         exit(1);
     }
     
-	e_vMem.startTimer();
+	heap.vMem.startTimer();
 
     //wait on ProtNoneAll
     while(true){
-        if (e_vMem.protNoneAllFlag == false) {
+        if (heap.vMem.protNoneAllFlag == false) {
             break;
         }
         cout << "ok lets wait for protNone2" << endl;
@@ -45,17 +43,16 @@ void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 
 
 
-FirstFitHeap::FirstFitHeap(){
+FirstFitHeap::FirstFitHeap(): vMem() {
     initialized = 1;
-    this->vMem = &e_vMem;
-    this->head = (freeBlock*) (vMem->getStart());
+    this->head = (freeBlock*) (vMem.getStart());
 
     SigAction.sa_sigaction = signalHandler;
     SigAction.sa_flags = SA_SIGINFO;
     sigaction(SIGSEGV, &SigAction, NULL);
-    this->head->freeSpace = (unsigned) vMem->getSize() - sizeUnsi;
+    this->head->freeSpace = (unsigned) vMem.getSize() - sizeUnsi;
 
-    //vMem->setInterval();
+    //vMem.setInterval();
 }
 
 
@@ -63,8 +60,8 @@ FirstFitHeap::FirstFitHeap(){
 FirstFitHeap::~FirstFitHeap(){
     cout << "destructor ffheap" << endl;
     while(true){
-        if (e_vMem.protNoneAllFlag == false) {
-            e_vMem.stopTimer();
+        if (heap.vMem.protNoneAllFlag == false) {
+            heap.vMem.stopTimer();
             break;
         }
     }
@@ -161,7 +158,7 @@ size_t FirstFitHeap::setRightSize(size_t size) {
 
 
 void FirstFitHeap::fillList(list<int>* list) {
-    char* ptr1 = (char*) e_vMem.getStart();//move pointer
+    char* ptr1 = (char*) heap.vMem.getStart();//move pointer
     void* ptr2 = this->head;//comparison pointer points on the next free block
 
     while (ptr2 != 0) {
@@ -222,11 +219,11 @@ void FirstFitHeap::free(void* address) {
 
     cout << "give the address of free = " << address << endl;
 
-    if(address < e_vMem.getStart()){
+    if(address < heap.vMem.getStart()){
         cerr << "Error: Address to free is smaller than start of the heap" << endl;
         return;
     }
-    if(address > (((char*) e_vMem.getStart()) + e_vMem.getSize())){
+    if(address > (((char*) heap.vMem.getStart()) + heap.vMem.getSize())){
         cerr << "Error: Address to free is bigger than end of the heap" << endl;
         return;
     }
@@ -250,7 +247,7 @@ void FirstFitHeap::free(void* address) {
 
 //checks whether the address to free is a correct start of a block
 bool FirstFitHeap::correctAddress(void* address){
-    char* ptr1 = (char*) e_vMem.getStart();//move zeiger
+    char* ptr1 = (char*) heap.vMem.getStart();//move zeiger
     void* ptr2 = this->head;//comparison pointer points on the next free block
 
     while (ptr2 != 0) {
@@ -276,8 +273,8 @@ bool FirstFitHeap::correctAddress(void* address){
 }
 
 void FirstFitHeap::destroyTimer() {
-    e_vMem.stopTimer();
-    e_vMem.deleteInterval();
+    heap.vMem.stopTimer();
+    heap.vMem.deleteInterval();
 }
 
 void* FirstFitHeap::realloc(void* ptr, size_t size) {
