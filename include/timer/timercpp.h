@@ -40,4 +40,5 @@ void Timer::setInterval(auto function, int interval) {
 }
 
 
+
 #endif

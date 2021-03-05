@@ -36,7 +36,7 @@ public:
 
     void free(void* address);
 
-    size_t setRightSize(size_t size);
+    size_t setRightSize(freeBlock *memBlock, size_t size);
 
 
     void* operator new(size_t size);

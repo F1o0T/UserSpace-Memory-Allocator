@@ -52,7 +52,7 @@ FirstFitHeap::FirstFitHeap(): vMem() {
     sigaction(SIGSEGV, &SigAction, NULL);
     this->head->freeSpace = (unsigned) vMem.getSize() - sizeUnsi;
 
-    //vMem.setInterval();
+    vMem.setInterval();
 }
 
 
@@ -74,24 +74,23 @@ void FirstFitHeap::initHeap(){
 
 
 void* FirstFitHeap::malloc(size_t size) {
+    
     if(!initialized){
         return sbrk(size);
     }
-
     //user cannot allocate 0 byte
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
         return nullptr;
     }
-
+    /////////////start normal method
     freeBlock* lastPos = 0;//Pointer to the free block before the right block
     freeBlock* curPos = this->head;//Pointer that points to a matching block
-    char* startFreeMemRest = 0;//Pointer thats create a new free block behind the now allocated memory
-    size = setRightSize(size);
+    freeBlock* startFreeMemRest = 0;//Pointer thats create a new free block behind the now allocated memory
 
 
     //find free memory block with the needed size
-    while ((size_t) (curPos -> freeSpace) < size) {
+    while ((size_t) (curPos -> freeSpace) < size + 4 || curPos -> freeSpace < sizeof(freeBlock)) {
         if (curPos -> nextAddress == 0) {                
             cerr << "Error: There is not enough memory available." << endl;
             return nullptr;
@@ -100,27 +99,22 @@ void* FirstFitHeap::malloc(size_t size) {
         curPos = curPos -> nextAddress;
     }
 
-    // if rest memory block after allocating would be smaller than the size of a freeBlock (meta data), this is also given to the user
-    if ((curPos -> freeSpace) - size < sizeof(freeBlock)) {
-        size = (curPos -> freeSpace);
+    //set the correct size of the memory, given to the user
+    size = setRightSize(curPos, size);
 
+    
+    //if user gets whole block of memory or not do different pointer stuff
+    if(curPos -> freeSpace == size){
         if (curPos == this->head) {
             this->head = curPos -> nextAddress;
-
-        } else {
+        }else{
             lastPos -> nextAddress = curPos -> nextAddress;
         }
-    } else {
-        //goes to the Position for the next free block
-        startFreeMemRest = (char*) curPos;
-        startFreeMemRest += sizeUnsi;
-        startFreeMemRest += size;
-
-        //if the matching block were the this->head then create a new this->head
+    }else{
+        startFreeMemRest = (freeBlock*) ((char*)curPos + size);
         if (this->head == curPos) { 
             this->head = ((freeBlock*) startFreeMemRest);
-
-        } else { //else the free block before the matching block need to point on him
+        }else{
             lastPos -> nextAddress = ((freeBlock*) startFreeMemRest);
         }
 
@@ -134,19 +128,26 @@ void* FirstFitHeap::malloc(size_t size) {
     // cout << "The returned address by malloc will be : " << (void*) (((unsigned*) curPos) + 1) << endl;
     //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
+
 }
 
 /*
 takes the size of a memory block the user wants to allocate and returns the size
 the block will actually have because of the meta data of the FirstFitHeap
+@param memblock with enough size
 
 */
-size_t FirstFitHeap::setRightSize(size_t size) {
+size_t FirstFitHeap::setRightSize(freeBlock* memBlock, size_t size) {
 
     size_t rightSize = size + 4; //increase size, because each memory block given to the user stores an unsigned of meta data (its blocksize)
 
     if (size < sizeof(freeBlock)) {//if size is smaller than meata data freeFblock, size is set to size of meta data free block
         rightSize = sizeof(freeBlock);
+    }
+
+    //if rest of freeBlock would be too small, give the user the whole free block
+    if (memBlock->freeSpace - rightSize < sizeof(freeBlock)){
+        rightSize = (size_t) memBlock -> freeSpace;
     }
 
     return rightSize;
@@ -308,19 +309,19 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
     return returnPtr;
 }
 
-void* FirstFitHeap::calloc(size_t nmemb, size_t size) {
-    if (nmemb == 0 || size == 0) {
+void* FirstFitHeap::calloc(size_t numEl, size_t size) {
+    if (numEl == 0 || size == 0) {
         return NULL;
     }
 
-    void* returnPtr = malloc(size);
+    void* returnPtr = malloc(numEl * size);
     caddr_t ptr = (caddr_t) returnPtr;
     //if it is to big then return NULL
     if (ptr == NULL) {
         return NULL;
     }
     
-    for (size_t i = 0; i < nmemb*size; i++) {
+    for (size_t i = 0; i < numEl; i++) {
         *(ptr) = 0;
         ptr++;
     }

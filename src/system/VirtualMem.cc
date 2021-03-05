@@ -6,7 +6,6 @@
 #define NUMBER_OF_PAGES FOUR_GB / PAGESIZE
 #define NUMBER_OF_PT NUMBER_OF_PAGES / PAGETABLE_SIZE
 
-extern bool initialized;
 
 
 VirtualMem::VirtualMem() {
@@ -36,7 +35,6 @@ VirtualMem::VirtualMem() {
 		initializePDandFirstPT();
 
 		//setInterval();
-		//initialized = 1;
 }
 
 /**
@@ -102,9 +100,11 @@ void VirtualMem::initFirstPageForHeap() {
 }
 
 void VirtualMem::setInterval() {
+	
 	this->protNonetimer.setInterval([&]() {
         protNoneAll(); 
-    }, 0.00001);
+    }, 0.001);
+	
 }
 
 void VirtualMem::startTimer() {
