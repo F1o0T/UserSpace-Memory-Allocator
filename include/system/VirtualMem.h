@@ -85,4 +85,6 @@ public:
     void operator delete(void* ptr);
 };
 
+extern VirtualMem vMem;
+
 #endif

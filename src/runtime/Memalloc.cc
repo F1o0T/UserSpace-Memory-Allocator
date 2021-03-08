@@ -1,7 +1,8 @@
 #include "runtime/Memalloc.h"
 
 
-extern FirstFitHeap heap;
+VirtualMem vMem;
+FirstFitHeap heap;
 
 /*
 void *malloc(size_t size){

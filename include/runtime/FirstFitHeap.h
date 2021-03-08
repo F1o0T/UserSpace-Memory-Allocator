@@ -48,8 +48,6 @@ public:
     void operator delete[](void* ptr);
 
 	int getSize();
-
-    VirtualMem vMem;
    
 private:
     
@@ -63,5 +61,7 @@ private:
 
 
 };
+
+extern FirstFitHeap heap;
 
 #endif
