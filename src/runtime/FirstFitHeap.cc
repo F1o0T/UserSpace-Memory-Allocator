@@ -2,6 +2,7 @@
 #include <unistd.h>
 
 bool initialized = 0;
+extern VirtualMem vMem;
 
 
 void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
@@ -335,3 +336,4 @@ void FirstFitHeap::operator delete(void* ptr) {
 void FirstFitHeap::operator delete[](void* ptr) {
     heap.free(ptr);
 }
+
