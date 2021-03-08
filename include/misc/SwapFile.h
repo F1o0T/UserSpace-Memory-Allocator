@@ -23,7 +23,7 @@ public:
 
     SwapFile()
     {
-        fd = open("SwapFile", O_RDWR | O_CREAT | O_TRUNC);
+        fd = open("SwapFile", O_RDWR | O_CREAT | O_TRUNC,  S_IRUSR | S_IWUSR);
         if (fd == -1)
         {
             cerr << "Error Openining the swap file";
