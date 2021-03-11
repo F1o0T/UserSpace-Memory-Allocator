@@ -51,7 +51,7 @@ FirstFitHeap::FirstFitHeap() {
     sigaction(SIGSEGV, &SigAction, NULL);
     this->head->freeSpace = (unsigned) vMem.getSize();
 
-    vMem.setInterval();
+    //vMem.setInterval();
 }
 
 
@@ -280,25 +280,34 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
         free(ptr);
         return NULL;
     } else if (correctAddress((void*) (( (unsigned*) ptr) - 1)) == false) {
+        cout << "ok why that ????? "<< endl;
         return NULL;
     }
 
-    void* returnPtr = malloc(size);
+    unsigned malloc_size = *(( (unsigned*) ptr) - 1);
+    void* returnPtr;
 
-    //if it is to big then return NULL
-    if (returnPtr == NULL) {
-        return NULL;
+    if (malloc_size < size) {    
+
+        returnPtr = malloc(size);
+        //if it is to big then return NULL
+        if (returnPtr == NULL) {
+            return NULL;
+        }
+
+        caddr_t oldPosPtr = (caddr_t) ptr;
+        caddr_t newPosPtr = (caddr_t) returnPtr;
+        for (size_t i = 0; i < size; i++) {
+            *(newPosPtr) = *(oldPosPtr);
+            newPosPtr++;
+            oldPosPtr++;
+        }
+
+        free(ptr);
+    } else {
+        returnPtr = ptr;
     }
-    caddr_t oldPosPtr = (caddr_t) ptr;
-    caddr_t newPosPtr = (caddr_t) returnPtr;
 
-    for (size_t i = 0; i < size; i++) {
-        *(newPosPtr) = *(oldPosPtr);
-        newPosPtr++;
-        oldPosPtr++;
-    }
-
-    free(ptr);
     return returnPtr;
 }
 
@@ -308,14 +317,15 @@ void* FirstFitHeap::calloc(size_t numEl, size_t size) {
         return NULL;
     }
 
-    void* returnPtr = malloc(numEl * size);
-    caddr_t ptr = (caddr_t) returnPtr;
+    size_t malloc_size = numEl * size;
+    void* returnPtr = malloc(malloc_size);
     //if it is to big then return NULL
-    if (ptr == NULL) {
+    if (returnPtr == NULL) {
         return NULL;
     }
-    
-    for (size_t i = 0; i < numEl; i++) {
+
+    caddr_t ptr = (caddr_t) returnPtr;
+    for (size_t i = 0; i < malloc_size; i++) {
         *(ptr) = 0;
         ptr++;
     }

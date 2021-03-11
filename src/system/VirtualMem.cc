@@ -10,7 +10,7 @@
 
 VirtualMem::VirtualMem() {
 		//cout << "start VirtualMem" << endl;
-		this->numberOfPF = 100;
+		this->numberOfPF = 10;
 		unsigned phyMemLength = PAGESIZE * numberOfPF;
 		//open the shared memory file (physical memory)
 		this->fd = shm_open("phy-Mem", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -217,8 +217,11 @@ void VirtualMem::fixPermissions(void *address)
 		{ 
 			//first we have to deactivate one page
 			void *kickedPageAddr = kickPageFromStack();
-			this->pageoutPointer = mappingUnit.cutOfOffset(*(pagePTEntryAddr));
-			unsigned physKickedPage = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned*)kickedPageAddr);
+			unsigned physKickedPage = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned*)kickedPageAddr);			
+			
+			// setting the pageout Pointer
+			this->pageoutPointer = mappingUnit.cutOfOffset(physKickedPage);
+			
 			if(mappingUnit.getReadAndWriteBit(physKickedPage) == WRITE){
 				this->pageOut(kickedPageAddr);
 			}
@@ -259,19 +262,8 @@ void* VirtualMem::kickPageFromStack() {
 	void *kickedPageAddr = this->accessQueue.dequeue();
 	pagesinRAM--;
 
-	//setting the Bits
-	unsigned kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedPageAddr);
-	unsigned pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
-	while (pinnedBit == PINNED)
-	{
-		//cout << (void*) kickedPageAddr << " is pinned" << endl;
-		kickedPageAddr = this->accessQueue.dequeue();
-		//this->accessQueue.deletePageAtBottom();
-		kickedPageFrameAddr = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned *)kickedPageAddr);
-		pinnedBit = mappingUnit.getPinnedBit(kickedPageFrameAddr);
-	}
 	unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(this->virtualMemStartAddress, (unsigned*) kickedPageAddr); 
-	mappingUnit.setLruBit(pageTableEntry, false);
+	mappingUnit.setLruBit(pageTableEntry, NO_LRU);
 	mappingUnit.setPresentBit(pageTableEntry, NOT_PRESENT);
 	return kickedPageAddr;
 }
@@ -281,7 +273,6 @@ void VirtualMem::readPageActivate(void *pageStartAddr)
 {
 	//put in Queue and increase number of active PF
 	this->accessQueue.enqueue(pageStartAddr);
-	pagesinRAM++;
 
 	//setting the the bits in the tables
 	unsigned *pageTableEntry = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)pageStartAddr);
@@ -340,27 +331,28 @@ void VirtualMem::mapIn(void *pageStartAddress)
 	if (pageoutPointer == 0)
 	{
 		addr = mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_FIXED, this->fd, nextFreeFrameIndex * PAGESIZE);
+		nextFreeFrameIndex++;
 	}
 	else
 	{
 		addr = mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_FIXED, this->fd, pageoutPointer * PAGESIZE);
-		pageoutPointer = 0;
+		//pageoutPointer = 0;
 	}
 	if (addr == MAP_FAILED)
 	{
 		cerr << "|###> Error: phy Mmap Failed from " << pageStartAddress << endl;
 		exit(1);
 	}
+	pagesinRAM++;
 
 	addPageEntry2PT((unsigned *)pageStartAddress);
-	if (nextFreeFrameIndex + 1 < numberOfPF)
-	{
-		nextFreeFrameIndex++;
-	}
 }
 
 void VirtualMem::addPageEntry2PT(unsigned *startAddrPage)
 {
+	unsigned poutPtr = pageoutPointer;
+	unsigned nextFrame = nextFreeFrameIndex - 1;
+
 	unsigned logAddrOf32Bits = ((char *)startAddrPage) - ((char *)virtualMemStartAddress);
 	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(logAddrOf32Bits);
 	unsigned pageTableAddr = *(virtualMemStartAddress + first10Bits);
@@ -369,6 +361,7 @@ void VirtualMem::addPageEntry2PT(unsigned *startAddrPage)
 	if (mappingUnit.getPresentBit(pageTableAddr) == NOT_PRESENT)
 	{
 		addPTEntry2PD(virtualMemStartAddress + first10Bits);
+		addPageEntry2PT((unsigned*) ((char*) virtualMemStartAddress) + mappingUnit.phyAddr2page(pageTableAddr));
 	}
 
 	//TODO check if last Page (this only temporary solution)
@@ -377,26 +370,26 @@ void VirtualMem::addPageEntry2PT(unsigned *startAddrPage)
 	if (dis < (PAGESIZE * 2) + 4)
 	{
 		//add the page in PT
-		if (pageoutPointer == 0)
+		if (poutPtr == 0)
 		{
-			*(pageTableEntry) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1, 0, 1, 1, 0);
+			*(pageTableEntry) = (nextFrame << 12) | mappingUnit.createOffset(1, 0, 1, 1, 0);
 		}
 		else
 		{
-			*(pageTableEntry) = (pageoutPointer << 12) | mappingUnit.createOffset(1, 0, 1, 1, 0);
+			*(pageTableEntry) = (poutPtr << 12) | mappingUnit.createOffset(1, 0, 1, 1, 0);
 			pageoutPointer = 0;
 		}
 	}
 	else
 	{
 		//add the page in PT
-		if (pageoutPointer == 0)
+		if (poutPtr == 0)
 		{
-			*(pageTableEntry) = (nextFreeFrameIndex << 12) | mappingUnit.createOffset(1, 0, 1, 0, 0);
+			*(pageTableEntry) = (nextFrame << 12) | mappingUnit.createOffset(1, 0, 1, 0, 0);
 		}
 		else
 		{
-			*(pageTableEntry) = (pageoutPointer << 12) | mappingUnit.createOffset(1, 0, 1, 0, 0);
+			*(pageTableEntry) = (poutPtr << 12) | mappingUnit.createOffset(1, 0, 1, 0, 0);
 			pageoutPointer = 0;
 		}
 	}
