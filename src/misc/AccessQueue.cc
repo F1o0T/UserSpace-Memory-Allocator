@@ -19,7 +19,6 @@ void Queue::putElementAtRear(void *element){
 
     while(currentIndex != ((rear+1) % MAX_PAGES_IN_ACCESS_STACK)){
         if(accessedPages[currentIndex] == element){
-            this->enqueue(element);
             void *remAddress1 = accessedPages[front];
             void *remAddress2 = accessedPages[(front + 1 )% MAX_PAGES_IN_ACCESS_STACK];
             front = (front + 1) % MAX_PAGES_IN_ACCESS_STACK;
@@ -31,6 +30,7 @@ void Queue::putElementAtRear(void *element){
 
                 i = (i + 1)%MAX_PAGES_IN_ACCESS_STACK;
             }
+            this->enqueue(element);
             return;
         }
 
@@ -60,7 +60,6 @@ void* Queue::dequeue()
             front = (front + 1) % MAX_PAGES_IN_ACCESS_STACK;
         }
     }
-    cout << pageAddress << " has been dequeued" << endl; 
     return pageAddress; 
 }
 

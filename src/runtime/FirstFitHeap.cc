@@ -13,7 +13,6 @@ void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
             vMem.stopTimer();
             break;
         }
-        cout << "ok lets wait for protNone1" << endl;
     }
 
 	if (info->si_code == SEGV_ACCERR)
@@ -30,13 +29,15 @@ void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
     
 	vMem.startTimer();
 
-    //wait on ProtNoneAll
+    //wait on ProtNoneAll----why we should do this?
+    /*
     while(true){
         if (vMem.protNoneAllFlag == false) {
             break;
         }
         cout << "ok lets wait for protNone2" << endl;
     }
+    */
 }
 
 
@@ -117,7 +118,7 @@ void* FirstFitHeap::malloc(size_t size) {
     //record the size of the block
     *((unsigned*) curPos) = (unsigned) size;
  
-    //cout << "The returned address by malloc will be : " << (void*) (((unsigned*) curPos) + 1) << endl;
+
     //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
 
@@ -210,10 +211,8 @@ void FirstFitHeap::addBlockInList(freeBlock* block){
 
 void FirstFitHeap::free(void* address) {
 
-    cout << "give the address of free = " << address << endl;
-
     if(address < vMem.getStart()){
-        cerr << "Error: Address to free is smaller than start of the heap" << endl;
+        cerr << "Error: Address to free is smaller than start of the heap: " + (reinterpret_cast<size_t> (address)) << endl;
         return;
     }
     if(address > (((char*) vMem.getStart()) + vMem.getSize())){
@@ -257,6 +256,7 @@ bool FirstFitHeap::correctAddress(void* address){
             //ptr1 += sizeUnsi;
         }
     }
+    cerr << "address to free is not correct" << endl;
 
     return false;
 

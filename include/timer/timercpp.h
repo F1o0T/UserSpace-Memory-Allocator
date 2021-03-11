@@ -28,21 +28,23 @@ void Timer::setTimeout(auto function, int delay) {
 void Timer::setInterval(auto function, int interval) {
     this->stop = false;
     this->destroy = false;
+    /*
     std::thread t([=]() {
         while(true) {
-            if(this->stop || this->destroy) {
-                if (this->destroy) break;
-                return;
+            while(this->stop){
             }
+            if(this->destroy) return;
+
             std::this_thread::sleep_for(std::chrono::nanoseconds(interval));
             //if(this->stop || this->destroy) return;
-            while (this->stop || this->destroy) {
-                if (this->destroy) break;
+            while (this->stop) {
             }
+            if (this->destroy) return;
             function();
         }
     });
     t.detach();
+    */
 }
 
 

@@ -32,7 +32,7 @@ private:
     ///////////////////////////////////////////
     unsigned *virtualMemStartAddress = NULL;
     unsigned nextFreeFrameIndex = 0;
-    unsigned pagesinRAM = 0;
+
     unsigned pageoutPointer = 0;
     unsigned numberOfPF = 0 ;
     
@@ -42,6 +42,7 @@ private:
     SwapFile swapFile;
     
 public:
+    unsigned pagesinRAM = 0;
     Timer protNonetimer;
     bool protNoneAllFlag = false;
     Queue accessQueue; 
