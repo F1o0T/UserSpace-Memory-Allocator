@@ -28,7 +28,7 @@ void Timer::setTimeout(auto function, int delay) {
 void Timer::setInterval(auto function, int interval) {
     this->stop = false;
     this->destroy = false;
-    /*
+    
     std::thread t([=]() {
         while(true) {
             while(this->stop){
@@ -44,7 +44,9 @@ void Timer::setInterval(auto function, int interval) {
         }
     });
     t.detach();
-    */
+    
+    
+    
 }
 
 

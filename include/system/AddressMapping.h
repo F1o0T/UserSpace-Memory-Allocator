@@ -53,6 +53,8 @@ public:
      unsigned getLruBit(unsigned phyAddr);
 
      void setLruBit(unsigned* tableEntry, bool lruBit);
+
+     int fd;
 };
 
 #endif

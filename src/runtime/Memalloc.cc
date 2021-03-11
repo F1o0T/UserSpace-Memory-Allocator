@@ -25,20 +25,23 @@ void operator delete[](void* ptr) {
 void* malloc(size_t size)
 {
     vMem.stopTimer();
-    return heap.malloc(size);
+    void* ptr = heap.malloc(size);
     vMem.startTimer();
+    return ptr;
 }
 
 void *realloc(void* ptr, size_t size){
     vMem.stopTimer();
-    return heap.realloc(ptr, size);
+    void *pointer =  heap.realloc(ptr, size);
     vMem.startTimer();
+    return pointer;
 }
 
 void *calloc(size_t nmemb, size_t size){
     vMem.stopTimer();
-    return heap.calloc(nmemb, size);
+    void *ptr = heap.calloc(nmemb, size);
     vMem.startTimer();
+    return ptr;
 }
 
 void free(void* address) {

@@ -212,7 +212,7 @@ void FirstFitHeap::addBlockInList(freeBlock* block){
 void FirstFitHeap::free(void* address) {
 
     if(address < vMem.getStart()){
-        cerr << "Error: Address to free is smaller than start of the heap: " + (reinterpret_cast<size_t> (address)) << endl;
+        cerr << "Error: Address to free is smaller than start of the heap: " << address << endl;
         return;
     }
     if(address > (((char*) vMem.getStart()) + vMem.getSize())){
@@ -274,6 +274,7 @@ void FirstFitHeap::destroyTimer() {
 
 void* FirstFitHeap::realloc(void* ptr, size_t size) {
     if (ptr == NULL) {
+        cout << "Error: cant realloc 0" << endl;
         return malloc(size);
     } else if (size == 0) {
         free(ptr);
@@ -303,6 +304,7 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
 
 void* FirstFitHeap::calloc(size_t numEl, size_t size) {
     if (numEl == 0 || size == 0) {
+        cout << "Error: cant calloc 0" << endl;
         return NULL;
     }
 

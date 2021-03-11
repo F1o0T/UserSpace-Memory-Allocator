@@ -30,9 +30,7 @@ int main(int argc, char** argv)
 
     for(int i = 0; i< mallocNumber; i++){
         supArray[i] = malloc(4096);
-    //cout << "loop:" + i;
-    cout << i << " pagesinRam:" <<  vMem.pagesinRAM << endl;
-
+        cout << i << " pagesinRam:" <<  vMem.pagesinRAM << endl;
     }
 
     

@@ -157,7 +157,6 @@ void VirtualMem::fixPermissions(void *address)
 	unsigned *pagePTEntryAddr = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)pageStartAddr);
 	unsigned logAddrOf32Bits = ((char *)pageStartAddr) - ((char *)virtualMemStartAddress);
 	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(logAddrOf32Bits);
-	unsigned pageFrameAddr = *(pagePTEntryAddr);
 	//if PT not present
 	if (pagePTEntryAddr == 0)
 	{
@@ -206,10 +205,10 @@ void VirtualMem::fixPermissions(void *address)
 	{
 	case NONTOREAD_NOTFULL:
 
-		//if there is already data on the disk, we have to this data in
-		if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED) this->pageIn(pageStartAddr);
 		//map the memory to the right location
 		mapIn(pageStartAddr);
+		//if there is already data on the disk, we have to this data in
+		if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED) this->pageIn(pageStartAddr);
 		//setting all the bits and meta data
 		readPageActivate(pageStartAddr);
 		break;
@@ -218,7 +217,7 @@ void VirtualMem::fixPermissions(void *address)
 		{ 
 			//first we have to deactivate one page
 			void *kickedPageAddr = kickPageFromStack();
-			this->pageoutPointer = mappingUnit.cutOfOffset(pageFrameAddr);
+			this->pageoutPointer = mappingUnit.cutOfOffset(*(pagePTEntryAddr));
 			unsigned physKickedPage = mappingUnit.logAddr2PF(virtualMemStartAddress, (unsigned*)kickedPageAddr);
 			if(mappingUnit.getReadAndWriteBit(physKickedPage) == WRITE){
 				this->pageOut(kickedPageAddr);
@@ -227,8 +226,8 @@ void VirtualMem::fixPermissions(void *address)
 
 			///////////////////////////////////////////////////
 			//activate the page just like in case 1
-			if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED)	this->pageIn(pageStartAddr);
 			mapIn(pageStartAddr);
+			if (mappingUnit.getAccessed(pageFrameAddr) == ACCESSED)	this->pageIn(pageStartAddr);
 			readPageActivate(pageStartAddr);
 			break;
 		}
