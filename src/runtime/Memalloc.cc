@@ -3,51 +3,60 @@
 
 VirtualMem vMem;
 FirstFitHeap heap;
+std::mutex myMutex;
 
 
 void* operator new(size_t size) {
+    cout << "own new" << endl;
+
     return heap.malloc(size);
+
+
 }
 
 void* operator new[](size_t size) {
+
     return heap.malloc(size);
+
 }
 
 void operator delete(void* ptr) {
+
     heap.free(ptr);
+
 }
 
 void operator delete[](void* ptr) {
+
     heap.free(ptr);
+
 }
 
 
 void* malloc(size_t size)
 {
-    vMem.stopTimer();
     void* ptr = heap.malloc(size);
-    vMem.startTimer();
     return ptr;
 }
 
 void *realloc(void* ptr, size_t size){
-    vMem.stopTimer();
+    cout << "own realloc" << endl;
+
     void *pointer =  heap.realloc(ptr, size);
-    vMem.startTimer();
+
     return pointer;
 }
 
 void *calloc(size_t nmemb, size_t size){
-    vMem.stopTimer();
+
     void *ptr = heap.calloc(nmemb, size);
-    vMem.startTimer();
+
     return ptr;
 }
 
 void free(void* address) {
-    vMem.stopTimer();
     heap.free(address);
-    vMem.startTimer();
+
 }
 
 

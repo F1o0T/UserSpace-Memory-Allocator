@@ -24,7 +24,7 @@ CXX	= g++
 LD	= g++
 
 # -c  -fpic -fno-builtin -nostdlib -ffreestanding -nodefaultlibs
-CXXFLAGS = -g  -Wall -fconcepts -fpic
+CXXFLAGS = -g  -Wall -fconcepts -fpic -std=c++11
 
 INCLUDES = -I$(INC_DIR)
 

@@ -11,7 +11,10 @@
 #include <fcntl.h>
 #include <iterator>
 #include <map>
-#include <timer/timercpp.h>
+#include <mutex>
+#include <thread>
+#include <chrono>
+
 using namespace std;
 
 
@@ -43,9 +46,9 @@ private:
     
 public:
     unsigned pagesinRAM = 0;
-    Timer protNonetimer;
     bool protNoneAllFlag = false;
-    Queue accessQueue; 
+    Queue accessQueue;
+    bool LRU_running = false;
     /////////////////////////////////////////////////
     // Signal handeler, constructor and deconstructor.
     // static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
@@ -75,17 +78,13 @@ public:
     void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
     void resetQueues();
     void protNoneAll();
-    void setInterval();
-    void deleteInterval();
-    void startTimer();
-    void stopTimer();
     void initFirstPageForHeap();
-
     void* operator new(size_t size);
 
     void operator delete(void* ptr);
 };
 
 extern VirtualMem vMem;
+void runLRUTimer();
 
 #endif

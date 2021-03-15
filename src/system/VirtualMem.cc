@@ -6,6 +6,8 @@
 #define NUMBER_OF_PAGES FOUR_GB / PAGESIZE
 #define NUMBER_OF_PT NUMBER_OF_PAGES / PAGETABLE_SIZE
 
+extern std::mutex myMutex;
+
 
 
 VirtualMem::VirtualMem() {
@@ -97,28 +99,19 @@ void VirtualMem::initFirstPageForHeap() {
 	pagesinRAM++;
 }
 
-void VirtualMem::setInterval() {
-	
-	this->protNonetimer.setInterval([&]() {
-        protNoneAll(); 
-    }, 10);
-	
-}
 
-void VirtualMem::startTimer() {
-	this->protNonetimer.stop = false;
-}
 
-void VirtualMem::stopTimer() {
-	this->protNonetimer.stop = true; 
-}
-
-void VirtualMem::deleteInterval() {
-	this->protNonetimer.destroy = true;
+void runLRUTimer(){
+    vMem.LRU_running = true;
+    while(vMem.LRU_running){
+        std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+        vMem.protNoneAll();
+    }
 }
 
 void VirtualMem::protNoneAll()
 {
+	myMutex.lock();
 	this->protNoneAllFlag = true;
 
     if (this->accessQueue.checkEmpty())
@@ -135,6 +128,7 @@ void VirtualMem::protNoneAll()
     }
 	this->protNoneAllFlag = false;
 	//cout << "============== Timer is up ===============" << endl;
+	myMutex.unlock();
 }
 
 void VirtualMem::fixPermissions(void *address)
@@ -499,7 +493,6 @@ void *VirtualMem::expand(size_t size)
 
 VirtualMem::~VirtualMem()
 {
-	stopTimer();
 	//deleteInterval();
 	//munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
 	//shm_unlink("phy-Mem");
