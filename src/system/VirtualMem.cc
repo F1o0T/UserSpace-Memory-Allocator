@@ -11,7 +11,6 @@ extern std::mutex myMutex;
 
 
 VirtualMem::VirtualMem() {
-		//cout << "start VirtualMem" << endl;
 		this->numberOfPF = 10;
 		unsigned phyMemLength = PAGESIZE * numberOfPF;
 		//open the shared memory file (physical memory)
@@ -84,22 +83,6 @@ void VirtualMem::initializePDandFirstPT()
 	}
 }
 
-void VirtualMem::initFirstPageForHeap() {
-	void* start = (void*) (((char*) this->virtualMemStartAddress) + (1025*4096));
-	munmap(start, PAGESIZE);
-
-	//map page frame for PD
-	unsigned *addrPD = (unsigned *)mmap(start, PAGESIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_FIXED, this->fd, 0);
-	if (addrPD == (unsigned *)MAP_FAILED)
-	{
-		cerr << "|###> Error: Mmap PD Failed" << endl;
-		exit(1);
-	}
-	nextFreeFrameIndex++;
-	pagesinRAM++;
-}
-
-
 
 void runLRUTimer(){
     vMem.LRU_running = true;
@@ -112,7 +95,6 @@ void runLRUTimer(){
 void VirtualMem::protNoneAll()
 {
 	myMutex.lock();
-	this->protNoneAllFlag = true;
 
     if (this->accessQueue.checkEmpty())
         return; 
@@ -126,8 +108,6 @@ void VirtualMem::protNoneAll()
 			mappingUnit.setLruBit(pageTableEntry, LRU);
 		}
     }
-	this->protNoneAllFlag = false;
-	//cout << "============== Timer is up ===============" << endl;
 	myMutex.unlock();
 }
 
@@ -146,8 +126,6 @@ void VirtualMem::fixPermissions(void *address)
 		the translation will not be completed and your program will crash.
 	*/
 	void *pageStartAddr = findStartAddress(address);
-	// cout << "Fixing permission of page @ " << pageStartAddr << endl; 
-	//accessQueue.display();
 	unsigned *pagePTEntryAddr = mappingUnit.logAddr2PTEntryAddr(virtualMemStartAddress, (unsigned *)pageStartAddr);
 	unsigned logAddrOf32Bits = ((char *)pageStartAddr) - ((char *)virtualMemStartAddress);
 	unsigned first10Bits = mappingUnit.phyAddr2PDIndex(logAddrOf32Bits);
@@ -168,12 +146,10 @@ void VirtualMem::fixPermissions(void *address)
 		if (pagesinRAM < numberOfPF)
 		{
 			permissionChange = NONTOREAD_NOTFULL;
-			//cout << "NON TO READ NOT FULL" << address << endl;
 		}
 		else
 		{
 			permissionChange = NONTOREAD_FULL;
-			//cout << "NON TO READ FULL" << address << endl;
 		}
 	}
 	else
@@ -181,17 +157,14 @@ void VirtualMem::fixPermissions(void *address)
 		if( mappingUnit.getLruBit(*pagePTEntryAddr) == 1 && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == READ)
 		{
 			permissionChange = LRU_CASE_READ; 
-			//cout << "LRU Case Read" << address << endl;
 		}
 		else if( mappingUnit.getLruBit(*pagePTEntryAddr) == 1 && mappingUnit.getReadAndWriteBit(*pagePTEntryAddr) == WRITE)
 		{
 			permissionChange = LRU_CASE_WRITE;
-			//cout << "LRU Case Write" << address << endl;
 		}
 		else
 		{
 			permissionChange = READTOWRITE;
-			//cout << "READ TO WRITE" << address << endl;
 		}
 	}
 
@@ -330,7 +303,6 @@ void VirtualMem::mapIn(void *pageStartAddress)
 	else
 	{
 		addr = mmap(pageStartAddress, PAGESIZE, PROT_NONE, MAP_PRIVATE | MAP_FIXED, this->fd, pageoutPointer * PAGESIZE);
-		//pageoutPointer = 0;
 	}
 	if (addr == MAP_FAILED)
 	{
@@ -428,100 +400,15 @@ size_t VirtualMem::getSize()
 	return FOUR_GB - (NUMBER_OF_PT + 1) * PAGESIZE;
 }
 
-void VirtualMem::fillList(list<int> *virtualMem, list<unsigned> *physicalMem)
-{
-	//virtualspace
-	unsigned *ptr1 = (unsigned *)virtualMemStartAddress;
-
-	for (unsigned i = 0; i < PAGETABLE_SIZE; i++)
-	{
-		// 0 or 1 or 2 = none or read or write
-
-		//searching in PD for present PT
-		if (mappingUnit.getPresentBit(*(ptr1)) == PRESENT)
-		{
-			//found one at ...
-
-			//searching in PT for present Pages
-			unsigned *ptrToPT = (virtualMemStartAddress + (mappingUnit.cutOfOffset(*(ptr1)) * PAGETABLE_SIZE));
-			for (int j = 0; j < PAGETABLE_SIZE; j++)
-			{
-				unsigned page = *(ptrToPT);
-				if (mappingUnit.getPresentBit(page) == PRESENT)
-				{
-					//found one Page
-					if (mappingUnit.getReadAndWriteBit(page) == READ)
-					{
-						virtualMem->push_back(1);
-					}
-					else
-					{
-						virtualMem->push_back(2);
-					}
-
-					physicalMem->push_back((mappingUnit.cutOfOffset(page) + 1));
-				}
-				else
-				{
-					virtualMem->push_back(0);
-					physicalMem->push_back(0);
-				}
-
-				ptrToPT++;
-			}
-		}
-
-		//one step more in PD
-		ptr1++;
-	}
-}
 
 void *VirtualMem::expand(size_t size)
 {
-	/*
-    i dont think that it makes sense to implement expand because you could do 3 things:
-        -increase the number of chunks, but as long as you dont increase the number of max. act. chunks
-        it wouldnt have any effect other than increasing the "amount of space in the hard drive"
-            (this is what the inactive chungs simulate)
-        -increase the amount of max. active chunks...yeah...
-        -increase the space of each chunk, but because the chunks are consecutive to each other you first have to destroy
-        (at least) all but the first one, increase the memory of the first one for some amount and than rebuild the other with
-        the new memory size...this also dont seem like it makes sense for this simulation
-    */
 	return NULL;
 }
 
 VirtualMem::~VirtualMem()
 {
-	//deleteInterval();
-	//munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
-	//shm_unlink("phy-Mem");
+	munmap(this->virtualMemStartAddress, NUMBER_OF_PAGES * PAGESIZE);
+	shm_unlink("phy-Mem");
 }
 
-void VirtualMem::resetQueues()
-{
-	//need to be changed
-
-	/*int k = writeQueue.size();
-	int l = readQueue.size();
-	for (int i = 0; i < k; i++) {
-		void* kickedWriteChunkAddr = this->writeQueue.deQueue();
-		kickedPageDeactivate(kickedWriteChunkAddr);
-	}
-
-	for (int i = 0; i < l; i++) {
-		void* kickedReadChunkAddr = this->readQueue.deQueue();
-		kickedPageDeactivate(kickedReadChunkAddr);
-	}
-
-	this -> pinnedPages = 0;*/
-}
-
-void* VirtualMem::operator new(size_t size) {
-	cout << "virtual mem new" << endl;
-	return malloc(size);
-}
-
-void VirtualMem::operator delete(void* ptr) {
-	free(ptr);
-}

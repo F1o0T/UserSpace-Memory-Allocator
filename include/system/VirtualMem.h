@@ -46,7 +46,6 @@ private:
     
 public:
     unsigned pagesinRAM = 0;
-    bool protNoneAllFlag = false;
     Queue accessQueue;
     bool LRU_running = false;
     /////////////////////////////////////////////////
@@ -54,7 +53,6 @@ public:
     // static void signalHandeler(int SigNumber, siginfo_t *info, void *ucontext);
     // VirtualMem(size_t chunkSize, size_t chunksNumber, size_t blockSize, size_t maxChunksAvailable, bool writeBackAll);
     VirtualMem();
-    void initMem();
     ~VirtualMem();
     /////////////////////////////////////////////////
     // Basic Methods
@@ -75,13 +73,7 @@ public:
     void pageIn(void *ptr);
     void mapOut(void *pageStartAddress);
     void mapIn(void *pageStartAddress);
-    void fillList(list<int> *virtualMem, list<unsigned> *physicalMem);
-    void resetQueues();
     void protNoneAll();
-    void initFirstPageForHeap();
-    void* operator new(size_t size);
-
-    void operator delete(void* ptr);
 };
 
 extern VirtualMem vMem;

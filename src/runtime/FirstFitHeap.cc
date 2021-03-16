@@ -4,27 +4,16 @@
 bool initialized = 0;
 extern VirtualMem vMem;
 extern std::mutex myMutex;
+extern FirstFitHeap heap;
 
 
 void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
 {
     myMutex.lock();
-   
-    //wait on ProtNoneAll
-    /*
-    while(true){
-        if (vMem.protNoneAllFlag == false) {
-            vMem.stopTimer();
-            break;
-        }
-    }
-    */
 
 	if (info->si_code == SEGV_ACCERR)
     {   
-        //cout << "|>>> Error: Permission issues!, lets fix it." <<endl;
         vMem.fixPermissions(info->si_addr);
-        //cout << "|>>> Permissions were fixed!" << endl;
     }
     else if (info->si_code == SEGV_MAPERR)
     {
@@ -32,17 +21,6 @@ void signalHandler(int sigNUmber, siginfo_t *info, void *ucontext)
         exit(1);
     }
     
-
-    //wait on ProtNoneAll----why we should do this?
-    /*
-    while(true){
-        if (vMem.protNoneAllFlag == false) {
-            break;
-        }
-        cout << "ok lets wait for protNone2" << endl;
-    }
-    */
-
    myMutex.unlock();
 }
 
@@ -67,9 +45,6 @@ FirstFitHeap::~FirstFitHeap(){
     vMem.LRU_running = false;
 }
 
-void FirstFitHeap::initHeap(){
-}
-
 
 
 void* FirstFitHeap::malloc(size_t size) {
@@ -77,11 +52,10 @@ void* FirstFitHeap::malloc(size_t size) {
     if(!initialized){
         return sbrk(size);
     }
-    //myMutex.lock();
+    
     //user cannot allocate 0 byte
     if (size == 0) {
         cerr << "Error: Please dont use a 0!" << endl;
-        //myMutex.unlock();
         return nullptr;
     }
     /////////////start normal method
@@ -94,7 +68,6 @@ void* FirstFitHeap::malloc(size_t size) {
     while ((size_t) (curPos -> freeSpace) < size + 4 || curPos -> freeSpace < sizeof(freeBlock)) {
         if (curPos -> nextAddress == 0) {                
             cerr << "Error: There is not enough memory available." << endl;
-            //myMutex.unlock();
             return nullptr;
         }
         lastPos = curPos;
@@ -126,14 +99,9 @@ void* FirstFitHeap::malloc(size_t size) {
 
     //record the size of the block
     *((unsigned*) curPos) = (unsigned) size;
- 
-
-    //myMutex.unlock();
 
     //Return the start of the usable block
     return (void*) (((unsigned*) curPos) + 1);
-
-
 }
 
 /*
@@ -224,7 +192,7 @@ void FirstFitHeap::addBlockInList(freeBlock* block){
 void FirstFitHeap::free(void* address) {
 
     if(address < vMem.getStart()){
-        cerr << "Error: Address to free is smaller than start of the heap: " << address << endl;
+        //cerr << "Error: Address to free is smaller than start of the heap: " << address << endl;
         return;
     }
     if(address > (((char*) vMem.getStart()) + vMem.getSize())){
@@ -248,7 +216,6 @@ void FirstFitHeap::free(void* address) {
 
 //checks whether the address to free is a correct start of a block
 bool FirstFitHeap::correctAddress(void* address){
-    //myMutex.lock();
     char* ptr1 = (char*) vMem.getStart();//move zeiger
     void* ptr2 = this->head;//comparison pointer points on the next free block
 
@@ -257,7 +224,6 @@ bool FirstFitHeap::correctAddress(void* address){
             //move on ptr
             ptr2 = (((freeBlock*) ptr1) -> nextAddress);
             ptr1 += (((freeBlock*) ptr1) -> freeSpace);
-            //ptr1 += sizeUnsi;
 
         } else {
             //move on ptr
@@ -266,14 +232,10 @@ bool FirstFitHeap::correctAddress(void* address){
             }
 
             ptr1 += *((unsigned*) ptr1);
-            //ptr1 += sizeUnsi;
         }
     }
     cerr << "address to free is not correct" << endl;
-
-    //myMutex.unlock();
     return false;
-
 }
 
 
@@ -294,10 +256,8 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
 
     if (malloc_size < size) {    
         returnPtr = malloc(size);
-        //myMutex.lock();
         //if it is to big then return NULL
         if (returnPtr == NULL) {
-            //myMutex.unlock();
             return NULL;
         }
 
@@ -313,7 +273,6 @@ void* FirstFitHeap::realloc(void* ptr, size_t size) {
     } else {
         returnPtr = ptr;
     }
-    //myMutex.unlock();
     return returnPtr;
 }
 
